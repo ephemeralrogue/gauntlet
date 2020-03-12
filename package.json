@@ -25,6 +25,7 @@
     "watch": "tsc -watch --sourceMap --incremental"
   },
   "dependencies": {
+    "discord.js": "^12.0.2"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^5.0.0",
