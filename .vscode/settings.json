@@ -1,0 +1,9 @@
+{
+  "[typescript]": {
+    "editor.formatOnSave": true
+  },
+  "cSpell.words": [
+    "RESTJSON",
+    "Spidey"
+  ]
+}

@@ -1,0 +1,8 @@
+.DS_Store
+.eslintcache
+pnpm-debug.log
+*.tsbuildinfo
+.history/
+coverage/
+dist/
+node_modules/

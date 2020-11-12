@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declarationMap": true,
+    "sourceMap": true,
+    "incremental": true
+  },
+  "references": [
+    {"path": "../src/tsconfig.dev.json"}
+  ]
+}

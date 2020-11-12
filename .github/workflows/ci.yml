@@ -1,0 +1,62 @@
+name: CI
+on:
+- push
+- pull_request
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2-beta
+      with:
+        node-version: '12'
+
+    - name: Install
+      run: npm i -g pnpm && pnpm i
+
+    - name: Lint
+      run: pnpm run lint && pnpm run lint:md
+    - name: Build
+      run: pnpm run build
+
+    - name: Upload build data
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      uses: actions/upload-artifact@v2
+      with:
+        name: dist
+        path: dist
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: test
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2-beta
+      with:
+        node-version: '12'
+
+    - uses: crazy-max/ghaction-import-gpg@v3
+      with:
+        gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+        passphrase: ${{ secrets.GPG_PASSPHRASE }}
+        git-user-signingkey: true
+        git-commit-gpgsign: true
+
+    - name: Install
+      run: npm i -g pnpm && pnpm i
+
+    - name: Download build data
+      uses: actions/download-artifact@v2
+      with:
+        name: dist
+        path: dist
+
+    - name: Release
+      run: pnpx semantic-release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

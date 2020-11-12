@@ -1,0 +1,3 @@
+rules:
+  '@typescript-eslint/explicit-function-return-type': 0
+  '@typescript-eslint/require-await': 0

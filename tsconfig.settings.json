@@ -1,0 +1,27 @@
+{
+  "exclude": ["node_modules/", "dist/"],
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    // Node <12.10.0 doesn't have Promise.allSettled
+    "lib": [
+      "es2019",
+      "es2020.bigint",
+      "es2020.string",
+      "es2020.symbol.wellknown"
+    ],
+    // Node <14.5.0 doesn't support ?? or ?.
+    "target": "es2019",
+    "module": "commonjs",
+
+    "allowUnreachableCode": false,
+    "importsNotUsedAsValues": "error",
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strict": true,
+    "useDefineForClassFields": true,
+    "noErrorTruncation": true
+  }
+}
