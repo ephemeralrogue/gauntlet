@@ -2,7 +2,6 @@ import * as D from 'discord.js'
 import * as DM from '../src'
 import type {ClientData, Data} from '../src'
 
-// eslint-disable-next-line import/prefer-default-export -- general utils
 export const testWithClient = ({
   name,
   data,
