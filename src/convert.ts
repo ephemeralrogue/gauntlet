@@ -68,8 +68,8 @@ export const guildMember = ({users}: ResolvedData) => (
 
 /**
  * Converts a `DataGuild` into an `APIGuild`. This does not include fields only
- * sent in `GUILD_CREATE`, Get Current User Guilds, and in Get Guild
- * without `with_counts`.
+ * sent in `GUILD_CREATE`, Get Current User Guilds, Get Guild without
+ * `with_counts`, and in an `APIInvite`.
  *
  * @param data The backend data.
  * @returns A function for converting a guild object in the backend
@@ -111,8 +111,7 @@ export const guild = (
     premium_subscription_count,
     preferred_locale,
     public_updates_channel_id,
-    max_video_channel_users,
-    welcome_screen
+    max_video_channel_users
   }): APIGuild => ({
     id,
     name,
@@ -145,8 +144,7 @@ export const guild = (
     premium_subscription_count,
     preferred_locale,
     public_updates_channel_id,
-    max_video_channel_users,
-    welcome_screen
+    max_video_channel_users
   })
 }
 
@@ -161,13 +159,13 @@ export const guild = (
 export const guildCreateGuild = (
   data: ResolvedData,
   {userID}: ResolvedClientData
-): ((dataGuild: DataGuild) => APIGuild) => {
+): ((dataGuild: DataGuild, convertedGuild?: APIGuild) => APIGuild) => {
   const convertGuild = guild(data)
   const convertGuildMember = guildMember(data)
-  return (dataGuild): APIGuild => {
+  return (dataGuild, convertedGuild): APIGuild => {
     const {large, unavailable, members, channels, presences} = dataGuild
     return {
-      ...convertGuild(dataGuild),
+      ...(convertedGuild ?? convertGuild(dataGuild)),
       joined_at: members.find(({id}) => id === userID)?.joined_at,
       large,
       unavailable,

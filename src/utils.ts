@@ -44,22 +44,6 @@ export type AnyFunction =
   | ((...args: never[]) => unknown)
   | (new (...args: never[]) => unknown)
 
-// eslint-disable-next-line @typescript-eslint/no-use-before-define -- recursive
-type ObjectPartialDeep<T extends object> = {[K in keyof T]?: PartialDeep<T[K]>}
-
-/** Deep `Partial`. */
-type PartialDeep<T> = T extends readonly (infer U)[]
-  ? number extends T['length']
-    ? T extends unknown[]
-      ? PartialDeep<U>[] // ordinary mutable array
-      : readonly PartialDeep<U>[] // ordinary readonly array
-    : ObjectPartialDeep<T> // tuple
-  : T extends AnyFunction
-  ? T
-  : T extends object
-  ? ObjectPartialDeep<T>
-  : T
-
 /**
  * Deep clones an object.
  *

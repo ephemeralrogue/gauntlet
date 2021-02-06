@@ -21,12 +21,17 @@ import type {FormBodyError, FormBodyErrors} from '../../errors'
 import type {KeysMatching, RequireKeys} from '../../utils'
 import type {Guilds} from '.'
 
-const validGuildChannelTypes = new Set([
+const validGuildChannelTypesArray = [
   ChannelType.GUILD_TEXT,
   ChannelType.GUILD_VOICE,
   ChannelType.GUILD_CATEGORY
-])
-const validGuildChannelTypesText = [...validGuildChannelTypes].join(', ')
+]
+const validGuildChannelTypes = new Set(validGuildChannelTypesArray)
+const validGuildChannelTypesText = validGuildChannelTypesArray.join(', ')
+
+const validAFKTimeoutsArray = [60, 300, 900, 1800, 3600]
+const validAFKTimeouts = new Set(validAFKTimeoutsArray)
+const validAFKTimeoutsText = validGuildChannelTypesArray.join(', ')
 
 type AnyID = Snowflake | number
 const checkErrors = (
@@ -34,7 +39,7 @@ const checkErrors = (
   clientData: ResolvedClientData,
   guild: RESTPostAPIGuildsJSONBody
 ) => {
-  const {name, channels} = guild
+  const {name, channels, afk_timeout} = guild
   const path = '/guilds'
   const method = Method.POST
 
@@ -85,11 +90,18 @@ const checkErrors = (
   )
 
   const errs: FormBodyErrors = {
-    ...(name.length < 2 || name.length > 100
-      ? {name: {_errors: [formBodyErrors.BASE_TYPE_BAD_LENGTH(2, 100)]}}
+    ...(afk_timeout !== undefined && !validAFKTimeouts.has(afk_timeout)
+      ? {
+          afk_timeout: {
+            _errors: [formBodyErrors.BASE_TYPE_CHOICES(validAFKTimeoutsText)]
+          }
+        }
       : {}),
     ...(channelErrors && Object.keys(channelErrors).length
       ? {channels: channelErrors}
+      : {}),
+    ...(name.length < 2 || name.length > 100
+      ? {name: {_errors: [formBodyErrors.BASE_TYPE_BAD_LENGTH(2, 100)]}}
       : {})
   }
   if (Object.keys(errs).length)
@@ -303,7 +315,11 @@ export default (
   }
   data.guilds.set(guildData.id, guildData)
 
-  const apiGuild = convert.guildCreateGuild(data, clientData)(guildData)
-  emitPacket(GatewayDispatchEvents.GuildCreate, apiGuild)
+  const apiGuild = convert.guild(data)(guildData)
+  const gatewayGuild = convert.guildCreateGuild(data, clientData)(
+    guildData,
+    apiGuild
+  )
+  emitPacket(GatewayDispatchEvents.GuildCreate, gatewayGuild)
   return apiGuild
 }

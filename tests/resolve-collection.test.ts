@@ -7,7 +7,6 @@ import type {
   DataPartialDeep,
   Defaults
 } from '../src/resolve-collection'
-import './matchers'
 
 interface Test {
   id: Snowflake
@@ -59,9 +58,11 @@ describe('resolveCollection', () => {
   test.each(data)('works for %s', (_, resolvable) =>
     expect(
       resolveCollection<Snowflake, Test, 'id'>(resolvable, 'id', defaults)
-    ).toStrictEqualMapEntries([
-      ['1', expect.objectContaining({id: '1', a: '1a', b: 'b'})],
-      ['2', expect.objectContaining({id: '2', b: '2b', a: 'a'})]
-    ])
+    ).toStrictEqual<Collection<Snowflake, Test>>(
+      new Collection([
+        ['1', expect.objectContaining({id: '1', a: '1a', b: 'b'})],
+        ['2', expect.objectContaining({id: '2', b: '2b', a: 'a'})]
+      ])
+    )
   )
 })

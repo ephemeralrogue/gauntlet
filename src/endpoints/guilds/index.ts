@@ -12,6 +12,7 @@ import type {EmitPacket} from '../../Backend'
 import type {ResolvedClientData, ResolvedData} from '../../Data'
 
 export interface Guilds {
+  // TODO: make endpoints a proxy https://github.com/discordjs/discord.js/pull/5256
   // channels: {
   //   post: (options: {
   //     data: RESTPostAPIGuildChannelJSONBody
