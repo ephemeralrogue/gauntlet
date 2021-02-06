@@ -14,6 +14,8 @@ import type {Override, RequireKeys} from './utils'
 
 // #region Data
 
+/* eslint-disable import/no-unused-modules -- eslint-plugin-import bug */
+
 /** An altered `GuildEmoji`. This is ued in `Data`. */
 export interface DataGuildEmoji extends Omit<GuildEmoji, 'user'> {
   user_id: Snowflake
@@ -38,6 +40,8 @@ export type DataGuildVoiceState = Omit<
   RequireKeys<GuildVoiceState, 'self_stream'>,
   'member'
 >
+
+/* eslint-enable import/no-unused-modules */
 
 /** An altered `APIGuild`. This is ued in `Data`. */
 export interface DataGuild
