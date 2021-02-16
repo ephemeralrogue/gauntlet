@@ -1,1 +1,3 @@
+#!/bin/bash
+
 pnpx commitlint -e $1
