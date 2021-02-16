@@ -5,7 +5,7 @@ import type {DeepPartialOmit} from './utils'
 
 describe('initial guilds', () => {
   test('basic guild', async () => {
-    const client = new D.Client()
+    const client = new D.Client({intents: ['GUILDS']})
     const promise = new Promise<void>(resolve => {
       client.on('guildCreate', guild => {
         expect(guild.id).toBe('1')
@@ -25,7 +25,7 @@ describe('initial guilds', () => {
   })
 
   test('guild member without user in data', async () => {
-    const client = new D.Client()
+    const client = new D.Client({intents: ['GUILDS']})
     const promise = new Promise<void>(resolve => {
       client.on('guildCreate', guild => {
         expect(guild.id).toBe('1')
@@ -45,8 +45,7 @@ describe('initial guilds', () => {
   })
 })
 
-// eslint-disable-next-line jest/no-disabled-tests -- waiting for https://github.com/discordjs/discord.js/pull/4879
-describe.skip('create guild', () => {
+describe('create guild', () => {
   // Omitting valueOf because ({...}).valueOf() is Object, whereas
   // (guild as D.Guild).valueOf() is string
   type MatchObjectGuild = DeepPartialOmit<D.Guild, 'valueOf'>

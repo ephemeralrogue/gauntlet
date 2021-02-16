@@ -28,12 +28,14 @@ export type DeepPartialOmit<
 
 export const testWithClient = ({
   name,
+  intents = D.Intents.NON_PRIVILEGED,
   data,
   clientData,
   fn,
   testFn = test
 }: {
   name: string
+  intents?: D.ClientOptions['intents']
   data?: DM.Data
   clientData?: DM.ClientData
   fn: (client: D.Client) => Promise<void>
@@ -42,12 +44,12 @@ export const testWithClient = ({
   // eslint-disable-next-line jest/valid-title -- helper fn
   describe(name, () => {
     testFn('mockClient', async () => {
-      const client = new D.Client()
+      const client = new D.Client({intents})
       DM.mockClient(client, clientData, new DM.Backend(data))
       await fn(client)
     })
 
     testFn('new DM.Client()', async () =>
-      fn(new DM.Client(undefined, clientData, new DM.Backend(data)))
+      fn(new DM.Client({intents}, clientData, new DM.Backend(data)))
     )
   })

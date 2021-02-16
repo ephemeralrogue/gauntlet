@@ -77,7 +77,7 @@ export class Client extends D.Client {
   declare user: D.ClientUser
 
   constructor(
-    options?: Readonly<ClientOptions>,
+    options: Readonly<ClientOptions>,
     data?: ClientData,
     backend: Backend = new Backend()
   ) {
