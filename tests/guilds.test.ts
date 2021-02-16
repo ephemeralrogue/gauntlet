@@ -50,43 +50,37 @@ describe('create guild', () => {
   // (guild as D.Guild).valueOf() is string
   type MatchObjectGuild = DeepPartialOmit<D.Guild, 'valueOf'>
 
-  testWithClient({
-    name: 'only name supplied',
-    fn: async client => {
-      const name = 'name'
-      const guild = await client.guilds.create(name)
-      expect(guild).toMatchObject<MatchObjectGuild>({
-        name,
-        afkTimeout: 300,
-        defaultMessageNotifications: 'ALL',
-        explicitContentFilter: 'DISABLED',
-        verificationLevel: 'NONE'
-      })
-    }
+  testWithClient('only name supplied', async client => {
+    const name = 'name'
+    const guild = await client.guilds.create(name)
+    expect(guild).toMatchObject<MatchObjectGuild>({
+      name,
+      afkTimeout: 300,
+      defaultMessageNotifications: 'ALL',
+      explicitContentFilter: 'DISABLED',
+      verificationLevel: 'NONE'
+    })
   })
 
-  testWithClient({
-    name: 'overriding basic defaults',
-    fn: async client => {
-      const name = 'name'
-      const afkTimeout = 60
-      const defaultMessageNotifications: D.DefaultMessageNotifications =
-        'MENTIONS'
-      const explicitContentFilter: D.ExplicitContentFilterLevel = 'ALL_MEMBERS'
-      const verificationLevel: D.VerificationLevel = 'HIGH'
-      const guild = await client.guilds.create(name, {
-        afkTimeout,
-        defaultMessageNotifications,
-        explicitContentFilter,
-        verificationLevel
-      })
-      expect(guild).toMatchObject<MatchObjectGuild>({
-        name,
-        afkTimeout,
-        defaultMessageNotifications,
-        explicitContentFilter,
-        verificationLevel
-      })
-    }
+  testWithClient('overriding basic defaults', async client => {
+    const name = 'name'
+    const afkTimeout = 60
+    const defaultMessageNotifications: D.DefaultMessageNotifications =
+      'MENTIONS'
+    const explicitContentFilter: D.ExplicitContentFilterLevel = 'ALL_MEMBERS'
+    const verificationLevel: D.VerificationLevel = 'HIGH'
+    const guild = await client.guilds.create(name, {
+      afkTimeout,
+      defaultMessageNotifications,
+      explicitContentFilter,
+      verificationLevel
+    })
+    expect(guild).toMatchObject<MatchObjectGuild>({
+      name,
+      afkTimeout,
+      defaultMessageNotifications,
+      explicitContentFilter,
+      verificationLevel
+    })
   })
 })

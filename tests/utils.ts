@@ -26,30 +26,28 @@ export type DeepPartialOmit<
   : T
 /* eslint-enable @typescript-eslint/ban-types */
 
-export const testWithClient = ({
-  name,
-  intents = D.Intents.NON_PRIVILEGED,
-  data,
-  clientData,
-  fn,
-  testFn = test
-}: {
-  name: string
-  intents?: D.ClientOptions['intents']
-  data?: DM.Data
-  clientData?: DM.ClientData
-  fn: (client: D.Client) => Promise<void>
-  testFn?: (name: string, fn?: jest.EmptyFunction) => void
-}): void =>
-  // eslint-disable-next-line jest/valid-title -- helper fn
+export const testWithClient = (
+  name: string,
+  fn: (client: D.Client) => Promise<void>,
+  {
+    intents = D.Intents.NON_PRIVILEGED,
+    data,
+    clientData
+  }: {
+    intents?: D.ClientOptions['intents']
+    data?: DM.Data
+    clientData?: DM.ClientData
+  } = {}
+): void =>
+  /* eslint-disable jest/expect-expect, jest/valid-title -- helper fn */
   describe(name, () => {
-    testFn('mockClient', async () => {
+    test('mockClient', async () => {
       const client = new D.Client({intents})
       DM.mockClient(client, clientData, new DM.Backend(data))
       await fn(client)
     })
 
-    testFn('new DM.Client()', async () =>
-      fn(new DM.Client({intents}, clientData, new DM.Backend(data)))
-    )
+    test('new DM.Client()', async () =>
+      fn(new DM.Client({intents}, clientData, new DM.Backend(data))))
+    /* eslint-enable jest/expect-expect, jest/valid-title -- helper fn */
   })
