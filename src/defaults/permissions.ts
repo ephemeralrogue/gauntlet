@@ -1,9 +1,9 @@
 import {snowflake} from '../utils'
 import {DEFAULT_PERMISSIONS_STRING, DEFAULT_ROLE_NAME} from './constants'
+import {createDefaults as d} from './utils'
 import type {APIRole} from 'discord-api-types/v8'
-import type {Defaults} from '../resolve-collection'
 
-export const role: Defaults<APIRole> = _role => ({
+export const role = d<APIRole>(_role => ({
   id: snowflake(),
   name: DEFAULT_ROLE_NAME,
   color: 0,
@@ -13,4 +13,4 @@ export const role: Defaults<APIRole> = _role => ({
   managed: false,
   mentionable: false,
   ..._role
-})
+}))

@@ -94,15 +94,16 @@ export const resolveCollection = <
                 return [(resolved[key] as unknown) as K, resolved]
               })
             : // Record<K, Partial<Omit<V, I>>
-              Object.entries(resolvable).map<readonly [K, V]>(
-                ([_key, value]) => [
-                  _key,
-                  defaults(({
-                    ...value,
-                    [key]: _key
-                  } as unknown) as DataPartialDeep<V>)
-                ]
-              )
+              ((Object.entries(resolvable) as unknown) as readonly (readonly [
+                K,
+                DataPartialDeep<Omit<V, I>>
+              ])[]).map(([_key, value]) => [
+                _key,
+                defaults(({
+                  ...value,
+                  [key]: _key
+                } as unknown) as DataPartialDeep<V>)
+              ])
           : // undefined
             undefined
       )

@@ -6,14 +6,15 @@ import {
   GuildVerificationLevel
 } from 'discord-api-types/v8'
 import {snowflake, timestamp} from '../utils'
-import {DEFAULT_GUILD_NAME, DEFAULT_INTEGRATION_NAME} from './constants'
 import {auditLogEntry} from './audit-log'
+import {DEFAULT_GUILD_NAME, DEFAULT_INTEGRATION_NAME} from './constants'
 import {dataGuildEmoji} from './emoji'
 import {dataGuildChannel} from './channel'
 import {guildPresence} from './gateway'
 import {partialApplication} from './oauth2'
 import {role} from './permissions'
 import {user} from './user'
+import {createDefaults as d} from './utils'
 import type {
   APIGuildIntegration,
   APIGuildIntegrationApplication,
@@ -23,24 +24,23 @@ import type {
   APIPartialGuild
 } from 'discord-api-types/v8'
 import type {DataGuild, DataGuildMember, DataGuildVoiceState} from '../Data'
-import type {Defaults} from '../resolve-collection'
 // eslint-disable-next-line import/max-dependencies -- type imports
 import type {NonEmptyArray} from '../utils'
 
-const welcomeScreenChannel: Defaults<APIGuildWelcomeScreenChannel> = _channel => ({
+const welcomeScreenChannel = d<APIGuildWelcomeScreenChannel>(_channel => ({
   channel_id: snowflake(),
   emoji_id: null,
   emoji_name: null,
   ..._channel
-})
+}))
 
-const welcomeScreen: Defaults<APIGuildWelcomeScreen> = screen => ({
+const welcomeScreen = d<APIGuildWelcomeScreen>(screen => ({
   description: null,
   ...screen,
   welcome_channels: screen?.welcome_channels?.map(welcomeScreenChannel) ?? []
-})
+}))
 
-export const partialGuild: Defaults<APIPartialGuild> = guild => ({
+export const partialGuild = d<APIPartialGuild>(guild => ({
   id: snowflake(),
   name: DEFAULT_GUILD_NAME,
   icon: null,
@@ -49,20 +49,22 @@ export const partialGuild: Defaults<APIPartialGuild> = guild => ({
   welcome_screen: guild?.welcome_screen
     ? welcomeScreen(guild.welcome_screen)
     : undefined
-})
+}))
 
-const integrationAccount: Defaults<APIIntegrationAccount> = _account => ({
+const integrationAccount = d<APIIntegrationAccount>(_account => ({
   id: snowflake(),
   name: 'Integration Account Name',
   ..._account
-})
+}))
 
-const integrationApplication: Defaults<APIGuildIntegrationApplication> = application => ({
-  ...partialApplication(application),
-  bot: application?.bot ? user(application.bot) : undefined
-})
+const integrationApplication = d<APIGuildIntegrationApplication>(
+  application => ({
+    ...partialApplication(application),
+    bot: application?.bot ? user(application.bot) : undefined
+  })
+)
 
-export const integration: Defaults<APIGuildIntegration> = _integration => ({
+export const integration = d<APIGuildIntegration>(_integration => ({
   id: snowflake(),
   name: DEFAULT_INTEGRATION_NAME,
   type: 'twitch',
@@ -73,9 +75,9 @@ export const integration: Defaults<APIGuildIntegration> = _integration => ({
   application: _integration?.application
     ? integrationApplication(_integration.application)
     : undefined
-})
+}))
 
-const dataGuildMember: Defaults<DataGuildMember> = member => ({
+const dataGuildMember = d<DataGuildMember>(member => ({
   id: snowflake(),
   nick: null,
   roles: [],
@@ -83,9 +85,9 @@ const dataGuildMember: Defaults<DataGuildMember> = member => ({
   premium_since: null,
   pending: false,
   ...member
-})
+}))
 
-const dataGuildVoiceState: Defaults<DataGuildVoiceState> = voiceState => ({
+const dataGuildVoiceState = d<DataGuildVoiceState>(voiceState => ({
   channel_id: null,
   user_id: snowflake(),
   // TODO: investigate proper session_id
@@ -100,9 +102,9 @@ const dataGuildVoiceState: Defaults<DataGuildVoiceState> = voiceState => ({
   // seem to make this true)
   suppress: false,
   ...voiceState
-})
+}))
 
-export const dataGuild: Defaults<DataGuild> = guild => {
+export const dataGuild = d<DataGuild>(guild => {
   /** Includes extra properties from `Guild` not in `APIPartialGuild`. */
   const partial = partialGuild(guild)
   const _members = guild?.members?.map(dataGuildMember)
@@ -145,4 +147,4 @@ export const dataGuild: Defaults<DataGuild> = guild => {
     audit_log_entries: guild?.audit_log_entries?.map(auditLogEntry) ?? [],
     integrations: guild?.integrations?.map(integration) ?? []
   }
-}
+})

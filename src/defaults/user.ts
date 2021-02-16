@@ -1,11 +1,12 @@
 import {snowflake} from '../utils'
+import {createDefaults as d} from './utils'
 import type {APIUser} from 'discord-api-types/v8'
-import type {DataPartialDeep, Defaults} from '../resolve-collection'
+import type {DataPartialDeep} from '../resolve-collection'
 import type {RequireKeys} from '../utils'
 
 const discriminatorMap = new Map<string, number>()
 
-export const user: Defaults<APIUser> = _user => {
+export const user = d<APIUser>(_user => {
   const base: RequireKeys<
     DataPartialDeep<APIUser>,
     'avatar' | 'id' | 'username'
@@ -24,4 +25,4 @@ export const user: Defaults<APIUser> = _user => {
     ...base,
     discriminator: discriminator.toString().padStart(4, '0')
   }
-}
+})

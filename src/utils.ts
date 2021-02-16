@@ -5,10 +5,6 @@ declare global {
   interface ArrayConstructor {
     isArray(arg: unknown | readonly unknown[]): arg is readonly unknown[]
   }
-
-  interface ObjectConstructor {
-    entries<K extends PropertyKey, V>(o: Readonly<Record<K, V>>): [K, V][]
-  }
 }
 
 export type NonEmptyArray<T> = [T, ...T[]]
@@ -44,21 +40,51 @@ export type AnyFunction =
   | ((...args: never[]) => unknown)
   | (new (...args: never[]) => unknown)
 
+const isObject = <T>(x: T): x is T & object =>
+  typeof x == 'object' && x !== null
+
+const _clone = <U>(x: U): U =>
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define -- recursive
+  (Array.isArray(x) ? x.map(_clone) : isObject(x) ? clone(x) : x) as U
+
 /**
  * Deep clones an object.
  *
  * @param object The object to clone.
  * @returns The cloned object.
  */
-export const clone = <T extends object>(object: T): T => {
-  const _clone = <U>(x: U): U =>
-    (Array.isArray(x)
-      ? x.map(_clone)
-      : typeof x == 'object' && ((x as unknown) as object | null)
-      ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, clone(v)]))
-      : x) as U
-  return _clone(object)
-}
+export const clone = <T>(object: T): T =>
+  Object.fromEntries(
+    Object.entries(object).map(([k, v]) => [k, _clone(v)])
+  ) as T
+
+/**
+ * Removes `undefined` values from an object.
+ *
+ * This doesn't have an `object` constraint on `T` because of issues like
+ * `DataPartialDeep<T>` not being assignable to `object`.
+ *
+ * WARNING: This is technically ill-typed. For example:
+ *
+ * ```ts
+ * interface A {
+ *   a: undefined
+ * }
+ * const a: A = {a: undefined}
+ * // has type A but at runtime is {}, which lacks the a property
+ * const bad = removeUndefined(a)
+ * ```
+ *
+ * @param object The object to remove undefined values form.
+ * @returns The object without the undefined values, or simply `object` if
+ * `object` is not an object (e.g. `undefined`).
+ */
+export const removeUndefined = <T>(object: T): T =>
+  isObject(object)
+    ? (Object.fromEntries(
+        Object.entries(object).filter(([, v]) => v !== undefined)
+      ) as T)
+    : object
 
 export const timestamp = (date?: Date | number): string =>
   (date instanceof Date

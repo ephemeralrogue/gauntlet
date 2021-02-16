@@ -1,9 +1,9 @@
 import {snowflake} from '../utils'
 import {DEFAULT_CUSTOM_EMOJI_NAME} from './constants'
+import {createDefaults as d} from './utils'
 import type {DataGuildEmoji} from '../Data'
-import type {Defaults} from '../resolve-collection'
 
-export const dataGuildEmoji: Defaults<DataGuildEmoji> = emoji => ({
+export const dataGuildEmoji = d<DataGuildEmoji>(emoji => ({
   id: snowflake(),
   name: DEFAULT_CUSTOM_EMOJI_NAME,
   animated: false,
@@ -13,4 +13,4 @@ export const dataGuildEmoji: Defaults<DataGuildEmoji> = emoji => ({
   managed: false,
   available: true,
   ...emoji
-})
+}))

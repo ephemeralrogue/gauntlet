@@ -1,31 +1,31 @@
 import {ChannelType, OverwriteType} from 'discord-api-types/v8'
 import {snowflake} from '../utils'
 import {DEFAULT_CHANNEL_NAME} from './constants'
+import {createDefaults as d} from './utils'
 import type {
   APIOverwrite,
   APIPartialChannel,
   Snowflake
 } from 'discord-api-types/v8'
 import type {DataGuildChannel} from '../Data'
-import type {Defaults} from '../resolve-collection'
 
-export const overwrite: Defaults<APIOverwrite> = _overwrite => ({
+export const overwrite = d<APIOverwrite>(_overwrite => ({
   id: snowflake(),
   type: OverwriteType.Role,
   allow: '0',
   deny: '0',
   ..._overwrite
-})
+}))
 
-export const partialChannel: Defaults<APIPartialChannel> = channel => ({
+export const partialChannel = d<APIPartialChannel>(channel => ({
   id: snowflake(),
   type: channel?.type ?? ChannelType.GUILD_TEXT,
   name:
     // Every channel except for DMs can have names
     channel?.type === ChannelType.DM ? undefined : channel?.name ?? 'general'
-})
+}))
 
-export const dataGuildChannel: Defaults<DataGuildChannel> = channel => {
+export const dataGuildChannel = d<DataGuildChannel>(channel => {
   const partial = partialChannel(channel)
   const base: DataGuildChannel = {
     ...(partial.type === ChannelType.GUILD_CATEGORY ? {} : {parent_id: null}),
@@ -58,7 +58,7 @@ export const dataGuildChannel: Defaults<DataGuildChannel> = channel => {
     default:
       throw new TypeError(`Invalid guild channel type: ${base.type}`)
   }
-}
+})
 
 export const dataGuildChannels = (): [
   channels: DataGuildChannel[],

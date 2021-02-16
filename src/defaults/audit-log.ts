@@ -20,13 +20,14 @@ import {
   DEFAULT_ROLE_NAME,
   DEFAULT_WEBHOOK_NAME
 } from './constants'
+import {createDefaults as d} from './utils'
 import type {
   APIAuditLogChange,
   APIAuditLogChangeKeyID,
   APIAuditLogOptions,
   Snowflake
 } from 'discord-api-types/v8'
-import type {DataPartialDeep, Defaults} from '../resolve-collection'
+import type {DataPartialDeep} from '../resolve-collection'
 import type {RequireKeys} from '../utils'
 import type {
   AuditLogChange,
@@ -43,7 +44,7 @@ const overwriteTypeChangeToOptions: Readonly<
 
 // TODO: refactor so it's <= 200 lines
 // eslint-disable-next-line complexity, max-lines-per-function -- mainly due to the switch case
-export const auditLogEntry: Defaults<AuditLogEntry> = entry => {
+export const auditLogEntry = d<AuditLogEntry>(entry => {
   const base: RequireKeys<
     DataPartialDeep<AuditLogEntry>,
     'action_type' | 'id' | 'user_id'
@@ -329,4 +330,4 @@ export const auditLogEntry: Defaults<AuditLogEntry> = entry => {
         new_value: DEFAULT_NEW_INTEGRATION_NAME
       })
   }
-}
+})

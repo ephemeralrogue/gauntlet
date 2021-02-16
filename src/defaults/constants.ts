@@ -26,4 +26,4 @@ export const DEFAULT_PERMISSIONS_STRING = `${
   PermissionFlagsBits.SPEAK |
   PermissionFlagsBits.USE_VAD |
   PermissionFlagsBits.CHANGE_NICKNAME
-}`
+}` as const

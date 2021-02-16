@@ -1,7 +1,8 @@
 import {_resolveCollection, resolveCollection} from '../resolve-collection'
+import {createDefaults as d} from './utils'
 import type {APIVoiceRegion} from 'discord-api-types/v8'
 import type {Collection} from 'discord.js'
-import type {CollectionResolvable, Defaults} from '../resolve-collection'
+import type {CollectionResolvable} from '../resolve-collection'
 
 const defaultVoiceRegions: Collection<
   string,
@@ -164,7 +165,7 @@ const defaultVoiceRegions: Collection<
   'id'
 )
 
-export const voiceRegion: Defaults<APIVoiceRegion> = region => ({
+export const voiceRegion = d<APIVoiceRegion>(region => ({
   id: 'voice-region-id',
   name: 'Voice Region Name',
   vip: false,
@@ -172,7 +173,7 @@ export const voiceRegion: Defaults<APIVoiceRegion> = region => ({
   deprecated: false,
   custom: false,
   ...region
-})
+}))
 
 export const voiceRegions = (
   regions?: CollectionResolvable<string, APIVoiceRegion, 'id'>

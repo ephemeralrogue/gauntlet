@@ -1,18 +1,18 @@
 import {TeamMemberMembershipState} from 'discord-api-types/v8'
 import {snowflake} from '../utils'
 import {user} from './user'
+import {createDefaults as d} from './utils'
 import type {APITeam, APITeamMember} from 'discord-api-types/v8'
-import type {Defaults} from '../resolve-collection'
 
-export const teamMember: Defaults<APITeamMember> = member => ({
+export const teamMember = d<APITeamMember>(member => ({
   membership_state: TeamMemberMembershipState.INVITED,
   team_id: snowflake(),
   ...member,
   permissions: ['*'],
   user: user(member?.user)
-})
+}))
 
-export const team: Defaults<APITeam> = _team => {
+export const team = d<APITeam>(_team => {
   const id = snowflake()
   const ownerID = snowflake()
   return {
@@ -30,4 +30,4 @@ export const team: Defaults<APITeam> = _team => {
       })
     ]
   }
-}
+})
