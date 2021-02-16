@@ -41,7 +41,7 @@ const config = {
       1,
       {
         matchDescription:
-          '^([A-Z`\\d_{][\\s\\S]*[.?!]|https://discord.com/developers/docs/[\\s\\S]+)$'
+          '^([A-Z`\\d_{][\\s\\S]*[.?!`]|https://discord.com/developers/docs/[\\s\\S]+)$'
       }
     ]
   }
