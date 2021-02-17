@@ -53,10 +53,15 @@ const _clone = <U>(x: U): U =>
  * @param object The object to clone.
  * @returns The cloned object.
  */
-export const clone = <T>(object: T): T =>
-  Object.fromEntries(
-    Object.entries(object).map(([k, v]) => [k, _clone(v)])
-  ) as T
+export const clone = <T extends object>(object: T): T => {
+  const _clone = <U>(x: U): U =>
+    (Array.isArray(x)
+      ? x.map(_clone)
+      : typeof x == 'object' && ((x as unknown) as object | null)
+      ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, _clone(v)]))
+      : x) as U
+  return _clone(object)
+}
 
 /**
  * Removes `undefined` values from an object.
