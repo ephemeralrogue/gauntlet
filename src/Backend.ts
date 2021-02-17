@@ -41,6 +41,7 @@ export class Backend {
       guilds: resolvedGuilds,
       users: new Collection([
         ...resolvedUsers.entries(),
+        // Add users from guild members and guild template creators
         // eslint-disable-next-line unicorn/prefer-array-flat-map -- Collection, not array
         ...resolvedGuilds
           .map(({members, template}) => [

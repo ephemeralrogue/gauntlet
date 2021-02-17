@@ -20,6 +20,11 @@ export const errors = {
     400,
     RESTJSONErrorCodes.MaximumNumberOfGuildsReached
   ],
+  ALREADY_HAS_TEMPLATE: [
+    'A server can only have a single template.',
+    400,
+    RESTJSONErrorCodes.GuildAlreadyHasTemplate
+  ],
   MISSING_PERMISSIONS: [
     'Missing Permissions',
     403,

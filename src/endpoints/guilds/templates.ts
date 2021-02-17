@@ -1,6 +1,11 @@
 import {Method, error, errors} from '../../errors'
 import * as convert from '../../convert'
 import {checkClientGuildCount, createGuild, getNameErrors} from './post'
+import type {
+  RESTGetAPITemplateResult,
+  RESTPostAPITemplateCreateGuildJSONBody,
+  RESTPostAPITemplateCreateGuildResult
+} from 'discord-api-types/v8'
 import type {EmitPacket} from '../../Backend'
 import type {
   DataGuild,
@@ -8,9 +13,17 @@ import type {
   ResolvedClientData,
   ResolvedData
 } from '../../Data'
-import type {Guilds} from '..'
 
-const getTemplate = ({guilds}: ResolvedData) => (
+export type GuildsTemplates = (
+  code: string
+) => {
+  get: () => Promise<RESTGetAPITemplateResult>
+  post: (options: {
+    data: RESTPostAPITemplateCreateGuildJSONBody
+  }) => Promise<RESTPostAPITemplateCreateGuildResult>
+}
+
+export const getTemplate = ({guilds}: ResolvedData) => (
   code: string,
   path: string,
   method: Method
@@ -26,7 +39,7 @@ const templates = (
   data: ResolvedData,
   clientData: ResolvedClientData,
   emitPacket: EmitPacket
-): Guilds['templates'] => {
+): GuildsTemplates => {
   const _convertTemplate = convert.template(data)
   const _getTemplate = getTemplate(data)
   const _checkClientGuildCount = checkClientGuildCount(data, clientData)

@@ -53,11 +53,9 @@ export interface Activity extends GatewayActivity {
   buttons?: string[]
 }
 
-interface Presence extends GatewayPresenceUpdate {
+export interface Presence extends GatewayPresenceUpdate {
   activities?: Activity[]
 }
-
-export type GuildPresence = Omit<Presence, 'guild_id'>
 
 export interface GuildEmoji
   extends RequireKeys<
@@ -70,8 +68,6 @@ export interface GuildEmoji
 
 export type GuildVoiceState = Omit<GatewayVoiceState, 'guild_id'>
 
-export interface Guild
-  extends Override<APIGuild, {presences: GuildPresence[]}> {
+export interface Guild extends APIGuild {
   emojis: GuildEmoji[]
-  presences: GuildPresence[]
 }

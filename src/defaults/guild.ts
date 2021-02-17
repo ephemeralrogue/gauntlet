@@ -14,9 +14,9 @@ import {
 } from './constants'
 import {dataGuildEmoji} from './emoji'
 import {dataGuildChannel} from './channel'
-import {guildPresence} from './gateway'
+import {dataGuildPresence} from './gateway'
 import {partialApplication} from './oauth2'
-import {role} from './permissions'
+import {dataRole} from './permissions'
 import {dataGuildTemplate} from './template'
 import {user} from './user'
 import {createDefaults as d} from './utils'
@@ -117,6 +117,7 @@ export const dataGuild = d<DataGuild>(guild => {
     _members?.length ?? 0
       ? (_members as NonEmptyArray<DataGuildMember>)
       : [dataGuildMember()]
+  const roles = guild?.roles?.map(dataRole) ?? []
   return {
     discovery_splash: null,
     owner_id: members[0].id,
@@ -144,11 +145,19 @@ export const dataGuild = d<DataGuild>(guild => {
     public_updates_channel_id: null,
     ...partial,
     members,
-    roles: guild?.roles?.map(role) ?? [],
+    roles: [
+      ...roles,
+      ...(roles.some(({name}) => name === '@everyone')
+        ? []
+        : [dataRole({id: partial.id, name: '@everyone'})]),
+      ...[...new Set(members.flatMap(member => member.roles))]
+        .filter(roleID => !roles.some(({id}) => id === roleID))
+        .map(id => dataRole({id}))
+    ],
     emojis: guild?.emojis?.map(dataGuildEmoji) ?? [],
     voice_states: guild?.voice_states?.map(dataGuildVoiceState) ?? [],
     channels: guild?.channels?.map(dataGuildChannel) ?? [],
-    presences: guild?.presences?.map(guildPresence) ?? [],
+    presences: guild?.presences?.map(dataGuildPresence) ?? [],
     audit_log_entries: guild?.audit_log_entries?.map(auditLogEntry) ?? [],
     integrations: guild?.integrations?.map(integration) ?? [],
     template: guild?.template ? dataGuildTemplate(guild.template) : undefined

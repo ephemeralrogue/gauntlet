@@ -2,6 +2,7 @@ import type {
   APIEmoji,
   APIGuild,
   APIGuildMember,
+  APIRole,
   APITemplate,
   Snowflake
 } from 'discord-api-types'
@@ -10,6 +11,7 @@ import type {
   DataGuildEmoji,
   DataGuildMember,
   DataGuildTemplate,
+  DataRole,
   ResolvedClientData,
   ResolvedData
 } from './Data'
@@ -67,6 +69,11 @@ export const guildMember = ({users}: ResolvedData) => (
     ...(includePending ? {pending} : {})
   }
 }
+
+export const role = ({permissions, ...rest}: DataRole): APIRole => ({
+  ...rest,
+  permissions: `${permissions}` as const
+})
 
 /**
  * Converts a `DataGuild` into an `APIGuild`. This does not include fields only
@@ -129,7 +136,7 @@ export const guild = (
     verification_level,
     default_message_notifications,
     explicit_content_filter,
-    roles,
+    roles: roles.map(role),
     emojis: emojis.map(convertGuildEmoji),
     features,
     mfa_level,

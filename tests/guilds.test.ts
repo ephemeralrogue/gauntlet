@@ -121,14 +121,17 @@ describe('get template', () => {
 describe('create guild from template', () => {
   const code = 'abc'
   const name = 'Guild name'
-  const description = 'Guild description'
+  const afkTimeout = 60
   testWithClient(
-    'basic',
+    'basic template',
     async client => {
       const guild = await (await client.fetchGuildTemplate(code)).createGuild(
-        'name'
+        name
       )
-      expect(guild).toMatchObject<MatchObjectGuild>({name, description})
+      expect(guild).toMatchObject<MatchObjectGuild>({
+        name,
+        afkTimeout
+      })
     },
     {
       data: {
@@ -136,11 +139,38 @@ describe('create guild from template', () => {
           1: {
             template: {
               code,
-              serialized_source_guild: {description}
+              serialized_source_guild: {afk_timeout: afkTimeout}
             }
           }
         }
       }
+    }
+  )
+})
+
+describe('get guild templates', () => {
+  const guildID = '1'
+
+  testWithClient(
+    'no templates',
+    async client => {
+      expect(
+        (await client.guilds.cache.get(guildID)!.fetchTemplates()).size
+      ).toBe(0)
+    },
+    {data: {guilds: {[guildID]: {}}}}
+  )
+
+  const templateName = 'Template name'
+  testWithClient(
+    'simple template',
+    async client => {
+      const templates = await client.guilds.cache.get(guildID)!.fetchTemplates()
+      expect(templates.size).toBe(1)
+      expect(templates.first()!.name).toBe(templateName)
+    },
+    {
+      data: {guilds: {[guildID]: {template: {name: templateName}}}}
     }
   )
 })

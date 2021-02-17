@@ -12,7 +12,7 @@ export const DEFAULT_ROLE_NAME = 'new role'
 export const DEFAULT_WEBHOOK_NAME = 'Captain Hook'
 export const DEFAULT_NEW_WEBHOOK_NAME = 'Spidey Bot'
 
-export const DEFAULT_PERMISSIONS_STRING = `${
+export const DEFAULT_PERMISSIONS =
   PermissionFlagsBits.CREATE_INSTANT_INVITE |
   PermissionFlagsBits.ADD_REACTIONS |
   PermissionFlagsBits.STREAM |
@@ -27,4 +27,5 @@ export const DEFAULT_PERMISSIONS_STRING = `${
   PermissionFlagsBits.SPEAK |
   PermissionFlagsBits.USE_VAD |
   PermissionFlagsBits.CHANGE_NICKNAME
-}` as const
+
+export const DEFAULT_PERMISSIONS_STRING = `${DEFAULT_PERMISSIONS}` as const

@@ -3,13 +3,20 @@ import type {
   APIChannel,
   APIGuildIntegration,
   APIGuildMember,
+  APIRole,
   APITemplate,
   APIUser,
   APIVoiceRegion,
   Snowflake
 } from 'discord-api-types/v8'
 import type {Collection} from 'discord.js'
-import type {AuditLogEntry, Guild, GuildEmoji, GuildVoiceState} from './types'
+import type {
+  AuditLogEntry,
+  Guild,
+  GuildEmoji,
+  GuildVoiceState,
+  Presence
+} from './types'
 import type {CollectionResolvable, DataPartialDeep} from './resolve-collection'
 import type {Override, RequireKeys} from './utils'
 
@@ -25,7 +32,7 @@ export interface DataGuildEmoji extends Omit<GuildEmoji, 'user'> {
 /** An altered `APIChannel` for guilds. This is ued in `Data`. */
 export type DataGuildChannel = Omit<
   RequireKeys<APIChannel, 'permission_overwrites' | 'position'>,
-  'guild_id'
+  'application_id' | 'guild_id' | 'icon' | 'owner_id' | 'recipients'
 >
 
 /** An altered `APIGuildMember`. This is ued in `Data`. */
@@ -44,7 +51,11 @@ export type DataGuildVoiceState = Omit<
 
 /* eslint-enable import/no-unused-modules */
 
+export type DataGuildPresence = Omit<Presence, 'guild_id'>
+
 export type DataGuildTemplate = Omit<APITemplate, 'creator' | 'source_guild_id'>
+
+export type DataRole = Override<APIRole, {permissions: bigint}>
 
 /** An altered `APIGuild`. This is ued in `Data`. */
 export interface DataGuild
@@ -70,6 +81,8 @@ export interface DataGuild
       channels: DataGuildChannel[]
       members: DataGuildMember[]
       template?: DataGuildTemplate
+      presences: DataGuildPresence[]
+      roles: DataRole[]
       voice_states: DataGuildVoiceState[]
     }
   > {

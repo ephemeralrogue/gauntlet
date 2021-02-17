@@ -6,20 +6,24 @@ import {snowflake, timestamp} from '../../utils'
 import type {
   APIGuildCreatePartialChannel,
   APIGuildCreateRole,
-  APIRole,
   RESTPostAPIGuildsJSONBody,
+  RESTPostAPIGuildsResult,
   Snowflake
 } from 'discord-api-types/v8'
 import type {EmitPacket} from '../../Backend'
 import type {
   DataGuild,
   DataGuildChannel,
+  DataRole,
   ResolvedClientData,
   ResolvedData
 } from '../../Data'
 import type {FormBodyError, FormBodyErrors} from '../../errors'
 import type {KeysMatching, RequireKeys} from '../../utils'
-import type {Guilds} from '.'
+
+export type GuildsPost = (options: {
+  data: RESTPostAPIGuildsJSONBody
+}) => Promise<RESTPostAPIGuildsResult>
 
 const validGuildChannelTypesArray = [
   ChannelType.GUILD_TEXT,
@@ -203,14 +207,14 @@ const roleFromGuildCreateRole = (
     ...rest
   }: Omit<APIGuildCreateRole, 'id'>,
   id: Snowflake
-): APIRole =>
-  defaults.role({
+): DataRole =>
+  defaults.dataRole({
     ...rest,
     id,
     ...(name == null ? {} : {name}),
     ...(color == null ? {} : {color}),
     ...(hoist == null ? {} : {hoist}),
-    ...(permissions == null ? {} : {permissions}),
+    ...(permissions == null ? {} : {permissions: BigInt(permissions)}),
     ...(mentionable == null ? {} : {mentionable})
   })
 
@@ -249,7 +253,7 @@ export const createGuild = (
 
   type IDMap = ReadonlyMap<number | string, Snowflake>
 
-  type ResolveRolesResult = [APIRole[], IDMap]
+  type ResolveRolesResult = [DataRole[], IDMap]
   const [resolvedRoles, roleMap]: ResolveRolesResult =
     roles?.length ?? 0
       ? ((): ResolveRolesResult => {
@@ -272,7 +276,7 @@ export const createGuild = (
             map
           ]
         })()
-      : [[defaults.role({id: base.id, name: '@everyone'})], new Map()]
+      : [[defaults.dataRole({id: base.id, name: '@everyone'})], new Map()]
 
   type ResolveChannelResult = [DataGuildChannel[], Snowflake | null, IDMap]
   const [resolvedChannels, systemChannelID, channelMap]: ResolveChannelResult =
@@ -340,7 +344,7 @@ export default (
   data: ResolvedData,
   clientData: ResolvedClientData,
   emitPacket: EmitPacket
-): Guilds['post'] => {
+): GuildsPost => {
   const _checkErrors = checkErrors(data, clientData)
   const _createGuild = createGuild(data, clientData, emitPacket)
   return async ({data: guild}) => {

@@ -42,6 +42,11 @@ export const BASE_TYPE_BAD_LENGTH = (
   message: `Must be between ${min} and ${max} in length.`
 })
 
+export const BASE_TYPE_MAX_LENGTH = (max: number): FormBodyError => ({
+  code: 'BASE_TYPE_MAX_LENGTH',
+  message: `Must be ${max} or fewer in length.`
+})
+
 export const BASE_TYPE_CHOICES = (
   choices: string | readonly (number | string)[]
 ): FormBodyError => ({
