@@ -3,6 +3,7 @@ import type {
   APIChannel,
   APIGuildIntegration,
   APIGuildMember,
+  APITemplate,
   APIUser,
   APIVoiceRegion,
   Snowflake
@@ -43,6 +44,8 @@ export type DataGuildVoiceState = Omit<
 
 /* eslint-enable import/no-unused-modules */
 
+export type DataGuildTemplate = Omit<APITemplate, 'creator' | 'source_guild_id'>
+
 /** An altered `APIGuild`. This is ued in `Data`. */
 export interface DataGuild
   extends Override<
@@ -66,6 +69,7 @@ export interface DataGuild
       audit_log_entries: AuditLogEntry[]
       channels: DataGuildChannel[]
       members: DataGuildMember[]
+      template?: DataGuildTemplate
       voice_states: DataGuildVoiceState[]
     }
   > {
@@ -76,6 +80,7 @@ export interface DataGuild
 /** The resolved `Data` for the mocked Discord backend used by this library. */
 // TODO: better name
 export interface ResolvedData {
+  // TODO: resolve stuff in DataGuild to a Collection
   guilds: Collection<Snowflake, DataGuild>
   users: Collection<Snowflake, APIUser>
   voice_regions: Collection<string, APIVoiceRegion>

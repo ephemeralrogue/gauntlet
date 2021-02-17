@@ -16,7 +16,6 @@
 
     "allowUnreachableCode": false,
     "importsNotUsedAsValues": "error",
-    "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

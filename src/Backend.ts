@@ -17,6 +17,11 @@ interface API {
   readonly voice: Voice
 }
 
+const userEntry = (id: Snowflake): [Snowflake, APIUser] => [
+  id,
+  defaults.user({id})
+]
+
 export class Backend {
   /** Internal use only. */
   readonly resolvedData: ResolvedData
@@ -38,11 +43,14 @@ export class Backend {
         ...resolvedUsers.entries(),
         // eslint-disable-next-line unicorn/prefer-array-flat-map -- Collection, not array
         ...resolvedGuilds
-          .map(({members}) =>
-            members
+          .map(({members, template}) => [
+            ...members
               .filter(({id}) => !resolvedUsers.has(id))
-              .map(({id}) => [id, defaults.user({id})] as const)
-          )
+              .map(({id}) => userEntry(id)),
+            ...(template && !resolvedUsers.has(template.creator_id)
+              ? [userEntry(template.creator_id)]
+              : [])
+          ])
           .flat()
       ]),
       voice_regions: defaults.voiceRegions(voiceRegions)

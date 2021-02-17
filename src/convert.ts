@@ -2,12 +2,14 @@ import type {
   APIEmoji,
   APIGuild,
   APIGuildMember,
+  APITemplate,
   Snowflake
 } from 'discord-api-types'
 import type {
   DataGuild,
   DataGuildEmoji,
   DataGuildMember,
+  DataGuildTemplate,
   ResolvedClientData,
   ResolvedData
 } from './Data'
@@ -176,3 +178,11 @@ export const guildCreateGuild = (
     }
   }
 }
+
+export const template = (data: ResolvedData) => (dataGuild: DataGuild) => (
+  dataTemplate: DataGuildTemplate
+): APITemplate => ({
+  ...dataTemplate,
+  creator: data.users.get(dataTemplate.creator_id)!,
+  source_guild_id: dataGuild.id
+})

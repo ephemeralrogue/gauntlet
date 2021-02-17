@@ -34,148 +34,162 @@ const validAFKTimeouts = new Set(validAFKTimeoutsArray)
 const validAFKTimeoutsText = validGuildChannelTypesArray.join(', ')
 
 type AnyID = Snowflake | number
-const checkErrors = (
-  data: ResolvedData,
-  clientData: ResolvedClientData,
-  guild: RESTPostAPIGuildsJSONBody
-) => {
-  const {name, channels, afk_timeout} = guild
-  const path = '/guilds'
-  const method = Method.POST
 
+export const checkClientGuildCount = (
+  data: ResolvedData,
+  clientData: ResolvedClientData
+) => (path: string, method: Method): void => {
   if (
     data.guilds.filter(({members}) =>
       members.some(({id}) => id === clientData.userID)
     ).size >= 10
   )
     error(errors.MAXIMUM_GUILDS, path, method)
+}
 
-  const channelErrors = channels?.reduce<FormBodyErrors>(
-    (errs, {name: channelName, type}, i) => {
-      const noName = !channelName
-      const nameTooLong = channelName.length > 100
-      const invalidType =
-        type !== undefined && !validGuildChannelTypes.has(type)
-      return noName || nameTooLong || invalidType
+export const getNameErrors = (name: string): FormBodyErrors | undefined =>
+  name.length < 2 || name.length > 100
+    ? {name: {_errors: [formBodyErrors.BASE_TYPE_BAD_LENGTH(2, 100)]}}
+    : undefined
+
+const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
+  const _checkClientGuildCount = checkClientGuildCount(data, clientData)
+  // TODO: refactor so it's <= 20 statements
+  // TODO: icon validation?
+  return (guild: RESTPostAPIGuildsJSONBody) => {
+    const {name, channels, afk_timeout} = guild
+    const path = '/guilds'
+    const method = Method.POST
+
+    _checkClientGuildCount(path, method)
+
+    const channelErrors = channels?.reduce<FormBodyErrors>(
+      (errs, {name: channelName, type}, i) => {
+        const noName = !channelName
+        const nameTooLong = channelName.length > 100
+        const invalidType =
+          type !== undefined && !validGuildChannelTypes.has(type)
+        return noName || nameTooLong || invalidType
+          ? {
+              ...errs,
+              [i]: {
+                ...(noName || nameTooLong
+                  ? {
+                      name: {
+                        _errors: [
+                          noName
+                            ? formBodyErrors.BASE_TYPE_REQUIRED
+                            : formBodyErrors.BASE_TYPE_BAD_LENGTH(1, 100)
+                        ]
+                      }
+                    }
+                  : {}),
+                ...(invalidType
+                  ? {
+                      type: {
+                        _errors: [
+                          formBodyErrors.BASE_TYPE_CHOICES(
+                            validGuildChannelTypesText
+                          )
+                        ]
+                      }
+                    }
+                  : {})
+              }
+            }
+          : {}
+      },
+      {}
+    )
+
+    const errs: FormBodyErrors = {
+      ...(afk_timeout !== undefined && !validAFKTimeouts.has(afk_timeout)
         ? {
-            ...errs,
-            [i]: {
-              ...(noName || nameTooLong
-                ? {
-                    name: {
-                      _errors: [
-                        noName
-                          ? formBodyErrors.BASE_TYPE_REQUIRED
-                          : formBodyErrors.BASE_TYPE_BAD_LENGTH(1, 100)
-                      ]
-                    }
-                  }
-                : {}),
-              ...(invalidType
-                ? {
-                    type: {
-                      _errors: [
-                        formBodyErrors.BASE_TYPE_CHOICES(
-                          validGuildChannelTypesText
-                        )
-                      ]
-                    }
-                  }
-                : {})
+            afk_timeout: {
+              _errors: [formBodyErrors.BASE_TYPE_CHOICES(validAFKTimeoutsText)]
             }
           }
-        : {}
-    },
-    {}
-  )
+        : {}),
+      ...(channelErrors && Object.keys(channelErrors).length
+        ? {channels: channelErrors}
+        : {}),
+      ...getNameErrors(name)
+    }
+    if (Object.keys(errs).length)
+      error(errors.INVALID_FORM_BODY, path, method, errs)
 
-  const errs: FormBodyErrors = {
-    ...(afk_timeout !== undefined && !validAFKTimeouts.has(afk_timeout)
-      ? {
-          afk_timeout: {
-            _errors: [formBodyErrors.BASE_TYPE_CHOICES(validAFKTimeoutsText)]
+    if (channels) {
+      for (const [i, {parent_id}] of channels.entries()) {
+        if (parent_id != null) {
+          const parent = channels.find(({id}) => id === parent_id)
+          if (!parent) {
+            error(errors.INVALID_FORM_BODY, path, method, {
+              channels: {
+                _errors: [
+                  formBodyErrors.GUILD_CREATE_CHANNEL_ID_INVALID(
+                    'parent_id',
+                    parent_id
+                  )
+                ]
+              }
+            })
+          }
+          if (parent.type !== ChannelType.GUILD_CATEGORY) {
+            error(errors.INVALID_FORM_BODY, path, method, {
+              channels: {_errors: [formBodyErrors.CHANNEL_PARENT_INVALID_TYPE]}
+            })
+          }
+          if (channels.indexOf(parent) > i) {
+            error(errors.INVALID_FORM_BODY, path, method, {
+              channels: {
+                _errors: [
+                  formBodyErrors.GUILD_CREATE_CHANNEL_CATEGORY_NOT_FIRST
+                ]
+              }
+            })
           }
         }
-      : {}),
-    ...(channelErrors && Object.keys(channelErrors).length
-      ? {channels: channelErrors}
-      : {}),
-    ...(name.length < 2 || name.length > 100
-      ? {name: {_errors: [formBodyErrors.BASE_TYPE_BAD_LENGTH(2, 100)]}}
-      : {})
-  }
-  if (Object.keys(errs).length)
-    error(errors.INVALID_FORM_BODY, path, method, errs)
+      }
+    }
 
-  if (channels) {
-    for (const [i, {parent_id}] of channels.entries()) {
-      if (parent_id != null) {
-        const parent = channels.find(({id}) => id === parent_id)
-        if (!parent) {
+    const checkChannel = (
+      key: KeysMatching<RESTPostAPIGuildsJSONBody, AnyID | undefined>,
+      type: ChannelType,
+      invalidTypeError: FormBodyError
+    ) => {
+      const channelID = guild[key]
+      if (channelID !== undefined) {
+        const channel = channels?.find(({id}) => id === channelID)
+        if (!channel) {
           error(errors.INVALID_FORM_BODY, path, method, {
             channels: {
               _errors: [
-                formBodyErrors.GUILD_CREATE_CHANNEL_ID_INVALID(
-                  'parent_id',
-                  parent_id
-                )
+                formBodyErrors.GUILD_CREATE_CHANNEL_ID_INVALID(key, channelID)
               ]
             }
           })
         }
-        if (parent.type !== ChannelType.GUILD_CATEGORY) {
+        if ((channel.type ?? ChannelType.GUILD_TEXT) !== type) {
           error(errors.INVALID_FORM_BODY, path, method, {
-            channels: {_errors: [formBodyErrors.CHANNEL_PARENT_INVALID_TYPE]}
-          })
-        }
-        if (channels.indexOf(parent) > i) {
-          error(errors.INVALID_FORM_BODY, path, method, {
-            channels: {
-              _errors: [formBodyErrors.GUILD_CREATE_CHANNEL_CATEGORY_NOT_FIRST]
-            }
+            channels: {_errors: [invalidTypeError]}
           })
         }
       }
     }
-  }
 
-  const checkChannel = (
-    key: KeysMatching<RESTPostAPIGuildsJSONBody, AnyID | undefined>,
-    type: ChannelType,
-    invalidTypeError: FormBodyError
-  ) => {
-    const channelID = guild[key]
-    if (channelID !== undefined) {
-      const channel = channels?.find(({id}) => id === channelID)
-      if (!channel) {
-        error(errors.INVALID_FORM_BODY, path, method, {
-          channels: {
-            _errors: [
-              formBodyErrors.GUILD_CREATE_CHANNEL_ID_INVALID(key, channelID)
-            ]
-          }
-        })
-      }
-      if ((channel.type ?? ChannelType.GUILD_TEXT) !== type) {
-        error(errors.INVALID_FORM_BODY, path, method, {
-          channels: {_errors: [invalidTypeError]}
-        })
-      }
+    // afk_channel_id and system_channel_id are ignored if there aren't any channels
+    if (channels?.length ?? 0) {
+      checkChannel(
+        'afk_channel_id',
+        ChannelType.GUILD_VOICE,
+        formBodyErrors.GUILD_CREATE_AFK_CHANNEL_NOT_GUILD_VOICE
+      )
+      checkChannel(
+        'system_channel_id',
+        ChannelType.GUILD_TEXT,
+        formBodyErrors.GUILD_CREATE_SYSTEM_CHANNEL_NOT_GUILD_TEXT
+      )
     }
-  }
-
-  // afk_channel_id and system_channel_id are ignored if there aren't any channels
-  if (channels?.length ?? 0) {
-    checkChannel(
-      'afk_channel_id',
-      ChannelType.GUILD_VOICE,
-      formBodyErrors.GUILD_CREATE_AFK_CHANNEL_NOT_GUILD_VOICE
-    )
-    checkChannel(
-      'system_channel_id',
-      ChannelType.GUILD_TEXT,
-      formBodyErrors.GUILD_CREATE_SYSTEM_CHANNEL_NOT_GUILD_TEXT
-    )
   }
 }
 
@@ -200,14 +214,11 @@ const roleFromGuildCreateRole = (
     ...(mentionable == null ? {} : {mentionable})
   })
 
-/* https://discord.com/developers/docs/resources/guild#create-guild */
-export default (
+export const createGuild = (
   data: ResolvedData,
   clientData: ResolvedClientData,
   emitPacket: EmitPacket
-): Guilds['post'] => async ({data: guild}) => {
-  checkErrors(data, clientData, guild)
-
+) => (guild: RESTPostAPIGuildsJSONBody) => {
   const {
     name,
     region,
@@ -322,4 +333,18 @@ export default (
   )
   emitPacket(GatewayDispatchEvents.GuildCreate, gatewayGuild)
   return apiGuild
+}
+
+// https://discord.com/developers/docs/resources/guild#create-guild
+export default (
+  data: ResolvedData,
+  clientData: ResolvedClientData,
+  emitPacket: EmitPacket
+): Guilds['post'] => {
+  const _checkErrors = checkErrors(data, clientData)
+  const _createGuild = createGuild(data, clientData, emitPacket)
+  return async ({data: guild}) => {
+    _checkErrors(guild)
+    return _createGuild(guild)
+  }
 }

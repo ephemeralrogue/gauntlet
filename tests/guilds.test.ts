@@ -3,6 +3,10 @@ import * as DM from '../src'
 import {testWithClient} from './utils'
 import type {DeepPartialOmit} from './utils'
 
+// Omitting valueOf because ({...}).valueOf() is Object, whereas
+// (guild as D.Guild).valueOf() is string
+type MatchObjectGuild = DeepPartialOmit<D.Guild, 'valueOf'>
+
 describe('initial guilds', () => {
   test('basic guild', async () => {
     const client = new D.Client({intents: ['GUILDS']})
@@ -46,14 +50,9 @@ describe('initial guilds', () => {
 })
 
 describe('create guild', () => {
-  // Omitting valueOf because ({...}).valueOf() is Object, whereas
-  // (guild as D.Guild).valueOf() is string
-  type MatchObjectGuild = DeepPartialOmit<D.Guild, 'valueOf'>
-
   testWithClient('only name supplied', async client => {
     const name = 'name'
-    const guild = await client.guilds.create(name)
-    expect(guild).toMatchObject<MatchObjectGuild>({
+    expect(await client.guilds.create(name)).toMatchObject<MatchObjectGuild>({
       name,
       afkTimeout: 300,
       defaultMessageNotifications: 'ALL',
@@ -83,4 +82,65 @@ describe('create guild', () => {
       verificationLevel
     })
   })
+})
+
+describe('get template', () => {
+  type MatchObjectTemplate = DeepPartialOmit<D.GuildTemplate, 'valueOf'>
+  const code = 'abc'
+  const guildName = 'Guild name'
+  const templateName = 'Template name'
+  const templateDescription = 'Template description'
+  testWithClient(
+    'basic',
+    async client => {
+      expect(
+        await client.fetchGuildTemplate(code)
+      ).toMatchObject<MatchObjectTemplate>({
+        name: templateName,
+        description: templateDescription,
+        guild: {name: guildName}
+      })
+    },
+    {
+      data: {
+        guilds: {
+          1: {
+            name: guildName,
+            template: {
+              code,
+              name: templateName,
+              description: templateDescription
+            }
+          }
+        }
+      }
+    }
+  )
+})
+
+describe('create guild from template', () => {
+  const code = 'abc'
+  const name = 'Guild name'
+  const description = 'Guild description'
+  testWithClient(
+    'basic',
+    async client => {
+      const guild = await (await client.fetchGuildTemplate(code)).createGuild(
+        'name'
+      )
+      expect(guild).toMatchObject<MatchObjectGuild>({name, description})
+    },
+    {
+      data: {
+        guilds: {
+          1: {
+            template: {
+              code,
+              serialized_source_guild: {description}
+            }
+          }
+        }
+      }
+    }
+  )
 })

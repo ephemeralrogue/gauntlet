@@ -14,6 +14,7 @@ export const errors = {
   UNKNOWN_GUILD: ['Unknown Guild', 404, RESTJSONErrorCodes.UnknownGuild],
   UNKNOWN_INVITE: ['Unknown Invite', 404, RESTJSONErrorCodes.UnknownInvite],
   UNKNOWN_WEBHOOK: ['Unknown Webhook', 404, RESTJSONErrorCodes.UnknownWebhook],
+  UNKNOWN_GUILD_TEMPLATE: ['Unknown guild template', 404, 10_057],
   MAXIMUM_GUILDS: [
     'Maximum number of guilds reached (10)',
     400,

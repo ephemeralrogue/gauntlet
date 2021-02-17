@@ -43,10 +43,6 @@ export type AnyFunction =
 const isObject = <T>(x: T): x is T & object =>
   typeof x == 'object' && x !== null
 
-const _clone = <U>(x: U): U =>
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define -- recursive
-  (Array.isArray(x) ? x.map(_clone) : isObject(x) ? clone(x) : x) as U
-
 /**
  * Deep clones an object.
  *

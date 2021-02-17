@@ -7,12 +7,17 @@ import {
 } from 'discord-api-types/v8'
 import {snowflake, timestamp} from '../utils'
 import {auditLogEntry} from './audit-log'
-import {DEFAULT_GUILD_NAME, DEFAULT_INTEGRATION_NAME} from './constants'
+import {
+  DEFAULT_GUILD_NAME,
+  DEFAULT_GUILD_PREFERRED_LOCALE,
+  DEFAULT_INTEGRATION_NAME
+} from './constants'
 import {dataGuildEmoji} from './emoji'
 import {dataGuildChannel} from './channel'
 import {guildPresence} from './gateway'
 import {partialApplication} from './oauth2'
 import {role} from './permissions'
+import {dataGuildTemplate} from './template'
 import {user} from './user'
 import {createDefaults as d} from './utils'
 import type {
@@ -134,7 +139,7 @@ export const dataGuild = d<DataGuild>(guild => {
     description: null,
     banner: null,
     premium_tier: GuildPremiumTier.NONE,
-    preferred_locale: 'en-US',
+    preferred_locale: DEFAULT_GUILD_PREFERRED_LOCALE,
     max_video_channel_users: 25,
     public_updates_channel_id: null,
     ...partial,
@@ -145,6 +150,7 @@ export const dataGuild = d<DataGuild>(guild => {
     channels: guild?.channels?.map(dataGuildChannel) ?? [],
     presences: guild?.presences?.map(guildPresence) ?? [],
     audit_log_entries: guild?.audit_log_entries?.map(auditLogEntry) ?? [],
-    integrations: guild?.integrations?.map(integration) ?? []
+    integrations: guild?.integrations?.map(integration) ?? [],
+    template: guild?.template ? dataGuildTemplate(guild.template) : undefined
   }
 })

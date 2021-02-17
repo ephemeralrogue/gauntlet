@@ -3,19 +3,27 @@ import {snowflake} from '../utils'
 import {DEFAULT_CHANNEL_NAME} from './constants'
 import {createDefaults as d} from './utils'
 import type {
+  APIGuildCreateOverwrite,
   APIOverwrite,
   APIPartialChannel,
   Snowflake
 } from 'discord-api-types/v8'
 import type {DataGuildChannel} from '../Data'
+import type {DataPartialDeep} from '../resolve-collection'
 
-export const overwrite = d<APIOverwrite>(_overwrite => ({
-  id: snowflake(),
-  type: OverwriteType.Role,
-  allow: '0',
-  deny: '0',
-  ..._overwrite
-}))
+// Used in guildCreatePartialChannel (./template.ts), where the only difference
+// is overwrites' ids may be a number
+export const overwrite = d<APIGuildCreateOverwrite | APIOverwrite>(
+  _overwrite => ({
+    id: snowflake(),
+    type: OverwriteType.Role,
+    allow: '0',
+    deny: '0',
+    ..._overwrite
+  })
+) as <T extends APIGuildCreateOverwrite | APIOverwrite>(
+  partial?: DataPartialDeep<T>
+) => T
 
 export const partialChannel = d<APIPartialChannel>(channel => ({
   id: snowflake(),
@@ -37,7 +45,7 @@ export const dataGuildChannel = d<DataGuildChannel>(channel => {
       : {nsfw: false}),
     ...partial,
     permission_overwrites: channel?.permission_overwrites
-      ? channel.permission_overwrites.map(overwrite)
+      ? channel.permission_overwrites.map(o => overwrite<APIOverwrite>(o))
       : []
   }
   switch (base.type) {

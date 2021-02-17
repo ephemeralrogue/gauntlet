@@ -32,6 +32,46 @@ const config = {
         'id-length': 0,
         'node/no-unpublished-require': 0
       }
+    },
+    {
+      files: ['**/*.ts'],
+      rules: {
+        // Allow snake_case
+        '@typescript-eslint/naming-convention': [
+          1,
+          {
+            selector: 'default',
+            format: ['camelCase', 'snake_case'],
+            leadingUnderscore: 'allow',
+            trailingUnderscore: 'allow'
+          },
+          {
+            selector: 'variable',
+            modifiers: ['const'],
+            format: ['camelCase', 'snake_case', 'UPPER_CASE'],
+            leadingUnderscore: 'allow',
+            trailingUnderscore: 'allow'
+          },
+          {
+            selector: 'property',
+            format: ['camelCase', 'snake_case', 'UPPER_CASE'],
+            leadingUnderscore: 'allow',
+            trailingUnderscore: 'allow'
+          },
+          {
+            selector: 'typeLike',
+            format: ['PascalCase'],
+            leadingUnderscore: 'allow',
+            trailingUnderscore: 'allow'
+          },
+          {
+            selector: 'enumMember',
+            format: ['PascalCase', 'UPPER_CASE'],
+            leadingUnderscore: 'allow',
+            trailingUnderscore: 'allow'
+          }
+        ]
+      }
     }
   ],
   rules: {
