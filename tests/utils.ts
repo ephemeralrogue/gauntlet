@@ -26,28 +26,38 @@ export type DeepPartialOmit<
   : T
 /* eslint-enable @typescript-eslint/ban-types */
 
-export const testWithClient = (
-  name: string,
+// Omitting valueOf because ({...}).valueOf() is Object, whereas
+// (guild as D.Guild).valueOf() is string
+export type MatchObjectGuild = DeepPartialOmit<D.Guild, 'valueOf'>
+
+interface TestWithClientOptions {
+  intents?: D.ClientOptions['intents']
+  data?: DM.Data
+  clientData?: DM.ClientData
+}
+
+/* eslint-disable jest/expect-expect, jest/require-top-level-describe, jest/valid-title -- helper fns */
+export const _testWithClient = (
   fn: (client: D.Client) => Promise<void>,
   {
     intents = D.Intents.NON_PRIVILEGED,
     data,
     clientData
-  }: {
-    intents?: D.ClientOptions['intents']
-    data?: DM.Data
-    clientData?: DM.ClientData
-  } = {}
-): void =>
-  /* eslint-disable jest/expect-expect, jest/valid-title -- helper fn */
-  describe(name, () => {
-    test('mockClient', async () => {
-      const client = new D.Client({intents})
-      DM.mockClient(client, clientData, new DM.Backend(data))
-      await fn(client)
-    })
-
-    test('new DM.Client()', async () =>
-      fn(new DM.Client({intents}, clientData, new DM.Backend(data))))
-    /* eslint-enable jest/expect-expect, jest/valid-title -- helper fn */
+  }: TestWithClientOptions = {}
+): void => {
+  test('mockClient', async () => {
+    const client = new D.Client({intents})
+    DM.mockClient(client, clientData, new DM.Backend(data))
+    await fn(client)
   })
+
+  test('new DM.Client()', async () =>
+    fn(new DM.Client({intents}, clientData, new DM.Backend(data))))
+}
+
+export const testWithClient = (
+  name: string,
+  fn: (client: D.Client) => Promise<void>,
+  options?: TestWithClientOptions
+): void => describe(name, () => _testWithClient(fn, options))
+/* eslint-enable jest/expect-expect, jest/require-top-level-describe, jest/valid-title -- helper fns */
