@@ -4,6 +4,7 @@ import * as defaults from '../../../defaults'
 import {Method, error, errors, formBodyErrors} from '../../../errors'
 import {hasPermissions} from '../../utils'
 import type {
+  RESTDeleteAPIGuildTemplateResult,
   RESTGetAPIGuildTemplatesResult,
   RESTPostAPIGuildTemplatesJSONBody,
   RESTPostAPIGuildTemplatesResult,
@@ -15,7 +16,7 @@ import type {FormBodyErrors} from '../../../errors'
 type GuildsIdTemplatesFn = (
   code: string
 ) => {
-  // delete: () => Promise<RESTDeleteAPIGuildTemplateResult>
+  delete: () => Promise<RESTDeleteAPIGuildTemplateResult>
   // patch: (options: {
   //   data: RESTPatchAPIGuildTemplateJSONBody
   // }) => Promise<RESTPatchAPIGuildTemplateResult>
@@ -33,16 +34,14 @@ export interface GuildsIdTemplates
   extends GuildsIdTemplatesFn,
     GuildsIdsTemplatesObject {}
 
-const templatesFn = (
-  _data: ResolvedData,
-  _clientData: ResolvedClientData
-): GuildsIdTemplatesFn => _code => ({})
-
 export default (data: ResolvedData, clientData: ResolvedClientData) => {
-  const _convertTemplate = convert.template(data)
+  const convertTemplate = convert.template(data)
   return (id: Snowflake): GuildsIdTemplates => {
-    const path = `/guilds/${id}/templates`
-    const getGuildAndCheckPermissions = (method: Method): DataGuild => {
+    const basePath = `/guilds/${id}/templates`
+    const getGuildAndCheckPermissions = (
+      method: Method,
+      path = basePath
+    ): DataGuild => {
       const guild = data.guilds.get(id)
       if (!guild) error(errors.UNKNOWN_GUILD, path, method)
       const member = guild.members.find(m => m.id === clientData.userID)
@@ -53,13 +52,26 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
         error(errors.MISSING_PERMISSIONS, path, method)
       return guild
     }
+
     return Object.assign<GuildsIdTemplatesFn, GuildsIdsTemplatesObject>(
-      templatesFn(data, clientData),
+      code => ({
+        // https://discord.com/developers/docs/resources/template#delete-guild-template
+        delete: async () => {
+          const path = `${basePath}/${code}`
+          const method = Method.DELETE
+          const guild = getGuildAndCheckPermissions(method, path)
+          if (guild.template?.code !== code)
+            error(errors.UNKNOWN_GUILD_TEMPLATE, path, method)
+          const {template} = guild
+          guild.template = undefined
+          return convertTemplate(guild)(template)
+        }
+      }),
       {
         // https://discord.com/developers/docs/resources/template#get-guild-templates
         get: async () => {
           const guild = getGuildAndCheckPermissions(Method.GET)
-          return guild.template ? [_convertTemplate(guild)(guild.template)] : []
+          return guild.template ? [convertTemplate(guild)(guild.template)] : []
         },
         // https://discord.com/developers/docs/resources/template#create-guild-template
         post: async ({data: {name, description = null}}) => {
@@ -78,10 +90,11 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
               : {})
           }
           if (Object.keys(errs).length)
-            error(errors.INVALID_FORM_BODY, path, method, errs)
+            error(errors.INVALID_FORM_BODY, basePath, method, errs)
 
           const guild = getGuildAndCheckPermissions(method)
-          if (guild.template) error(errors.ALREADY_HAS_TEMPLATE, path, method)
+          if (guild.template)
+            error(errors.ALREADY_HAS_TEMPLATE, basePath, method)
 
           const {
             region,
@@ -158,7 +171,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
             }
           })
           // eslint-disable-next-line unicorn/consistent-destructuring -- just set guild.template above
-          return _convertTemplate(guild)(guild.template)
+          return convertTemplate(guild)(guild.template)
         }
       }
     )

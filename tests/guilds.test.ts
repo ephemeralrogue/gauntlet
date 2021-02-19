@@ -174,3 +174,21 @@ describe('get guild templates', () => {
     }
   )
 })
+
+describe('delete guild template', () => {
+  const guildID = '1'
+  const name = 'template name'
+  testWithClient(
+    'success',
+    async client => {
+      expect(
+        (
+          await (await client.guilds.cache.get(guildID)!.fetchTemplates())
+            .first()!
+            .delete()
+        ).name
+      ).toBe(name)
+    },
+    {data: {guilds: {[guildID]: {template: {name}}}}}
+  )
+})
