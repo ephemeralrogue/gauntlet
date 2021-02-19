@@ -175,19 +175,41 @@ describe('get guild templates', () => {
   )
 })
 
+const getTemplate = async (
+  client: D.Client,
+  guildID: string
+): Promise<D.GuildTemplate> =>
+  (await client.guilds.cache.get(guildID)!.fetchTemplates()).first()!
+
+describe('modify guild template', () => {
+  const guildID = '1'
+  const oldName = 'old name'
+  const newName = 'new name'
+  const description = 'description'
+  testWithClient(
+    'success',
+    async client =>
+      expect(
+        await (await getTemplate(client, guildID)).edit({name: newName})
+      ).toMatchObject<DeepPartialOmit<D.GuildTemplate, 'valueOf'>>({
+        name: newName,
+        description
+      }),
+    {
+      data: {guilds: {[guildID]: {template: {name: oldName, description}}}}
+    }
+  )
+})
+
 describe('delete guild template', () => {
   const guildID = '1'
   const name = 'template name'
   testWithClient(
     'success',
     async client => {
-      expect(
-        (
-          await (await client.guilds.cache.get(guildID)!.fetchTemplates())
-            .first()!
-            .delete()
-        ).name
-      ).toBe(name)
+      expect((await (await getTemplate(client, guildID)).delete()).name).toBe(
+        name
+      )
     },
     {data: {guilds: {[guildID]: {template: {name}}}}}
   )
