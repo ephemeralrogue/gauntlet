@@ -269,9 +269,7 @@ export const createGuild = (
               ),
               ...roles!
                 .slice(1)
-                .map(role =>
-                  roleFromGuildCreateRole(role, roleMap.get(role.id)!)
-                )
+                .map(role => roleFromGuildCreateRole(role, map.get(role.id)!))
             ],
             map
           ]
@@ -314,7 +312,7 @@ export const createGuild = (
             ),
             system_channel_id === undefined
               ? null
-              : channelMap.get(system_channel_id) ?? null,
+              : map.get(system_channel_id) ?? null,
             map
           ]
         })()

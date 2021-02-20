@@ -26,7 +26,7 @@ export const overwrite = d<APIGuildCreateOverwrite | APIOverwrite>(
 ) => T
 
 export const partialChannel = d<APIPartialChannel>(channel => ({
-  id: snowflake(),
+  id: channel?.id ?? snowflake(),
   type: channel?.type ?? ChannelType.GUILD_TEXT,
   name:
     // Every channel except for DMs can have names
@@ -36,7 +36,9 @@ export const partialChannel = d<APIPartialChannel>(channel => ({
 export const dataGuildChannel = d<DataGuildChannel>(channel => {
   const partial = partialChannel(channel)
   const base: DataGuildChannel = {
-    ...(partial.type === ChannelType.GUILD_CATEGORY ? {} : {parent_id: null}),
+    ...(partial.type === ChannelType.GUILD_CATEGORY
+      ? {}
+      : {parent_id: channel?.parent_id}),
     position: 0,
     name: DEFAULT_CHANNEL_NAME,
     ...(partial.type === ChannelType.GUILD_VOICE ||

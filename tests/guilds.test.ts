@@ -1,7 +1,6 @@
 import * as D from 'discord.js'
 import * as DM from '../src'
-import {_testWithClient, testWithClient} from './utils'
-import type {MatchObjectGuild} from './utils'
+import {_testWithClient} from './utils'
 
 describe('initial guilds', () => {
   test('basic guild', async () => {
@@ -42,40 +41,5 @@ describe('initial guilds', () => {
       new DM.Backend({guilds: {1: {members: [{id: '2'}]}}})
     )
     await promise
-  })
-})
-
-describe('create guild', () => {
-  testWithClient('only name supplied', async client => {
-    const name = 'name'
-    expect(await client.guilds.create(name)).toMatchObject<MatchObjectGuild>({
-      name,
-      afkTimeout: 300,
-      defaultMessageNotifications: 'ALL',
-      explicitContentFilter: 'DISABLED',
-      verificationLevel: 'NONE'
-    })
-  })
-
-  testWithClient('overriding basic defaults', async client => {
-    const name = 'name'
-    const afkTimeout = 60
-    const defaultMessageNotifications: D.DefaultMessageNotifications =
-      'MENTIONS'
-    const explicitContentFilter: D.ExplicitContentFilterLevel = 'ALL_MEMBERS'
-    const verificationLevel: D.VerificationLevel = 'HIGH'
-    const guild = await client.guilds.create(name, {
-      afkTimeout,
-      defaultMessageNotifications,
-      explicitContentFilter,
-      verificationLevel
-    })
-    expect(guild).toMatchObject<MatchObjectGuild>({
-      name,
-      afkTimeout,
-      defaultMessageNotifications,
-      explicitContentFilter,
-      verificationLevel
-    })
   })
 })

@@ -22,6 +22,12 @@ const config = {
       rules: {
         'jest/no-export': 0
       }
+    },
+    {
+      files: '**/*.test.ts',
+      rules: {
+        'unicorn/consistent-function-scoping': 0
+      }
     }
   ]
 }

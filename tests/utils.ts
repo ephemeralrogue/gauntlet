@@ -1,3 +1,4 @@
+import {RESTJSONErrorCodes} from 'discord-api-types/v8'
 import * as D from 'discord.js'
 import * as DM from '../src'
 import type {AnyFunction} from '../src/utils'
@@ -34,25 +35,30 @@ interface TestWithClientOptions {
   intents?: D.ClientOptions['intents']
   data?: DM.Data
   clientData?: DM.ClientData
+  only?: boolean
 }
 
-/* eslint-disable jest/expect-expect, jest/require-top-level-describe, jest/valid-title -- helper fns */
+/* eslint-disable jest/valid-title -- helper fns */
 export const _testWithClient = (
   fn: (client: D.Client) => Promise<void>,
   {
     intents = D.Intents.NON_PRIVILEGED,
     data,
-    clientData
+    clientData,
+    only = false
   }: TestWithClientOptions = {}
 ): void => {
-  test('mockClient', async () => {
+  const testFn = only ? test.only : test
+
+  testFn('mockClient', async () => {
     const client = new D.Client({intents})
     DM.mockClient(client, clientData, new DM.Backend(data))
     await fn(client)
   })
 
-  test('new DM.Client()', async () =>
-    fn(new DM.Client({intents}, clientData, new DM.Backend(data))))
+  testFn('new DM.Client()', async () =>
+    fn(new DM.Client({intents}, clientData, new DM.Backend(data)))
+  )
 }
 
 export const testWithClient = (
@@ -60,4 +66,19 @@ export const testWithClient = (
   fn: (client: D.Client) => Promise<void>,
   options?: TestWithClientOptions
 ): void => describe(name, () => _testWithClient(fn, options))
-/* eslint-enable jest/expect-expect, jest/require-top-level-describe, jest/valid-title -- helper fns */
+/* eslint-enable jest/valid-title -- helper fns */
+
+export const expectAPIError = async (
+  promise: Promise<unknown>,
+  code: RESTJSONErrorCodes
+): Promise<void> => {
+  await expect(promise).rejects.toBeInstanceOf(D.DiscordAPIError)
+  await expect(promise).rejects.toMatchObject<Partial<D.DiscordAPIError>>({
+    code
+  })
+}
+
+export const expectFormError = async (
+  promise: Promise<unknown>
+): Promise<void> =>
+  expectAPIError(promise, RESTJSONErrorCodes.InvalidFormBodyOrContentType)
