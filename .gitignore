@@ -5,4 +5,5 @@ pnpm-debug.log
 .history/
 coverage/
 dist/
+docs/
 node_modules/

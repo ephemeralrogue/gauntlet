@@ -28,7 +28,8 @@ devDependencies:
   prettier: 2.2.1
   semantic-release: 17.3.9
   ts-jest: 26.5.1_jest@26.6.3+typescript@4.2.1-rc
-  typedoc: 0.20.25_typescript@4.2.1-rc
+  typedoc: 0.20.26_typescript@4.2.1-rc
+  typedoc-plugin-param-names: 2.0.0_typedoc@0.20.26
   typescript: 4.2.1-rc
 lockfileVersion: 5.2
 packages:
@@ -510,7 +511,7 @@ packages:
     dependencies:
       asynckit: 0.4.0
       combined-stream: 1.0.8
-      mime-types: 2.1.28
+      mime-types: 2.1.29
     dev: true
     engines:
       node: '>= 6'
@@ -5050,12 +5051,12 @@ packages:
       node: '>= 0.6'
     resolution:
       integrity: sha512-/NOTfLrsPBVeH7YtFPgsVWveuL+4SjjYxaQ1xtM1KMFj7HdxlBlxeyNLzhyJVx7r4rZGJAZ/6lkKCitSc/Nmpg==
-  /mime-db/1.45.0:
+  /mime-db/1.46.0:
     dev: true
     engines:
       node: '>= 0.6'
     resolution:
-      integrity: sha512-CkqLUxUk15hofLoLyljJSrukZi8mAtgd+yE5uO4tqRZsdsAJKv0O+rFMhVDRJgozy+yG6md5KwuXhD4ocIoP+w==
+      integrity: sha512-svXaP8UQRZ5K7or+ZmfNhg2xX3yKDMUzqadsSqi4NCH/KomcH75MAMYAGVlvXn4+b/xOPhS3I2uHKRUzvjY7BQ==
   /mime-types/2.1.27:
     dependencies:
       mime-db: 1.44.0
@@ -5064,14 +5065,14 @@ packages:
       node: '>= 0.6'
     resolution:
       integrity: sha512-JIhqnCasI9yD+SsmkquHBxTSEuZdQX5BuQnS2Vc7puQQQ+8yiP5AY5uWhpdv4YL4VM5c6iliiYWPgJ/nJQLp7w==
-  /mime-types/2.1.28:
+  /mime-types/2.1.29:
     dependencies:
-      mime-db: 1.45.0
+      mime-db: 1.46.0
     dev: true
     engines:
       node: '>= 0.6'
     resolution:
-      integrity: sha512-0TO2yJ5YHYr7M2zzT7gDU1tbwHxEUWBCLt0lscSNpcdAfFyJOVEpRYNS7EXVcTLNj/25QO8gulHC5JtTzSE2UQ==
+      integrity: sha512-Y/jMt/S5sR9OaqteJtslsFZKWOIIqMACsJSiHghlCAyhf7jfVYjKBmLiX8OgpWeW+fjJ2b+Az69aPFPkUOY6xQ==
   /mime/2.4.6:
     dev: true
     engines:
@@ -5846,10 +5847,10 @@ packages:
       node: '>= 10'
     resolution:
       integrity: sha512-7AeGuCYNGmycyQbCqd/3PWH4eOoX/OiCa0uphp57NVTeAGdJGaAliecxwBDHYQCIvrW7aDBZCYeNTP/WX69mkg==
-  /prism-media/1.2.3:
+  /prism-media/1.2.7:
     dev: true
     peerDependencies:
-      '@discordjs/opus': ^0.3.3
+      '@discordjs/opus': ^0.4.0
       ffmpeg-static: ^4.2.7 || ^3.0.0 || ^2.4.0
       node-opus: ^0.3.3
       opusscript: ^0.0.7
@@ -5863,7 +5864,7 @@ packages:
       opusscript:
         optional: true
     resolution:
-      integrity: sha512-fSrR66n0l6roW9Rx4rSLMyTPTjRTiXy5RVqDOurACQ6si1rKHHKDU5gwBJoCsIV0R3o9gi+K50akl/qyw1C74A==
+      integrity: sha512-thS1z3L6BDmf724sqLC73bHGjSYArFTYHa7cqInyS3EdDNTHKgDCXy7l+IhRvlnX7aFNiUb8jJcC+R8ezxwgMA==
   /process-nextick-args/2.0.1:
     dev: true
     resolution:
@@ -7106,7 +7107,17 @@ packages:
       node: '>= 8'
     resolution:
       integrity: sha512-0XAuGEqID+gon1+fhi4LycOEFM+5Mvm2PjwaiVZNAzU7pn3G2DEpsoXnFOPlLDnHY6ZW0BY0nO7ur9fHOFkBLQ==
-  /typedoc/0.20.25_typescript@4.2.1-rc:
+  /typedoc-plugin-param-names/2.0.0_typedoc@0.20.26:
+    dependencies:
+      typedoc: 0.20.26_typescript@4.2.1-rc
+    dev: true
+    engines:
+      node: '>=12'
+    peerDependencies:
+      typedoc: '>=0.15.5 <0.21'
+    resolution:
+      integrity: sha512-Uf9otc8n9U8J9R2edtNowehLWK4oBD17ckVX/c0uCky254k2vrvZ5CvpRBHwLm+EpMRK+IVzYbiLxNSG4JXRsA==
+  /typedoc/0.20.26_typescript@4.2.1-rc:
     dependencies:
       colors: 1.4.0
       fs-extra: 9.1.0
@@ -7127,7 +7138,7 @@ packages:
     peerDependencies:
       typescript: 3.9.x || 4.0.x || 4.1.x
     resolution:
-      integrity: sha512-ZQZnjJPrt0rjp216gp6FQC1QC4ojcoKikhfOJ/51CqaJunVDilRLlIO5tCGWj1tzlYYT9eOGhJv7MF3t7rxSmw==
+      integrity: sha512-w532YfkrTnic5Vz71k67HNwF2KoCGS9leycA5pbRX4SUD6qGBbv6aD/xtYPF3ot2xE5FSjrxSOxfIvjA6MkMCA==
   /typescript/4.2.1-rc:
     dev: true
     engines:
@@ -7411,7 +7422,7 @@ packages:
         optional: true
     resolution:
       integrity: sha512-D3RuNkynyHmEJIpD2qrgVkc9DQ23OrN/moAwZX4L8DfvszsJxpjQuUq3LMx6HoYji9fbIOBY18XWBsAux1ZZUA==
-  /ws/7.4.2:
+  /ws/7.4.3:
     dev: true
     engines:
       node: '>=8.3.0'
@@ -7424,7 +7435,7 @@ packages:
       utf-8-validate:
         optional: true
     resolution:
-      integrity: sha512-T4tewALS3+qsrpGI/8dqNMLIVdq/g/85U98HPMa6F0m6xTbvhXU6RCQLqPH3+SlomNV/LdY6RXEbBpMH6EOJnA==
+      integrity: sha512-hr6vCR76GsossIRsr8OLR9acVVm1jyfEWvhbNjtgPOrfvAlKzvyeg/P6r8RuDjRyrcQoPQT7K0DGEPc7Ae6jzA==
   /xml-name-validator/3.0.0:
     dev: true
     resolution:
@@ -7516,9 +7527,9 @@ packages:
       '@discordjs/form-data': 3.0.1
       abort-controller: 3.0.0
       node-fetch: 2.6.1
-      prism-media: 1.2.3
+      prism-media: 1.2.7
       tweetnacl: 1.0.3
-      ws: 7.4.2
+      ws: 7.4.3
     dev: true
     engines:
       node: '>=14.0.0'
@@ -7556,5 +7567,6 @@ specifiers:
   prettier: ^2.2.1
   semantic-release: ^17.3.9
   ts-jest: ^26.5.1
-  typedoc: ^0.20.25
+  typedoc: ^0.20.26
+  typedoc-plugin-param-names: ^2.0.0
   typescript: ^4.2.1-rc

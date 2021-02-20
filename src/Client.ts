@@ -14,7 +14,7 @@ const _mockClient = (
   client: D.Client,
   {userID, application}: ClientData = {}
 ): void => {
-  const {resolvedData: data} = backend
+  const data = backend['resolvedData']
 
   // Stop the RESTManager from setting an interval
   client.options.restSweepInterval = 0
@@ -53,6 +53,8 @@ const _mockClient = (
   // Make the websocket manager ready to receive packets
   client.ws['triggerClientReady']()
 
+  // TODO: ready event
+
   if (data.guilds.size) {
     // Make each of the guilds available
     const convertGuild = convert.guildCreateGuild(data, clientData)
@@ -61,11 +63,20 @@ const _mockClient = (
   }
 }
 
-export const mockClient = (
+// Explicit annotation to avoid ugly type in declaration file
+/**
+ * Mocks a Discord.js client. The `GUILD_CREATE` events for the guilds in
+ * `backend` are immediately emitted.
+ *
+ * @param client The Discord.js client.
+ * @param data The data for the client.
+ * @param backend The backend. Defaults to `new Backend()`.
+ */
+export const mockClient: (
   client: D.Client,
   data?: ClientData,
-  backend: Backend = new Backend()
-): void => {
+  backend?: Backend
+) => void = (client, data, backend = new Backend()): void => {
   // Clear RESTManager interval
   client.options.restSweepInterval = 0
   for (const interval of client['_intervals']) client.clearInterval(interval)

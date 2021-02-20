@@ -23,9 +23,20 @@ const userEntry = (id: Snowflake): [Snowflake, APIUser] => [
 ]
 
 export class Backend {
-  /** Internal use only. */
-  readonly resolvedData: ResolvedData
+  /*
+    This is more of an internal property rather than a private one as it is
+    accessed outside of this class. However, if I use @internal and
+    --stripInternal, any object will be assignable to Backend due to structural
+    typing. At least this way the emitted typings are accurate and users won't
+    be able to access this field (without using bracket notation).
+  */
+  private readonly resolvedData: ResolvedData
 
+  /**
+   * Constructs a `Backend` instance.
+   *
+   * @param data The data for the backend. Defaults to `{}`.
+   */
   constructor({guilds, users, voiceRegions}: Data = {}) {
     const resolvedGuilds = resolveCollection<Snowflake, DataGuild, 'id'>(
       guilds,
@@ -77,7 +88,7 @@ export const api = (
   clientData: ResolvedClientData,
   emitPacket: EmitPacket
 ): API => ({
-  guilds: endpoints.guilds(backend.resolvedData, clientData, emitPacket),
+  guilds: endpoints.guilds(backend['resolvedData'], clientData, emitPacket),
   oauth2: endpoints.oauth2(clientData),
-  voice: endpoints.voice(backend.resolvedData)
+  voice: endpoints.voice(backend['resolvedData'])
 })
