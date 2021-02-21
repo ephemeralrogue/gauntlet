@@ -25,17 +25,13 @@ export type GuildsPost = (options: {
   data: RESTPostAPIGuildsJSONBody
 }) => Promise<RESTPostAPIGuildsResult>
 
-const validGuildChannelTypesArray = [
+const validGuildChannelTypes = new Set([
   ChannelType.GUILD_TEXT,
   ChannelType.GUILD_VOICE,
   ChannelType.GUILD_CATEGORY
-]
-const validGuildChannelTypes = new Set(validGuildChannelTypesArray)
-const validGuildChannelTypesText = validGuildChannelTypesArray.join(', ')
+])
 
-const validAFKTimeoutsArray = [60, 300, 900, 1800, 3600]
-const validAFKTimeouts = new Set(validAFKTimeoutsArray)
-const validAFKTimeoutsText = validGuildChannelTypesArray.join(', ')
+const validAFKTimeouts = new Set([60, 300, 900, 1800, 3600])
 
 type AnyID = Snowflake | number
 
@@ -93,7 +89,7 @@ const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
                       type: {
                         _errors: [
                           formBodyErrors.BASE_TYPE_CHOICES(
-                            validGuildChannelTypesText
+                            validGuildChannelTypes
                           )
                         ]
                       }
@@ -110,7 +106,7 @@ const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
       ...(afk_timeout !== undefined && !validAFKTimeouts.has(afk_timeout)
         ? {
             afk_timeout: {
-              _errors: [formBodyErrors.BASE_TYPE_CHOICES(validAFKTimeoutsText)]
+              _errors: [formBodyErrors.BASE_TYPE_CHOICES(validAFKTimeouts)]
             }
           }
         : {}),
@@ -312,7 +308,7 @@ export const createGuild = (
             ),
             system_channel_id === undefined
               ? null
-              : map.get(system_channel_id) ?? null,
+              : map.get(system_channel_id)!,
             map
           ]
         })()

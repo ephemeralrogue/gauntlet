@@ -19,8 +19,6 @@ const _mockClient = (
   // Stop the RESTManager from setting an interval
   client.options.restSweepInterval = 0
 
-  // Initialise the mocked API. This needs to be done with
-  // Object.defineProperty because api is originally a getter
   const user: APIUser = {
     ...((userID === undefined ? undefined : data.users.get(userID)) ??
       defaults.user()),
@@ -38,6 +36,8 @@ const _mockClient = (
     application: defaults.clientApplication(application),
     userID: user.id
   }
+  // Initialise the mocked API. This needs to be done with
+  // Object.defineProperty because api is originally a getter
   Object.defineProperty(client, 'api', {
     value: api(backend, clientData, emitPacket),
     configurable: true
@@ -52,8 +52,6 @@ const _mockClient = (
 
   // Make the websocket manager ready to receive packets
   client.ws['triggerClientReady']()
-
-  // TODO: ready event
 
   if (data.guilds.size) {
     // Make each of the guilds available

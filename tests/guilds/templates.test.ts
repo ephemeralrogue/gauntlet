@@ -1,11 +1,16 @@
-import {_testWithClient, testWithClient} from './utils'
+import {
+  _testWithClient,
+  expectAPIError,
+  expectFormError,
+  testWithClient
+} from '../utils'
 import type * as D from 'discord.js'
-import type {MatchObjectGuild, DeepPartialOmit} from './utils'
+import type {MatchObjectGuild, DeepPartialOmit} from '../utils'
 
 type MatchObjectTemplate = DeepPartialOmit<D.GuildTemplate, 'valueOf'>
 
 describe('get template', () => {
-  describe('basic', () => {
+  describe('success', () => {
     const code = 'abc'
     const guildName = 'Guild name'
     const templateName = 'Template name'
@@ -22,8 +27,8 @@ describe('get template', () => {
       },
       {
         data: {
-          guilds: {
-            1: {
+          guilds: [
+            {
               name: guildName,
               template: {
                 code,
@@ -31,11 +36,15 @@ describe('get template', () => {
                 description: templateDescription
               }
             }
-          }
+          ]
         }
       }
     )
   })
+
+  testWithClient('errors on invalid code', async client =>
+    expectAPIError(client.fetchGuildTemplate('foo'), 10_057)
+  )
 })
 
 describe('create guild from template', () => {
@@ -55,16 +64,29 @@ describe('create guild from template', () => {
       },
       {
         data: {
-          guilds: {
-            1: {
+          guilds: [
+            // Make sure that it works with multiple guilds
+            {},
+            {
               template: {
                 code,
                 serialized_source_guild: {afk_timeout: afkTimeout}
               }
             }
-          }
+          ]
         }
       }
+    )
+  })
+
+  describe('errors on invalid name', () => {
+    const code = 'abc'
+    _testWithClient(
+      async client =>
+        expectFormError(
+          (await client.fetchGuildTemplate(code)).createGuild('')
+        ),
+      {data: {guilds: [{template: {code}}]}}
     )
   })
 })
@@ -99,6 +121,23 @@ describe('get guild templates', () => {
   })
 })
 
+describe('create guild template', () => {
+  describe('success', () => {
+    const guildID = '0'
+    const name = 'name'
+    const description = 'description'
+    _testWithClient(
+      async client =>
+        expect(
+          await client.guilds.cache
+            .get(guildID)!
+            .createTemplate(name, description)
+        ).toMatchObject<MatchObjectTemplate>({name, description}),
+      {data: {guilds: {[guildID]: {}}}}
+    )
+  })
+})
+
 const getTemplate = async (
   client: D.Client,
   guildID: string
@@ -107,7 +146,7 @@ const getTemplate = async (
 
 describe('modify guild template', () => {
   describe('success', () => {
-    const guildID = '1'
+    const guildID = '0'
     const oldName = 'old name'
     const newName = 'new name'
     const description = 'description'
@@ -123,7 +162,7 @@ describe('modify guild template', () => {
 
 describe('delete guild template', () => {
   describe('success', () => {
-    const guildID = '1'
+    const guildID = '0'
     const name = 'template name'
     _testWithClient(
       async client => {

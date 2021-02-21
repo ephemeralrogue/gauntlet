@@ -48,12 +48,10 @@ export const BASE_TYPE_MAX_LENGTH = (max: number): FormBodyError => ({
 })
 
 export const BASE_TYPE_CHOICES = (
-  choices: string | readonly (number | string)[]
+  choices: Iterable<number | string>
 ): FormBodyError => ({
   code: 'BASE_TYPE_CHOICES',
-  message: `Value must be one of (${
-    typeof choices == 'string' ? choices : choices.join(', ')
-  }).`
+  message: `Value must be one of (${[...choices].join(', ')}).`
 })
 
 export const GUILD_CREATE_CHANNEL_ID_INVALID = (

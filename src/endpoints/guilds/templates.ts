@@ -66,38 +66,3 @@ const templates = (
   }
 }
 export default templates
-
-/*
-guild deleted: template deleted
-- 404
-is_dirty: null when first created and no changes
-- changes to true when there is a change in the guild
-- changes to false once synced
-description empty: turns to null
-{
-  code: 50035,
-  errors: {
-    description: {
-      _errors: [
-        {
-          code: 'BASE_TYPE_MAX_LENGTH',
-          message: 'Must be 120 or fewer in length.'
-        }
-      ]
-    },
-    name: {
-      _errors: [
-        {
-          code: 'BASE_TYPE_BAD_LENGTH',
-          message: 'Must be between 1 and 100 in length.'
-        }
-      ]
-    }
-  },
-  message: 'Invalid Form Body'
-}
-
-creating template
-{ message: 'A server can only have a single template.', code: 30031 }
-roles/channel ids change to numbers (roles start at 0 (for @everyone), channels start at 1)
-*/
