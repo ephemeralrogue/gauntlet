@@ -1,4 +1,5 @@
 import {ChannelType, GatewayDispatchEvents} from 'discord-api-types/v8'
+import {Intents} from 'discord.js'
 import {Method, error, errors, formBodyErrors} from '../../errors'
 import * as convert from '../../convert'
 import * as defaults from '../../defaults'
@@ -10,7 +11,7 @@ import type {
   RESTPostAPIGuildsResult,
   Snowflake
 } from 'discord-api-types/v8'
-import type {EmitPacket} from '../../Backend'
+import type {EmitPacket, HasIntents} from '../../Backend'
 import type {
   DataGuild,
   DataGuildChannel,
@@ -217,6 +218,7 @@ const roleFromGuildCreateRole = (
 export const createGuild = (
   data: ResolvedData,
   clientData: ResolvedClientData,
+  hasIntents: HasIntents,
   emitPacket: EmitPacket
 ) => (guild: RESTPostAPIGuildsJSONBody) => {
   const {
@@ -326,11 +328,12 @@ export const createGuild = (
   data.guilds.set(guildData.id, guildData)
 
   const apiGuild = convert.guild(data)(guildData)
-  const gatewayGuild = convert.guildCreateGuild(data, clientData)(
-    guildData,
-    apiGuild
-  )
-  emitPacket(GatewayDispatchEvents.GuildCreate, gatewayGuild)
+  if (hasIntents(Intents.FLAGS.GUILDS)) {
+    emitPacket(
+      GatewayDispatchEvents.GuildCreate,
+      convert.guildCreateGuild(data, clientData)(guildData, apiGuild)
+    )
+  }
   return apiGuild
 }
 
@@ -338,10 +341,11 @@ export const createGuild = (
 export default (
   data: ResolvedData,
   clientData: ResolvedClientData,
+  hasIntents: HasIntents,
   emitPacket: EmitPacket
 ): GuildsPost => {
   const _checkErrors = checkErrors(data, clientData)
-  const _createGuild = createGuild(data, clientData, emitPacket)
+  const _createGuild = createGuild(data, clientData, hasIntents, emitPacket)
   return async ({data: guild}) => {
     _checkErrors(guild)
     return _createGuild(guild)

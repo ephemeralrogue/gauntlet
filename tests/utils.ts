@@ -31,42 +31,21 @@ export type DeepPartialOmit<
 // (guild as D.Guild).valueOf() is string
 export type MatchObjectGuild = DeepPartialOmit<D.Guild, 'valueOf'>
 
-interface TestWithClientOptions {
+export interface WithClientOptions {
   intents?: D.ClientOptions['intents']
   data?: DM.Data
   clientData?: DM.ClientData
-  only?: boolean
 }
 
-/* eslint-disable jest/valid-title -- helper fns */
-export const _testWithClient = (
-  fn: (client: D.Client) => Promise<void>,
-  {
-    intents = D.Intents.NON_PRIVILEGED,
-    data,
-    clientData,
-    only = false
-  }: TestWithClientOptions = {}
-): void => {
-  const testFn = only ? test.only : test
+export const _withClient = <T>(
+  fn: (client: D.Client) => T,
+  {intents = D.Intents.NON_PRIVILEGED, data, clientData}: WithClientOptions = {}
+): T => fn(new DM.Client({intents}, clientData, new DM.Backend(data)))
 
-  testFn('mockClient', async () => {
-    const client = new D.Client({intents})
-    DM.mockClient(client, clientData, new DM.Backend(data))
-    await fn(client)
-  })
-
-  testFn('new DM.Client()', async () =>
-    fn(new DM.Client({intents}, clientData, new DM.Backend(data)))
-  )
-}
-
-export const testWithClient = (
-  name: string,
-  fn: (client: D.Client) => Promise<void>,
-  options?: TestWithClientOptions
-): void => describe(name, () => _testWithClient(fn, options))
-/* eslint-enable jest/valid-title -- helper fns */
+export const withClient = <T>(
+  fn: (client: D.Client) => T,
+  options?: WithClientOptions
+) => (): T => _withClient(fn, options)
 
 export const expectAPIError = async (
   promise: Promise<unknown>,

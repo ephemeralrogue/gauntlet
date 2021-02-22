@@ -6,7 +6,7 @@ import * as convert from './convert'
 import * as defaults from './defaults'
 import type {APIUser} from 'discord-api-types/v8'
 import type {ClientOptions} from 'discord.js'
-import type {EmitPacket} from './Backend'
+import type {EmitPacket, HasIntents} from './Backend'
 import type {ClientData, ResolvedClientData} from './Data'
 
 const _mockClient = (
@@ -36,6 +36,8 @@ const _mockClient = (
     )
   }
 
+  const hasIntents: HasIntents = intents =>
+    !!((client.options.intents as number) & intents)
   const emitPacket: EmitPacket = (t, d) => {
     client.ws['handlePacket'](
       {op: GatewayOPCodes.Dispatch, t, d},
@@ -48,7 +50,7 @@ const _mockClient = (
   // Initialise the mocked API. This needs to be done with
   // Object.defineProperty because api is originally a getter
   Object.defineProperty(client, 'api', {
-    value: api(backend, clientData, emitPacket),
+    value: api(backend, clientData, hasIntents, emitPacket),
     configurable: true
   })
 
@@ -62,11 +64,13 @@ const _mockClient = (
   // Make the websocket manager ready to receive packets
   client.ws['triggerClientReady']()
 
-  if (data.guilds.size) {
+  if (hasIntents(D.Intents.FLAGS.GUILDS) && data.guilds.size) {
     // Make each of the guilds available
     const convertGuild = convert.guildCreateGuild(data, clientData)
-    for (const [, guild] of data.guilds)
-      emitPacket(GatewayDispatchEvents.GuildCreate, convertGuild(guild))
+    for (const [, guild] of data.guilds) {
+      if (guild.members.some(({id}) => id === user.id))
+        emitPacket(GatewayDispatchEvents.GuildCreate, convertGuild(guild))
+    }
   }
 }
 

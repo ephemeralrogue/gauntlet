@@ -6,7 +6,7 @@ import type {
   RESTPostAPITemplateCreateGuildJSONBody,
   RESTPostAPITemplateCreateGuildResult
 } from 'discord-api-types/v8'
-import type {EmitPacket} from '../../Backend'
+import type {EmitPacket, HasIntents} from '../../Backend'
 import type {
   DataGuild,
   DataGuildTemplate,
@@ -38,12 +38,13 @@ export const getTemplate = ({guilds}: ResolvedData) => (
 const templates = (
   data: ResolvedData,
   clientData: ResolvedClientData,
+  hasIntents: HasIntents,
   emitPacket: EmitPacket
 ): GuildsTemplates => {
   const _convertTemplate = convert.template(data)
   const _getTemplate = getTemplate(data)
   const _checkClientGuildCount = checkClientGuildCount(data, clientData)
-  const _createGuild = createGuild(data, clientData, emitPacket)
+  const _createGuild = createGuild(data, clientData, hasIntents, emitPacket)
   return code => {
     const path = `/guilds/templates/${code}`
     return {

@@ -11,9 +11,9 @@ const config = {
         tsconfigRootDir: __dirname
       },
       rules: {
-        'jest/no-standalone-expect': [
+        'jest/expect-expect': [
           2,
-          {additionalTestBlockFunctions: ['_testWithClient', 'testWithClient']}
+          {assertFunctionNames: ['expect', 'expectAPIError', 'expectFormError']}
         ]
       }
     },

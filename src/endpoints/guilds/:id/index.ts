@@ -1,6 +1,6 @@
 import templates from './templates'
 import type {Snowflake} from 'discord-api-types/v8'
-import type {EmitPacket} from '../../../Backend'
+import type {EmitPacket, HasIntents} from '../../../Backend'
 import type {ResolvedClientData, ResolvedData} from '../../../Data'
 import type {GuildsIdTemplates} from './templates'
 
@@ -28,6 +28,7 @@ export type GuildsFn = (
 export default (
   data: ResolvedData,
   clientData: ResolvedClientData,
+  _hasIntents: HasIntents,
   _emitPacket: EmitPacket
 ): GuildsFn => {
   const _templates = templates(data, clientData)

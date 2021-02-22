@@ -1,6 +1,5 @@
 import * as D from 'discord.js'
 import * as DM from '../src'
-import {_testWithClient} from './utils'
 
 describe('initial guilds', () => {
   test('basic guild', async () => {

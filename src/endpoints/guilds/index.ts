@@ -1,7 +1,7 @@
 import guildsID from './:id'
 import templates from './templates'
 import post from './post'
-import type {EmitPacket} from '../../Backend'
+import type {EmitPacket, HasIntents} from '../../Backend'
 import type {ResolvedClientData, ResolvedData} from '../../Data'
 import type {GuildsFn} from './:id'
 import type {GuildsTemplates} from './templates'
@@ -17,9 +17,10 @@ export interface Guilds extends GuildsFn {
 export const guilds = (
   data: ResolvedData,
   clientData: ResolvedClientData,
+  hasIntents: HasIntents,
   emitPacket: EmitPacket
 ): Guilds =>
-  Object.assign(guildsID(data, clientData, emitPacket), {
-    templates: templates(data, clientData, emitPacket),
-    post: post(data, clientData, emitPacket)
+  Object.assign(guildsID(data, clientData, hasIntents, emitPacket), {
+    templates: templates(data, clientData, hasIntents, emitPacket),
+    post: post(data, clientData, hasIntents, emitPacket)
   })

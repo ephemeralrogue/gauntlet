@@ -89,14 +89,17 @@ export type EmitPacket = <T extends GatewayDispatchEvents>(
   d: ExtractGatewayPayload<T>
 ) => void
 
+export type HasIntents = (intents: number) => boolean
+
 export const api = (
   backend: Backend,
   clientData: ResolvedClientData,
+  hasIntents: HasIntents,
   emitPacket: EmitPacket
 ): API => {
   const data = backend['resolvedData']
   return {
-    guilds: endpoints.guilds(data, clientData, emitPacket),
+    guilds: endpoints.guilds(data, clientData, hasIntents, emitPacket),
     oauth2: endpoints.oauth2(data, clientData),
     voice: endpoints.voice(data)
   }

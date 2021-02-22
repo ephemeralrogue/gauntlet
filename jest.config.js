@@ -8,6 +8,7 @@ const config = {
   collectCoverage: true,
   coverageReporters: ['html'],
   collectCoverageFrom: ['<rootDir>/src/**/*.ts'],
+  watchPathIgnorePatterns: ['<rootDir>/(?:node_modules|dist|docs)/'],
   globals: {
     'ts-jest': {
       tsconfig: '<rootDir>/tests/tsconfig.json'
