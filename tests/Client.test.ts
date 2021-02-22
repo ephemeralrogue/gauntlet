@@ -1,16 +1,16 @@
 import * as D from 'discord.js'
 import * as DM from '../src'
 import type {MatchObjectGuild} from './utils'
+import './matchers'
 
 describe('mockClient', () => {
-  // eslint-disable-next-line jest/expect-expect -- testing if the promise resolves
   test('ready event is emitted', async () => {
     const client = new D.Client({intents: []})
     const promise = new Promise<void>(resolve => {
       client.on('ready', resolve)
     })
     DM.mockClient(client)
-    await promise
+    await expect(promise).toResolve()
   })
 
   describe('guild create event', () => {
@@ -46,7 +46,6 @@ describe('mockClient', () => {
       )
     })
 
-    // eslint-disable-next-line jest/expect-expect -- testing if the promise rejects
     test('not emitted without GUILDS intent', async () => {
       const client = new D.Client({intents: []})
       const promise = new Promise<void>((resolve, reject) => {
@@ -56,7 +55,7 @@ describe('mockClient', () => {
         })
       })
       DM.mockClient(client, clientData, backend)
-      await promise
+      await expect(promise).toResolve()
     })
   })
 })

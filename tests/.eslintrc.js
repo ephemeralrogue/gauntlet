@@ -1,5 +1,7 @@
 'use strict'
 
+const path = require('path')
+
 /** @type {import('eslint').Linter.Config & {parserOptions?: import('@typescript-eslint/parser').ParserOptions}} */
 const config = {
   overrides: [
@@ -11,6 +13,10 @@ const config = {
         tsconfigRootDir: __dirname
       },
       rules: {
+        'import/no-unassigned-import': [
+          1,
+          {allow: [path.join(__dirname, 'matchers')]}
+        ],
         'jest/expect-expect': [
           2,
           {assertFunctionNames: ['expect', 'expectAPIError', 'expectFormError']}
