@@ -1,3 +1,3 @@
 export * from './Client'
 export {Backend} from './Backend'
-export {ClientData, Data, DataGuild} from './Data'
+export {ClientData, ClientDataApplication, Data, DataGuild} from './Data'

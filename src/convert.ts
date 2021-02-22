@@ -1,4 +1,6 @@
+import {clientUserID} from './utils'
 import type {
+  APIApplication,
   APIEmoji,
   APIGuild,
   APIGuildMember,
@@ -16,6 +18,14 @@ import type {
   ResolvedData
 } from './Data'
 import type {Override} from './utils'
+
+export const oauth2Application = (
+  {integration_applications}: ResolvedData,
+  {application}: ResolvedClientData
+): APIApplication => ({
+  ...application,
+  ...integration_applications.get(application.id)!
+})
 
 export const addGuildID = <T>(dataGuild: DataGuild) => (
   dataChannel: T
@@ -167,12 +177,13 @@ export const guild = (
  */
 export const guildCreateGuild = (
   data: ResolvedData,
-  {userID}: ResolvedClientData
+  clientData: ResolvedClientData
 ): ((dataGuild: DataGuild, convertedGuild?: APIGuild) => APIGuild) => {
   const convertGuild = guild(data)
   const convertGuildMember = guildMember(data)
   return (dataGuild, convertedGuild): APIGuild => {
     const {large, unavailable, members, channels, presences} = dataGuild
+    const userID = clientUserID(data, clientData)
     return {
       ...(convertedGuild ?? convertGuild(dataGuild)),
       joined_at: members.find(({id}) => id === userID)?.joined_at,

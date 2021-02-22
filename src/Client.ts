@@ -12,19 +12,29 @@ import type {ClientData, ResolvedClientData} from './Data'
 const _mockClient = (
   backend: Backend,
   client: D.Client,
-  {userID, application}: ClientData = {}
+  {application}: ClientData = {}
 ): void => {
   const data = backend['resolvedData']
 
   // Stop the RESTManager from setting an interval
   client.options.restSweepInterval = 0
 
+  const app = defaults.clientDataApplication(application)
   const user: APIUser = {
-    ...((userID === undefined ? undefined : data.users.get(userID)) ??
+    ...(data.users.get(app.id) ??
+      data.integration_applications.get(app.id)?.bot ??
       defaults.user()),
     bot: true
   }
   data.users.set(user.id, user)
+  if (data.integration_applications.has(app.id))
+    data.integration_applications.get(app.id)!.bot = user
+  else {
+    data.integration_applications.set(
+      app.id,
+      defaults.integrationApplication({id: app.id, bot: user})
+    )
+  }
 
   const emitPacket: EmitPacket = (t, d) => {
     client.ws['handlePacket'](
@@ -33,8 +43,7 @@ const _mockClient = (
     )
   }
   const clientData: ResolvedClientData = {
-    application: defaults.clientApplication(application),
-    userID: user.id
+    application: app
   }
   // Initialise the mocked API. This needs to be done with
   // Object.defineProperty because api is originally a getter

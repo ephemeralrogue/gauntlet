@@ -2,6 +2,7 @@ import * as defaults from './defaults'
 import * as endpoints from './endpoints'
 import {resolveCollection} from './resolve-collection'
 import type {
+  APIGuildIntegrationApplication,
   APIUser,
   GatewayDispatchEvents,
   GatewayDispatchPayload,
@@ -37,7 +38,7 @@ export class Backend {
    *
    * @param data The data for the backend. Defaults to `{}`.
    */
-  constructor({guilds, users, voiceRegions}: Data = {}) {
+  constructor({guilds, applications, users, voice_regions}: Data = {}) {
     const resolvedGuilds = resolveCollection<Snowflake, DataGuild, 'id'>(
       guilds,
       'id',
@@ -50,6 +51,11 @@ export class Backend {
     )
     this.resolvedData = {
       guilds: resolvedGuilds,
+      integration_applications: resolveCollection<
+        Snowflake,
+        APIGuildIntegrationApplication,
+        'id'
+      >(applications, 'id', defaults.integrationApplication),
       users: new Collection([
         ...resolvedUsers.entries(),
         // Add users from guild members and guild template creators
@@ -65,7 +71,7 @@ export class Backend {
           ])
           .flat()
       ]),
-      voice_regions: defaults.voiceRegions(voiceRegions)
+      voice_regions: defaults.voiceRegions(voice_regions)
     }
   }
 }
@@ -87,8 +93,11 @@ export const api = (
   backend: Backend,
   clientData: ResolvedClientData,
   emitPacket: EmitPacket
-): API => ({
-  guilds: endpoints.guilds(backend['resolvedData'], clientData, emitPacket),
-  oauth2: endpoints.oauth2(clientData),
-  voice: endpoints.voice(backend['resolvedData'])
-})
+): API => {
+  const data = backend['resolvedData']
+  return {
+    guilds: endpoints.guilds(data, clientData, emitPacket),
+    oauth2: endpoints.oauth2(data, clientData),
+    voice: endpoints.voice(data)
+  }
+}

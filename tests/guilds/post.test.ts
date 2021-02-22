@@ -116,7 +116,8 @@ describe('successes', () => {
 
 describe('errors', () => {
   describe('too many guilds', () => {
-    const userID = '1'
+    const appID = '1'
+    const userID = '2'
     _testWithClient(
       async client =>
         expectAPIError(
@@ -125,11 +126,12 @@ describe('errors', () => {
         ),
       {
         data: {
+          applications: {[appID]: {bot: {id: userID}}},
           guilds: Array.from({length: 10}).map(() => ({
             members: [{id: userID}]
           }))
         },
-        clientData: {userID}
+        clientData: {application: {id: appID}}
       }
     )
   })

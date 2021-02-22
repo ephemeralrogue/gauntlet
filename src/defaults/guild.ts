@@ -62,7 +62,7 @@ const integrationAccount = d<APIIntegrationAccount>(_account => ({
   ..._account
 }))
 
-const integrationApplication = d<APIGuildIntegrationApplication>(
+export const integrationApplication = d<APIGuildIntegrationApplication>(
   application => ({
     ...partialApplication(application),
     bot: application?.bot ? user(application.bot) : undefined

@@ -2,6 +2,7 @@ import {OverwriteType, PermissionFlagsBits} from 'discord-api-types/v8'
 import * as convert from '../../../convert'
 import * as defaults from '../../../defaults'
 import {Method, error, errors, formBodyErrors} from '../../../errors'
+import {clientUserID} from '../../../utils'
 import {hasPermissions} from '../../utils'
 import type {
   RESTDeleteAPIGuildTemplateResult,
@@ -64,11 +65,14 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
     const basePath = `/guilds/${id}/templates`
     const getGuildAndCheckPermissions = (
       method: Method,
-      path = basePath
+      {
+        path = basePath,
+        userID = clientUserID(data, clientData)
+      }: {path?: string; userID?: Snowflake} = {}
     ): DataGuild => {
       const guild = data.guilds.get(id)
       if (!guild) error(errors.UNKNOWN_GUILD, path, method)
-      const member = guild.members.find(m => m.id === clientData.userID)
+      const member = guild.members.find(m => m.id === userID)
       if (
         member &&
         hasPermissions(guild, member, PermissionFlagsBits.MANAGE_GUILD)
@@ -84,7 +88,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
           // https://discord.com/developers/docs/resources/template#delete-guild-template
           delete: async () => {
             const method = Method.DELETE
-            const guild = getGuildAndCheckPermissions(method, path)
+            const guild = getGuildAndCheckPermissions(method, {path})
             if (guild.template?.code !== code)
               error(errors.UNKNOWN_GUILD_TEMPLATE, path, method)
             const {template} = guild
@@ -96,7 +100,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
           patch: async ({data: {name, description}}) => {
             const method = Method.PATCH
             checkTemplateInput(name, description, path, method)
-            const guild = getGuildAndCheckPermissions(method, path)
+            const guild = getGuildAndCheckPermissions(method, {path})
             if (guild.template?.code !== code)
               error(errors.UNKNOWN_GUILD_TEMPLATE, path, method)
             if (name !== undefined) guild.template.name = name
@@ -117,7 +121,8 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
           const method = Method.POST
           checkTemplateInput(name, description, basePath, method)
 
-          const guild = getGuildAndCheckPermissions(method)
+          const userID = clientUserID(data, clientData)
+          const guild = getGuildAndCheckPermissions(method, {userID})
           if (guild.template)
             error(errors.ALREADY_HAS_TEMPLATE, basePath, method)
 
@@ -144,7 +149,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
           guild.template = defaults.dataGuildTemplate({
             name,
             description: description ?? '' ? description : null,
-            creator_id: clientData.userID,
+            creator_id: userID,
             serialized_source_guild: {
               name: guild.name,
               description: guild.description,

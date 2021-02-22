@@ -2,7 +2,7 @@ import {ChannelType, GatewayDispatchEvents} from 'discord-api-types/v8'
 import {Method, error, errors, formBodyErrors} from '../../errors'
 import * as convert from '../../convert'
 import * as defaults from '../../defaults'
-import {snowflake, timestamp} from '../../utils'
+import {clientUserID, snowflake, timestamp} from '../../utils'
 import type {
   APIGuildCreatePartialChannel,
   APIGuildCreateRole,
@@ -39,10 +39,10 @@ export const checkClientGuildCount = (
   data: ResolvedData,
   clientData: ResolvedClientData
 ) => (path: string, method: Method): void => {
+  const userID = clientUserID(data, clientData)
   if (
-    data.guilds.filter(({members}) =>
-      members.some(({id}) => id === clientData.userID)
-    ).size >= 10
+    data.guilds.filter(({members}) => members.some(({id}) => id === userID))
+      .size >= 10
   )
     error(errors.MAXIMUM_GUILDS, path, method)
 }
@@ -233,6 +233,7 @@ export const createGuild = (
     system_channel_id,
     system_channel_flags
   } = guild
+  const userID = clientUserID(data, clientData)
   const base = defaults.dataGuild({
     name,
     icon,
@@ -242,9 +243,9 @@ export const createGuild = (
     default_message_notifications,
     explicit_content_filter,
     system_channel_flags,
-    owner_id: clientData.userID,
-    application_id: clientData.application.id,
-    members: [{id: clientData.userID, joined_at: timestamp()}]
+    owner_id: userID,
+    application_id: userID,
+    members: [{id: userID, joined_at: timestamp()}]
   })
 
   type IDMap = ReadonlyMap<number | string, Snowflake>

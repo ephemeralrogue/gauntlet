@@ -7,6 +7,7 @@ describe('fetchApplication', () => {
   )
 
   describe('custom application', () => {
+    const applicationID = '0'
     const name = 'Application Name'
     const ownerUsername = 'app owner'
     _testWithClient(
@@ -17,7 +18,12 @@ describe('fetchApplication', () => {
         expect(application.owner).toBeInstanceOf(User)
         expect((application.owner as User).username).toBe(ownerUsername)
       },
-      {clientData: {application: {name, owner: {username: ownerUsername}}}}
+      {
+        data: {applications: {[applicationID]: {name}}},
+        clientData: {
+          application: {id: applicationID, owner: {username: ownerUsername}}
+        }
+      }
     )
   })
 })

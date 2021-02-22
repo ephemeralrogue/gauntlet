@@ -2,6 +2,7 @@ import type {
   APIApplication,
   APIChannel,
   APIGuildIntegration,
+  APIGuildIntegrationApplication,
   APIGuildMember,
   APIRole,
   APITemplate,
@@ -95,25 +96,41 @@ export interface DataGuild
 export interface ResolvedData {
   // TODO: resolve stuff in DataGuild to a Collection
   guilds: Collection<Snowflake, DataGuild>
+  integration_applications: Collection<
+    Snowflake,
+    APIGuildIntegrationApplication
+  >
   users: Collection<Snowflake, APIUser>
   voice_regions: Collection<string, APIVoiceRegion>
 }
 
 /** The data for a `Backend`. */
 export type Data = Override<
-  DataPartialDeep<ResolvedData>,
+  Omit<DataPartialDeep<ResolvedData>, 'integrationApplications'>,
   {
     guilds?: CollectionResolvable<Snowflake, DataGuild, 'id'>
+    applications?: CollectionResolvable<
+      Snowflake,
+      APIGuildIntegrationApplication,
+      'id'
+    >
     users?: CollectionResolvable<Snowflake, APIUser, 'id'>
-    voiceRegions?: CollectionResolvable<string, APIVoiceRegion, 'id'>
+    voice_regions?: CollectionResolvable<string, APIVoiceRegion, 'id'>
   }
 >
 
 // #endregion Data
 
+export interface ClientDataApplication
+  extends Pick<
+    APIApplication,
+    Exclude<keyof APIApplication, keyof APIGuildIntegrationApplication>
+  > {
+  id: Snowflake
+}
+
 export interface ResolvedClientData {
-  application: APIApplication
-  userID: Snowflake
+  application: ClientDataApplication
 }
 
 /** Data specific to a Discord.js client/bot application. */

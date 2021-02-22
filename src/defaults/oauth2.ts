@@ -6,6 +6,7 @@ import type {
   APIApplication,
   APIGuildIntegrationApplication
 } from 'discord-api-types/v8'
+import type {ClientDataApplication} from '../Data'
 import type {CommonProperties} from '../utils'
 
 type PartialApplication = CommonProperties<
@@ -22,12 +23,19 @@ export const partialApplication = d<PartialApplication>(application => ({
   ...application
 }))
 
-export const clientApplication = d<APIApplication>(application => ({
+export const clientDataApplication = d<ClientDataApplication>(application => ({
+  id: snowflake(),
   bot_public: false,
   bot_require_code_grant: false,
-  verify_key: 'application verify key',
+  // 64 chars
+  verify_key: Math.random().toString(36).slice(2),
   flags: 0,
-  ...partialApplication(application),
+  ...application,
   owner: user(application?.owner),
   team: application?.team ? team(application.team) : null
+}))
+
+export const clientApplication = d<APIApplication>(application => ({
+  ...partialApplication(application),
+  ...clientDataApplication(application)
 }))

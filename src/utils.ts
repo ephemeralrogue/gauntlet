@@ -1,5 +1,6 @@
 import {SnowflakeUtil} from 'discord.js'
 import type {Snowflake} from 'discord-api-types/v8'
+import type {ResolvedClientData, ResolvedData} from './Data'
 
 declare global {
   interface ArrayConstructor {
@@ -96,3 +97,8 @@ export const timestamp = (date?: Date | number): string =>
   ).toISOString()
 
 export const snowflake = SnowflakeUtil.generate as () => Snowflake
+
+export const clientUserID = (
+  {integration_applications}: ResolvedData,
+  {application}: ResolvedClientData
+): Snowflake => integration_applications.get(application.id)!.bot!.id
