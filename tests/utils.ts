@@ -1,4 +1,3 @@
-import {RESTJSONErrorCodes} from 'discord-api-types/v8'
 import * as D from 'discord.js'
 import * as DM from '../src'
 import type {AnyFunction} from '../src/utils'
@@ -46,18 +45,3 @@ export const withClient = <T>(
   fn: (client: D.Client) => T,
   options?: WithClientOptions
 ) => (): T => _withClient(fn, options)
-
-export const expectAPIError = async (
-  promise: Promise<unknown>,
-  code: RESTJSONErrorCodes
-): Promise<void> => {
-  await expect(promise).rejects.toBeInstanceOf(D.DiscordAPIError)
-  await expect(promise).rejects.toMatchObject<Partial<D.DiscordAPIError>>({
-    code
-  })
-}
-
-export const expectFormError = async (
-  promise: Promise<unknown>
-): Promise<void> =>
-  expectAPIError(promise, RESTJSONErrorCodes.InvalidFormBodyOrContentType)

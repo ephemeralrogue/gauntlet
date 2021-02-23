@@ -1,17 +1,13 @@
-/* eslint jest/expect-expect: [2, {assertFunctionNames: ['expect', 'expectAPIError', '_formErr', 'formErr']}]
+/* eslint jest/expect-expect: [2, {assertFunctionNames: ['expect', '_formErr', 'formErr']}]
   -- The helper functions _formErr and formErr use expect
 */
 
 import {RESTJSONErrorCodes} from 'discord-api-types/v8'
-import {
-  _withClient,
-  expectAPIError,
-  expectFormError,
-  withClient
-} from '../utils'
+import {_withClient, withClient} from '../utils'
 import type * as D from 'discord.js'
 import type {Override} from '../../src/utils'
 import type {MatchObjectGuild} from '../utils'
+import '../matchers'
 
 // TODO: fix Discord.js types
 type GuildCreateOpts = Override<
@@ -143,8 +139,7 @@ describe('errors', () => {
     const userID = '2'
     await _withClient(
       async client =>
-        expectAPIError(
-          client.guilds.create('name'),
+        expect(client.guilds.create('name')).toThrowAPIError(
           RESTJSONErrorCodes.MaximumNumberOfGuildsReached
         ),
       {
@@ -165,7 +160,9 @@ describe('errors', () => {
   const _formErr = (
     ...args: Parameters<D.GuildManager['create']>
   ): (() => Promise<void>) =>
-    withClient(async client => expectFormError(client.guilds.create(...args)))
+    withClient(async client =>
+      expect(client.guilds.create(...args)).toThrowAPIFormError()
+    )
 
   test('too short name', _formErr(''))
   test('too long name', _formErr('a'.repeat(101)))

@@ -1,9 +1,4 @@
-import {
-  _withClient,
-  expectAPIError,
-  expectFormError,
-  withClient
-} from '../utils'
+import {_withClient, withClient} from '../utils'
 import type * as D from 'discord.js'
 import type * as DM from '../../src'
 import type {
@@ -11,6 +6,7 @@ import type {
   MatchObjectGuild,
   WithClientOptions
 } from '../utils'
+import '../matchers'
 
 type MatchObjectTemplate = DeepPartialOmit<D.GuildTemplate, 'valueOf'>
 
@@ -59,7 +55,7 @@ describe('get template', () => {
   test(
     'errors on invalid code',
     withClient(async client =>
-      expectAPIError(client.fetchGuildTemplate('foo'), 10_057)
+      expect(client.fetchGuildTemplate('foo')).toThrowAPIError(10_057)
     )
   )
 })
@@ -96,9 +92,9 @@ describe('create guild from template', () => {
     const code = 'abc'
     await _withClient(
       async client =>
-        expectFormError(
+        expect(
           (await client.fetchGuildTemplate(code)).createGuild('')
-        ),
+        ).toThrowAPIFormError(),
       clientInGuilds({template: {code}})
     )
   })

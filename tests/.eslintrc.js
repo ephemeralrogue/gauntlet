@@ -16,10 +16,6 @@ const config = {
         'import/no-unassigned-import': [
           1,
           {allow: [path.join(__dirname, 'matchers')]}
-        ],
-        'jest/expect-expect': [
-          2,
-          {assertFunctionNames: ['expect', 'expectAPIError', 'expectFormError']}
         ]
       }
     },
