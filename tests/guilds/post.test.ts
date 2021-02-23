@@ -159,31 +159,20 @@ describe('errors', () => {
     )
   })
 
-  type Params = Parameters<D.GuildManager['create']>
   // Discord.js sometimes mutates the input, so we need to have a unique input
   // every time otherwise TypeErrors may occur
   // This is why a function is sometimes used to provide the options
-  const _formErr = (...args: Params | [() => Params]): (() => Promise<void>) =>
-    withClient(async client =>
-      expectFormError(
-        client.guilds.create(
-          ...(typeof args[0] == 'function' ? args[0]() : (args as Params))
-        )
-      )
-    )
+  const _formErr = (
+    ...args: Parameters<D.GuildManager['create']>
+  ): (() => Promise<void>) =>
+    withClient(async client => expectFormError(client.guilds.create(...args)))
 
   test('too short name', _formErr(''))
   test('too long name', _formErr('a'.repeat(101)))
 
   const name = 'name'
-  const formErr = (
-    options?: GuildCreateOpts | (() => GuildCreateOpts)
-  ): (() => Promise<void>) =>
-    _formErr(
-      ...(typeof options == 'function'
-        ? [(): Params => [name, options()]]
-        : ([name, options] as const))
-    )
+  const formErr = (options?: GuildCreateOpts): (() => Promise<void>) =>
+    _formErr(name, options)
 
   describe('channels', () => {
     test('no channel name', formErr({channels: [{name: ''}]}))
@@ -193,49 +182,43 @@ describe('errors', () => {
       formErr({channels: [{name: 'a'.repeat(101)}]})
     )
 
-    test(
-      'invalid channel type',
-      formErr(() => ({channels: [{name, type: 'dm'}]}))
-    )
+    test('invalid channel type', formErr({channels: [{name, type: 'dm'}]}))
 
     const parentID = 0
 
     describe('parent channel', () => {
-      test(
-        'missing',
-        formErr(() => ({channels: [{name, parentID}]}))
-      )
+      test('missing', formErr({channels: [{name, parentID}]}))
 
       describe('invalid type', () => {
         test(
           'using default text type',
-          formErr(() => ({
+          formErr({
             channels: [
               {name, id: parentID},
               {name, parentID}
             ]
-          }))
+          })
         )
 
         test(
           'using explicit incorrect type',
-          formErr(() => ({
+          formErr({
             channels: [
               {name, id: parentID, type: 'text'},
               {name, parentID}
             ]
-          }))
+          })
         )
       })
 
       test(
         'parent not before child',
-        formErr(() => ({
+        formErr({
           channels: [
             {name, parentID},
             {name, id: parentID, type: 'category'}
           ]
-        }))
+        })
       )
     })
 
@@ -249,13 +232,10 @@ describe('errors', () => {
       if (checkDefault) {
         test(
           'invalid default type',
-          formErr(() => ({channels: [{name, id}], [key]: id}))
+          formErr({channels: [{name, id}], [key]: id})
         )
       }
-      test(
-        'invalid type',
-        formErr(() => ({channels: [{name, id, type}], [key]: id}))
-      )
+      test('invalid type', formErr({channels: [{name, id, type}], [key]: id}))
     })
   })
 
