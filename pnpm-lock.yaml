@@ -11,7 +11,7 @@ devDependencies:
   commitlint: 11.0.0
   cz-conventional-changelog: 3.3.0
   discord-api-types: 0.12.1
-  discord.js: github.com/discordjs/discord.js/ee5bc1a5c4e218ea1f16992694a2bff86c86d2d2
+  discord.js: github.com/discordjs/discord.js/d744e51c1bdb4c7a26c0faeea1f2f45baaf5fd3c
   eslint: 7.20.0
   eslint-config-prettier: 7.2.0_eslint@7.20.0
   eslint-plugin-eslint-comments: 3.2.0_eslint@7.20.0
@@ -7526,7 +7526,7 @@ packages:
       node: '>=10'
     resolution:
       integrity: sha512-D1mvvtDG0L5ft/jGWkLpG1+m0eQxOfaBvTNELraWj22wSVUMWxZUvYgJYcKh6jGGIkJFhH4IZPQhR4TKpc8mBw==
-  github.com/discordjs/discord.js/ee5bc1a5c4e218ea1f16992694a2bff86c86d2d2:
+  github.com/discordjs/discord.js/d744e51c1bdb4c7a26c0faeea1f2f45baaf5fd3c:
     dependencies:
       '@discordjs/collection': 0.1.6
       '@discordjs/form-data': 3.0.1
@@ -7540,7 +7540,7 @@ packages:
       node: '>=14.0.0'
     name: discord.js
     resolution:
-      tarball: https://codeload.github.com/discordjs/discord.js/tar.gz/ee5bc1a5c4e218ea1f16992694a2bff86c86d2d2
+      tarball: https://codeload.github.com/discordjs/discord.js/tar.gz/d744e51c1bdb4c7a26c0faeea1f2f45baaf5fd3c
     version: 12.5.0
 specifiers:
   '@cherryblossom/eslint-config': file:../eslint-config
@@ -7555,7 +7555,7 @@ specifiers:
   commitlint: ^11.0.0
   cz-conventional-changelog: ^3.3.0
   discord-api-types: ^0.12.1
-  discord.js: discordjs/discord.js#ee5bc1a5c4e218ea1f16992694a2bff86c86d2d2
+  discord.js: discordjs/discord.js
   eslint: ~7.20.0
   eslint-config-prettier: ^7.2.0
   eslint-plugin-eslint-comments: ^3.2.0
