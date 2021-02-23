@@ -144,7 +144,7 @@ describe('errors', () => {
         ),
       {
         data: {
-          applications: {[appID]: {bot: {id: userID}}},
+          applications: [{id: appID, bot: {id: userID}}],
           guilds: Array.from({length: 10}).map(() => ({
             members: [{id: userID}]
           }))

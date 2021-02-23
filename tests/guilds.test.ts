@@ -21,9 +21,9 @@ describe('initial guilds', () => {
       client,
       {application: {id: appID}},
       new DM.Backend({
-        applications: {[appID]: {bot: {id: userID}}},
-        users: {[userID]: {}},
-        guilds: {[guildID]: {members: [{id: userID}]}}
+        applications: [{id: appID, bot: {id: userID}}],
+        users: [{id: userID}],
+        guilds: [{id: guildID, members: [{id: userID}]}]
       })
     )
     await promise
@@ -48,8 +48,8 @@ describe('initial guilds', () => {
       client,
       {application: {id: appID}},
       new DM.Backend({
-        applications: {[appID]: {bot: {id: userID}}},
-        guilds: {[guildID]: {members: [{id: userID}]}}
+        applications: [{id: appID, bot: {id: userID}}],
+        guilds: [{id: guildID, members: [{id: userID}]}]
       })
     )
     await promise

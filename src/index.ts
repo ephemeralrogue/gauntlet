@@ -1,6 +1,5 @@
 export * from './Client'
 export {Backend} from './Backend'
-export {DataPartialDeep} from './resolve-collection'
 export {
   Activity,
   AuditLogChange,
@@ -17,7 +16,8 @@ export {
   DataGuildTemplate,
   DataGuildPresence,
   DataGuildVoiceState,
+  DataPartialDeep,
   DataRole,
   Presence
 } from './types'
-export {RequireKeys} from './utils'
+export {KeysMatching, RequireKeys} from './utils'

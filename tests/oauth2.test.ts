@@ -22,7 +22,7 @@ describe('fetchApplication', () => {
         expect((application.owner as User).username).toBe(ownerUsername)
       },
       {
-        data: {applications: {[applicationID]: {name}}},
+        data: {applications: [{id: applicationID, name}]},
         clientData: {
           application: {id: applicationID, owner: {username: ownerUsername}}
         }

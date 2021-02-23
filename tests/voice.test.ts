@@ -22,7 +22,12 @@ describe('fetchVoiceRegions', () => {
         expect(voiceRegions.get('id2')?.name).toBe('name 2')
       },
       {
-        data: {voice_regions: {id1: {name: 'name 1'}, id2: {name: 'name 2'}}}
+        data: {
+          voice_regions: [
+            {id: 'id1', name: 'name 1'},
+            {id: 'id2', name: 'name 2'}
+          ]
+        }
       }
     )
   )

@@ -19,7 +19,7 @@ describe('mockClient', () => {
     const id1 = '2'
     const id2 = '3'
     const backend = new DM.Backend({
-      applications: {[appID]: {bot: {id: userID}}},
+      applications: [{id: appID, bot: {id: userID}}],
       guilds: [
         {id: id1, members: [{id: userID}]},
         {id: id2, members: [{id: userID}]},

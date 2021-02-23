@@ -1,14 +1,13 @@
 import * as defaults from './defaults'
 import * as endpoints from './endpoints'
-import {resolveCollection} from './resolve-collection'
+import {resolveCollection} from './utils'
 import type {
-  APIGuildIntegrationApplication,
   APIUser,
   GatewayDispatchEvents,
   GatewayDispatchPayload,
   Snowflake
 } from 'discord-api-types/v8'
-import type {Data, DataGuild, ResolvedClientData, ResolvedData} from './types'
+import type {Data, ResolvedClientData, ResolvedData} from './types'
 import type {Guilds, OAuth2, Voice} from './endpoints'
 import {Collection} from 'discord.js'
 
@@ -39,23 +38,15 @@ export class Backend {
    * @param data The data for the backend. Defaults to `{}`.
    */
   constructor({guilds, applications, users, voice_regions}: Data = {}) {
-    const resolvedGuilds = resolveCollection<Snowflake, DataGuild, 'id'>(
-      guilds,
-      'id',
-      defaults.dataGuild
-    )
-    const resolvedUsers = resolveCollection<Snowflake, APIUser, 'id'>(
-      users,
-      'id',
-      defaults.user
-    )
+    const resolvedGuilds = resolveCollection(guilds, 'id', defaults.dataGuild)
+    const resolvedUsers = resolveCollection(users, 'id', defaults.user)
     this.resolvedData = {
       guilds: resolvedGuilds,
-      integration_applications: resolveCollection<
-        Snowflake,
-        APIGuildIntegrationApplication,
-        'id'
-      >(applications, 'id', defaults.integrationApplication),
+      integration_applications: resolveCollection(
+        applications,
+        'id',
+        defaults.integrationApplication
+      ),
       users: new Collection([
         ...resolvedUsers.entries(),
         // Add users from guild members and guild template creators

@@ -27,12 +27,12 @@ import type {
   APIAuditLogOptions,
   Snowflake
 } from 'discord-api-types/v8'
-import type {DataPartialDeep} from '../resolve-collection'
 import type {RequireKeys} from '../utils'
 import type {
   AuditLogChange,
   AuditLogChangeKeyOverwriteType,
-  AuditLogEntry
+  AuditLogEntry,
+  DataPartialDeep
 } from '../types'
 
 const overwriteTypeChangeToOptions: Readonly<

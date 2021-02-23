@@ -37,6 +37,8 @@ const _mockClient = (
   }
 
   const hasIntents: HasIntents = intents =>
+    // Intents are always resolved
+    // https://github.com/discordjs/discord.js/blob/d744e51c1bdb4c7a26c0faeea1f2f45baaf5fd3c/src/client/Client.js#L463
     !!((client.options.intents as number) & intents)
   const emitPacket: EmitPacket = (t, d) => {
     client.ws['handlePacket'](

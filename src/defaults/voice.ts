@@ -1,13 +1,13 @@
-import {_resolveCollection, resolveCollection} from '../resolve-collection'
+import {resolveCollection} from '../utils'
 import {createDefaults as d} from './utils'
 import type {APIVoiceRegion} from 'discord-api-types/v8'
 import type {Collection} from 'discord.js'
-import type {CollectionResolvable} from '../resolve-collection'
+import type {DataPartialDeep} from '../types'
 
 const defaultVoiceRegions: Collection<
   string,
   APIVoiceRegion
-> = _resolveCollection<string, APIVoiceRegion, 'id'>(
+> = resolveCollection(
   [
     {
       id: 'us-west',
@@ -176,12 +176,8 @@ export const voiceRegion = d<APIVoiceRegion>(region => ({
 }))
 
 export const voiceRegions = (
-  regions?: CollectionResolvable<string, APIVoiceRegion, 'id'>
+  regions?: readonly DataPartialDeep<APIVoiceRegion>[]
 ): Collection<string, APIVoiceRegion> =>
   regions
-    ? resolveCollection<string, APIVoiceRegion, 'id'>(
-        regions,
-        'id',
-        voiceRegion
-      )
+    ? resolveCollection(regions, 'id', voiceRegion)
     : defaultVoiceRegions.clone()

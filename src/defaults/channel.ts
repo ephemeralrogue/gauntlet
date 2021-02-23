@@ -8,8 +8,7 @@ import type {
   APIPartialChannel,
   Snowflake
 } from 'discord-api-types/v8'
-import type {DataPartialDeep} from '../resolve-collection'
-import type {DataGuildChannel} from '../types'
+import type {DataGuildChannel, DataPartialDeep} from '../types'
 
 // Used in guildCreatePartialChannel (./template.ts), where the only difference
 // is overwrites' ids may be a number

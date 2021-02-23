@@ -12,9 +12,35 @@ import type {
   Snowflake
 } from 'discord-api-types/v8'
 import type {Collection} from 'discord.js'
-import type {CollectionResolvable, DataPartialDeep} from '../resolve-collection'
-import type {Override, RequireKeys} from '../utils'
-import type {AuditLogEntry, Guild, GuildEmoji, Presence} from './patches'
+import type {AnyFunction, Override, RequireKeys} from '../utils'
+import type {
+  AuditLogChange,
+  AuditLogEntry,
+  Guild,
+  GuildEmoji,
+  Presence
+} from './patches'
+
+type ObjectDataPartialDeep<T extends object> = {
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define -- recursive
+  [K in keyof T]?: DataPartialDeep<T[K]>
+}
+
+/** Deep `Partial`, but `AuditLogChange` isn't partialised. */
+// I'm not bothering to resolve partial changes
+export type DataPartialDeep<T> = T extends AuditLogChange
+  ? T
+  : T extends readonly (infer U)[]
+  ? number extends T['length']
+    ? T extends unknown[]
+      ? DataPartialDeep<U>[] // ordinary mutable array
+      : readonly DataPartialDeep<U>[] // ordinary readonly array
+    : ObjectDataPartialDeep<T> // tuple
+  : T extends AnyFunction
+  ? T
+  : T extends object
+  ? ObjectDataPartialDeep<T>
+  : T
 
 // #region Data
 
@@ -103,14 +129,10 @@ export interface ResolvedData {
 export type Data = Override<
   Omit<DataPartialDeep<ResolvedData>, 'integration_applications'>,
   {
-    applications?: CollectionResolvable<
-      Snowflake,
-      APIGuildIntegrationApplication,
-      'id'
-    >
-    guilds?: CollectionResolvable<Snowflake, DataGuild, 'id'>
-    users?: CollectionResolvable<Snowflake, APIUser, 'id'>
-    voice_regions?: CollectionResolvable<string, APIVoiceRegion, 'id'>
+    applications?: DataPartialDeep<APIGuildIntegrationApplication>[]
+    guilds?: DataPartialDeep<DataGuild>[]
+    users?: DataPartialDeep<APIUser>[]
+    voice_regions?: DataPartialDeep<APIVoiceRegion>[]
   }
 >
 

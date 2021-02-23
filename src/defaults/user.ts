@@ -1,7 +1,7 @@
 import {snowflake} from '../utils'
 import {createDefaults as d} from './utils'
 import type {APIUser} from 'discord-api-types/v8'
-import type {DataPartialDeep} from '../resolve-collection'
+import type {DataPartialDeep} from '../types'
 import type {RequireKeys} from '../utils'
 
 const discriminatorMap = new Map<string, number>()

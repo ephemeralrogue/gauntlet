@@ -1,4 +1,4 @@
-import {SnowflakeUtil} from 'discord.js'
+import {Collection, SnowflakeUtil} from 'discord.js'
 import type {Snowflake} from 'discord-api-types/v8'
 import type {ResolvedClientData, ResolvedData} from './types'
 
@@ -87,6 +87,37 @@ export const removeUndefined = <T>(object: T): T =>
         Object.entries(object).filter(([, v]) => v !== undefined)
       ) as T)
     : object
+
+/**
+ * Resolves an array of data to a collection.
+ *
+ * @param array The array to be resolved.
+ * @param key The property of the values to use as the collection key.
+ * @param mapper A function to resolve each value in `array` to a new value for
+ * collection. Defaults to the identity function.
+ * @returns The resolved collection.
+ */
+export const resolveCollection: {
+  <V extends object, K extends keyof V>(
+    array: readonly V[] | undefined,
+    key: K
+  ): Collection<V[K], V>
+  <V extends object, U extends V, K extends keyof U>(
+    array: readonly V[] | undefined,
+    key: K,
+    mapper: (value: V) => U
+  ): Collection<U[K], U>
+} = <V extends object, U extends V, K extends keyof U>(
+  array: readonly V[] | undefined,
+  key: K,
+  mapper = (value: V): U => value as U
+): Collection<U[K], U> =>
+  new Collection<U[K], U>(
+    array?.map(item => {
+      const mapped = mapper(item)
+      return [mapped[key], mapped]
+    })
+  )
 
 export const timestamp = (date?: Date | number): string =>
   (date instanceof Date
