@@ -12,7 +12,7 @@ import type {
   DataGuildTemplate,
   ResolvedClientData,
   ResolvedData
-} from '../../Data'
+} from '../../types'
 
 export type GuildsTemplates = (
   code: string

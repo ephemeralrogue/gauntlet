@@ -1,6 +1,12 @@
 export * from './Client'
 export {Backend} from './Backend'
+export {DataPartialDeep} from './resolve-collection'
 export {
+  Activity,
+  AuditLogChange,
+  AuditLogChangeKeyOverwriteType,
+  AuditLogEntry,
+  ChangeOverwriteType,
   ClientData,
   ClientDataApplication,
   Data,
@@ -11,15 +17,7 @@ export {
   DataGuildTemplate,
   DataGuildPresence,
   DataGuildVoiceState,
-  DataRole
-} from './Data'
-export {DataPartialDeep} from './resolve-collection'
-export {
-  Activity,
-  AuditLogChange,
-  AuditLogChangeKeyOverwriteType,
-  AuditLogEntry,
-  ChangeOverwriteType,
+  DataRole,
   Presence
 } from './types'
 export {RequireKeys} from './utils'

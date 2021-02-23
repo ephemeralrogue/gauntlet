@@ -1,6 +1,6 @@
 import * as convert from '../convert'
 import type {RESTGetAPIOauth2CurrentApplicationResult} from 'discord-api-types/v8'
-import type {ResolvedClientData, ResolvedData} from '../Data'
+import type {ResolvedClientData, ResolvedData} from '../types'
 
 export interface OAuth2 {
   authorize: string

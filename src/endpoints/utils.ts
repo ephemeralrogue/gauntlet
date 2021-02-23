@@ -1,5 +1,5 @@
 import {PermissionFlagsBits} from 'discord-api-types/v8'
-import type {DataGuild, DataGuildMember} from '../Data'
+import type {DataGuild, DataGuildMember} from '../types'
 
 /**
  * Checks if a guild member has some permissions. The `ADMINISTRATOR` permission

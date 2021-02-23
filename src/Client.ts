@@ -7,7 +7,7 @@ import * as defaults from './defaults'
 import type {APIUser} from 'discord-api-types/v8'
 import type {ClientOptions} from 'discord.js'
 import type {EmitPacket, HasIntents} from './Backend'
-import type {ClientData, ResolvedClientData} from './Data'
+import type {ClientData, ResolvedClientData} from './types'
 
 const _mockClient = (
   backend: Backend,

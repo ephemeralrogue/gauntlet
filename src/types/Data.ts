@@ -12,9 +12,9 @@ import type {
   Snowflake
 } from 'discord-api-types/v8'
 import type {Collection} from 'discord.js'
-import type {AuditLogEntry, Guild, GuildEmoji, Presence} from './types'
-import type {CollectionResolvable, DataPartialDeep} from './resolve-collection'
-import type {Override, RequireKeys} from './utils'
+import type {CollectionResolvable, DataPartialDeep} from '../resolve-collection'
+import type {Override, RequireKeys} from '../utils'
+import type {AuditLogEntry, Guild, GuildEmoji, Presence} from './patches'
 
 // #region Data
 

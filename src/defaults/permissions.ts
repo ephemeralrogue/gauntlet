@@ -1,7 +1,7 @@
 import {snowflake} from '../utils'
 import {DEFAULT_PERMISSIONS, DEFAULT_ROLE_NAME} from './constants'
 import {createDefaults as d} from './utils'
-import type {DataRole} from '../Data'
+import type {DataRole} from '../types'
 
 export const dataRole = d<DataRole>(_role => ({
   id: snowflake(),

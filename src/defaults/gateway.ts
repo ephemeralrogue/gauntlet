@@ -7,9 +7,8 @@ import type {
   GatewayActivityParty,
   GatewayPresenceUpdate
 } from 'discord-api-types/v8'
-import type {DataGuildPresence} from '../Data'
 import type {DataPartialDeep} from '../resolve-collection'
-import type {Activity} from '../types'
+import type {Activity, DataGuildPresence} from '../types'
 import type {Override} from '../utils'
 
 export const activityEmoji = d<GatewayActivityEmoji>(_emoji =>

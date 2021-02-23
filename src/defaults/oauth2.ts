@@ -6,7 +6,7 @@ import type {
   APIApplication,
   APIGuildIntegrationApplication
 } from 'discord-api-types/v8'
-import type {ClientDataApplication} from '../Data'
+import type {ClientDataApplication} from '../types'
 import type {CommonProperties} from '../utils'
 
 type PartialApplication = CommonProperties<

@@ -28,7 +28,7 @@ import type {
   APIIntegrationAccount,
   APIPartialGuild
 } from 'discord-api-types/v8'
-import type {DataGuild, DataGuildMember, DataGuildVoiceState} from '../Data'
+import type {DataGuild, DataGuildMember, DataGuildVoiceState} from '../types'
 // eslint-disable-next-line import/max-dependencies -- type imports
 import type {NonEmptyArray} from '../utils'
 

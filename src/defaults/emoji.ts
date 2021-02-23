@@ -1,7 +1,7 @@
 import {snowflake} from '../utils'
 import {DEFAULT_CUSTOM_EMOJI_NAME} from './constants'
 import {createDefaults as d} from './utils'
-import type {DataGuildEmoji} from '../Data'
+import type {DataGuildEmoji} from '../types'
 
 export const dataGuildEmoji = d<DataGuildEmoji>(emoji => ({
   id: snowflake(),

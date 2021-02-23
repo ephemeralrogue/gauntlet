@@ -18,7 +18,7 @@ import type {
   DataRole,
   ResolvedClientData,
   ResolvedData
-} from '../../Data'
+} from '../../types'
 import type {FormBodyError, FormBodyErrors} from '../../errors'
 import type {KeysMatching, RequireKeys} from '../../utils'
 

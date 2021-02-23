@@ -12,7 +12,7 @@ import type {
   GatewayPresenceUpdate,
   Snowflake
 } from 'discord-api-types/v8'
-import type {Override, RequireKeys} from './utils'
+import type {Override, RequireKeys} from '../utils'
 
 // TODO: add this stuff in the Discord docs and discord-api-types
 export const enum ChangeOverwriteType {

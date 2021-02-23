@@ -13,7 +13,7 @@ import type {
   RESTPostAPIGuildTemplatesResult,
   Snowflake
 } from 'discord-api-types/v8'
-import type {DataGuild, ResolvedClientData, ResolvedData} from '../../../Data'
+import type {DataGuild, ResolvedClientData, ResolvedData} from '../../../types'
 import type {FormBodyErrors} from '../../../errors'
 
 type GuildsIdTemplatesFn = (

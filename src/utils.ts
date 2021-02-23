@@ -1,6 +1,6 @@
 import {SnowflakeUtil} from 'discord.js'
 import type {Snowflake} from 'discord-api-types/v8'
-import type {ResolvedClientData, ResolvedData} from './Data'
+import type {ResolvedClientData, ResolvedData} from './types'
 
 declare global {
   interface ArrayConstructor {

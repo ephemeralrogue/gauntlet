@@ -16,7 +16,7 @@ import type {
   DataRole,
   ResolvedClientData,
   ResolvedData
-} from './Data'
+} from './types'
 import type {Override} from './utils'
 
 export const oauth2Application = (

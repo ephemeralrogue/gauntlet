@@ -1,6 +1,6 @@
 import {clone} from '../utils'
 import type {RESTGetAPIGuildVoiceRegionsResult} from 'discord-api-types/v8'
-import type {ResolvedData} from '../Data'
+import type {ResolvedData} from '../types'
 
 export interface Voice {
   regions: {get: () => Promise<RESTGetAPIGuildVoiceRegionsResult>}

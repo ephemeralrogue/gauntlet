@@ -8,7 +8,7 @@ import type {
   GatewayDispatchPayload,
   Snowflake
 } from 'discord-api-types/v8'
-import type {Data, DataGuild, ResolvedClientData, ResolvedData} from './Data'
+import type {Data, DataGuild, ResolvedClientData, ResolvedData} from './types'
 import type {Guilds, OAuth2, Voice} from './endpoints'
 import {Collection} from 'discord.js'
 
