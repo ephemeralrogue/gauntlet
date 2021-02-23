@@ -10,7 +10,6 @@ import type {
   APIRole,
   GatewayActivity,
   GatewayPresenceUpdate,
-  GatewayVoiceState,
   Snowflake
 } from 'discord-api-types/v8'
 import type {Override, RequireKeys} from './utils'
@@ -65,8 +64,6 @@ export interface GuildEmoji
   id: Snowflake
   name: string
 }
-
-export type GuildVoiceState = Omit<GatewayVoiceState, 'guild_id'>
 
 export interface Guild extends APIGuild {
   emojis: GuildEmoji[]

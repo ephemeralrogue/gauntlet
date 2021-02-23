@@ -8,16 +8,11 @@ import type {
   APITemplate,
   APIUser,
   APIVoiceRegion,
+  GatewayVoiceState,
   Snowflake
 } from 'discord-api-types/v8'
 import type {Collection} from 'discord.js'
-import type {
-  AuditLogEntry,
-  Guild,
-  GuildEmoji,
-  GuildVoiceState,
-  Presence
-} from './types'
+import type {AuditLogEntry, Guild, GuildEmoji, Presence} from './types'
 import type {CollectionResolvable, DataPartialDeep} from './resolve-collection'
 import type {Override, RequireKeys} from './utils'
 
@@ -46,8 +41,8 @@ export interface DataGuildMember
 }
 
 export type DataGuildVoiceState = Omit<
-  RequireKeys<GuildVoiceState, 'self_stream'>,
-  'member'
+  RequireKeys<GatewayVoiceState, 'self_stream'>,
+  'guild_id' | 'member'
 >
 
 /* eslint-enable import/no-unused-modules */
@@ -106,14 +101,14 @@ export interface ResolvedData {
 
 /** The data for a `Backend`. */
 export type Data = Override<
-  Omit<DataPartialDeep<ResolvedData>, 'integrationApplications'>,
+  Omit<DataPartialDeep<ResolvedData>, 'integration_applications'>,
   {
-    guilds?: CollectionResolvable<Snowflake, DataGuild, 'id'>
     applications?: CollectionResolvable<
       Snowflake,
       APIGuildIntegrationApplication,
       'id'
     >
+    guilds?: CollectionResolvable<Snowflake, DataGuild, 'id'>
     users?: CollectionResolvable<Snowflake, APIUser, 'id'>
     voice_regions?: CollectionResolvable<string, APIVoiceRegion, 'id'>
   }
