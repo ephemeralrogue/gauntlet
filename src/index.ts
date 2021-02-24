@@ -1,5 +1,8 @@
 export * from './Client'
 export {Backend} from './Backend'
+export * from './combinators'
+
+// Types
 export {
   Activity,
   AuditLogChange,

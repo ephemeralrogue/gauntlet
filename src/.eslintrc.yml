@@ -16,3 +16,7 @@ overrides:
 - files: index.ts
   rules:
     import/no-unused-modules: 0
+- files: combinators.ts
+  rules:
+    # Using the Combinator (which is a function) return type
+    '@typescript-eslint/explicit-function-return-type': 0

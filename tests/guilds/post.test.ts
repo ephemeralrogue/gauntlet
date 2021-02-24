@@ -3,6 +3,7 @@
 */
 
 import {RESTJSONErrorCodes} from 'discord-api-types/v8'
+import * as DM from '../../src'
 import {_withClient, withClient} from '../utils'
 import type * as D from 'discord.js'
 import type {Override} from '../../src/utils'
@@ -135,22 +136,12 @@ describe('successes', () => {
 
 describe('errors', () => {
   test('too many guilds', async () => {
-    const appID = '1'
-    const userID = '2'
     await _withClient(
       async client =>
         expect(client.guilds.create('name')).toThrowAPIError(
           RESTJSONErrorCodes.MaximumNumberOfGuildsReached
         ),
-      {
-        data: {
-          applications: [{id: appID, bot: {id: userID}}],
-          guilds: Array.from({length: 10}).map(() => ({
-            members: [{id: userID}]
-          }))
-        },
-        clientData: {application: {id: appID}}
-      }
+      Array.from({length: 10}).reduce(DM.guildWithClient(), {})
     )
   })
 

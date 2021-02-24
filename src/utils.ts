@@ -9,6 +9,7 @@ declare global {
 }
 
 export type NonEmptyArray<T> = [T, ...T[]]
+export type ReadonlyNonEmptyArray<T> = Readonly<NonEmptyArray<T>>
 
 /**
  * An intersection between `T` and `U`, but the properties of `U` override the
@@ -40,6 +41,10 @@ export type CommonProperties<T, U> = Pick<
 export type AnyFunction =
   | ((...args: never[]) => unknown)
   | (new (...args: never[]) => unknown)
+
+export type Fn1<A extends readonly [never] = readonly [never], B = unknown> = (
+  ...args: A
+) => B
 
 const isObject = <T>(x: T): x is T & object =>
   typeof x == 'object' && x !== null
