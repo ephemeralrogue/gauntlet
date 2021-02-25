@@ -126,9 +126,8 @@ describe('successes', () => {
             .first()!
             .permissionOverwrites.get(
               guild.roles.cache.findKey(role => role.id !== guild.id)!
-            )
-            ?.deny.equals(deny)
-        ).toBe(true)
+            )?.deny
+        ).toEqualBitfield(deny)
       })
     )
   })

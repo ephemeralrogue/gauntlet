@@ -3,19 +3,31 @@ import * as D from 'discord.js'
 import {getMatchers} from 'expect/build/jestMatchersObject'
 import type {SyncExpectationResult} from 'expect/build/types'
 
+type IncompatibleExpectType = [__incompatibleExpectType: never]
 type OnlyType<T, U, A extends unknown[] = []> = T extends U
   ? A
-  : [__incompatibleExpectType: never]
+  : IncompatibleExpectType
 
 declare global {
   namespace jest {
     interface Matchers<R, T> {
       toResolve(...args: OnlyType<T, Promise<unknown>>): Promise<void>
+      toEqualBitfield(
+        ...args: T extends D.BitField<infer S, infer N> | undefined
+          ? [bits: D.BitFieldResolvable<S, N>]
+          : IncompatibleExpectType
+      ): R
       toThrowAPIError(
         ...args: OnlyType<T, Promise<unknown>, [code: RESTJSONErrorCodes]>
       ): Promise<void>
       toThrowAPIFormError(...args: OnlyType<T, Promise<unknown>>): Promise<void>
     }
+  }
+}
+
+declare module 'discord.js' {
+  interface BitField<S, N> {
+    ['constructor']: typeof BitField
   }
 }
 
@@ -90,6 +102,8 @@ expect.extend({
     this: jest.MatcherContext,
     received: Promise<unknown>
   ): Promise<jest.CustomMatcherResult> {
+    const {isNot, promise, utils} = this
+
     let result: unknown
     let pass: boolean
     try {
@@ -102,17 +116,66 @@ expect.extend({
 
     return {
       pass,
-      message: (): string => `${this.utils.matcherHint(
+      message: (): string => `${utils.matcherHint(
         'toResolve',
         'promise',
         undefined,
-        {isNot: this.isNot, promise: this.promise}
+        {isNot, promise}
       )}
 
-Expected: promise ${pass ? 'not ' : ''}to resolve
-Received: ${pass ? 'resolved' : 'rejected'} with ${this.utils.printReceived(
-        result
-      )}`
+Expected: promise ${isNot ? 'not ' : ''}to resolve
+Received: ${pass ? 'resolved' : 'rejected'} with ${utils.printReceived(result)}`
+    }
+  },
+
+  toEqualBitfield<S extends string, N extends bigint | number>(
+    this: jest.MatcherContext,
+    received: D.BitField<S, N> | undefined,
+    bits: D.BitFieldResolvable<S, N>
+  ): jest.CustomMatcherResult {
+    const {isNot, promise, utils} = this
+    const matcherHint = (): string =>
+      `${utils.matcherHint('toEqualBitfield', 'received', 'expected', {
+        isNot,
+        promise,
+        comment:
+          received instanceof D.Permissions ? 'Not checking admin' : undefined
+      })}
+
+`
+    if (!received) {
+      return {
+        pass: false,
+        message: (): string => `${matcherHint()}
+Expected: ${utils.printExpected(bits)}${
+          bits instanceof D.BitField
+            ? ` (${utils.printExpected(bits.toArray())})`
+            : ''
+        }
+Received: ${utils.printReceived(received)}`
+      }
+    }
+
+    const expected = new received.constructor(bits)
+    const pass = received.equals(expected)
+    return {
+      pass,
+      message: (): string =>
+        `${matcherHint()}
+Expected: ${isNot ? 'not ' : ''}${utils.printExpected(expected.bitfield)}
+Received: ${utils.printReceived(received.bitfield)}
+${
+  pass
+    ? `Flags: ${utils.stringify(expected.toArray())}`
+    : utils.printDiffOrStringify(
+        expected.toArray(false),
+        // Don't check admin for Permissions
+        received.toArray(false),
+        'Expected flags',
+        'Received flags',
+        false
+      )
+}`
     }
   },
 
