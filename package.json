@@ -14,7 +14,7 @@
   "repository": "github:cherryblossom000/discord.js-mock",
   "issues": "https://github.com/cherryblossom000/discord.js-mock/issues",
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "files": [
     "dist/**/*.js",
