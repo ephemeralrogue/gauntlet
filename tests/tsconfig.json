@@ -1,6 +1,6 @@
 {
   "extends": "../tsconfig.settings.json",
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "../src/discord-markdown.d.ts"],
   "compilerOptions": {
     "noEmit": true,
     "esModuleInterop": true

@@ -30,7 +30,4 @@ export default (
   clientData: ResolvedClientData,
   _hasIntents: HasIntents,
   _emitPacket: EmitPacket
-): GuildsFn => {
-  const _templates = templates(data, clientData)
-  return id => ({templates: _templates(id)})
-}
+): GuildsFn => id => ({templates: templates(data, clientData)(id)})

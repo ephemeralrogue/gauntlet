@@ -1,28 +1,154 @@
-import {ChannelType, OverwriteType} from 'discord-api-types/v8'
-import {snowflake} from '../utils'
+import {
+  ChannelType,
+  MessageActivityType,
+  MessageType,
+  OverwriteType,
+  StickerFormatType
+} from 'discord-api-types/v8'
+import {attachmentURLs, randomString, snowflake, timestamp} from '../utils'
 import {DEFAULT_CHANNEL_NAME} from './constants'
+import {dataPartialEmoji} from './emoji'
 import {createDefaults as d} from './utils'
 import type {
-  APIGuildCreateOverwrite,
-  APIOverwrite,
+  APIAttachment,
+  APIEmbedFooter,
+  APIMessageActivity,
+  APIMessageReference,
   APIPartialChannel,
+  APISticker,
   Snowflake
 } from 'discord-api-types/v8'
-import type {DataGuildChannel, DataPartialDeep} from '../types'
+import type {
+  DataChannelMention,
+  DataDMChannel,
+  DataEmbed,
+  DataEmbedField,
+  DataGuildChannel,
+  DataMessage,
+  DataOverwrite,
+  DataPartialDeep,
+  DataReaction
+} from '../types'
+import type {RequireKeys} from '../utils'
+import type {Defaults} from './utils'
 
-// Used in guildCreatePartialChannel (./template.ts), where the only difference
-// is overwrites' ids may be a number
-export const overwrite = d<APIGuildCreateOverwrite | APIOverwrite>(
-  _overwrite => ({
-    id: snowflake(),
-    type: OverwriteType.Role,
-    allow: '0',
-    deny: '0',
-    ..._overwrite
+export const sticker = d<APISticker>(_sticker => ({
+  id: snowflake(),
+  pack_id: snowflake(),
+  name: 'sticker name',
+  description: 'sticker description',
+  asset: randomString(),
+  preview_asset: null,
+  format_type: StickerFormatType.PNG,
+  ..._sticker
+}))
+
+export const dataChannelMention = d<DataChannelMention>(mention => ({
+  id: snowflake(),
+  guild_id: snowflake(),
+  ...mention
+}))
+
+export const attachment = (
+  channelID = snowflake(),
+  messageID = snowflake()
+): Defaults<APIAttachment> =>
+  d<APIAttachment>(_attachment => {
+    const base: Omit<APIAttachment, 'proxy_url' | 'url'> = {
+      id: snowflake(),
+      filename: 'unknown.png',
+      size: 0,
+      ..._attachment
+    }
+    return {
+      ...attachmentURLs(channelID, messageID, base.filename),
+      ...base
+    }
   })
-) as <T extends APIGuildCreateOverwrite | APIOverwrite>(
-  partial?: DataPartialDeep<T>
-) => T
+
+export const dataEmbedField = d<DataEmbedField>(field => ({
+  name: 'field name',
+  value: 'field value',
+  inline: false,
+  ...field
+}))
+
+export const embedFooter = d<APIEmbedFooter>(footer => ({
+  text: 'footer text',
+  ...footer
+}))
+
+export const dataEmbed = d<DataEmbed>(embed => ({
+  ...embed,
+  footer: embed?.footer ? embedFooter(embed.footer) : undefined,
+  fields: embed?.fields?.map(dataEmbedField)
+}))
+
+export const dataReaction = d<DataReaction>(reaction => ({
+  count: 1,
+  me: false,
+  ...reaction,
+  emoji: dataPartialEmoji(reaction?.emoji)
+}))
+
+export const messageActivity = d<APIMessageActivity>(activity => ({
+  type: MessageActivityType.JOIN,
+  ...activity
+}))
+
+export const messageReference = d<APIMessageReference>(reference => ({
+  channel_id: snowflake(),
+  ...reference
+}))
+
+export const dataMessage = (channelID = snowflake()): Defaults<DataMessage> =>
+  d<DataMessage>(message => {
+    // TODO: do something like dataGuildChannel: do stuff based on message type
+    const base: Omit<DataMessage, 'attachments'> = {
+      id: snowflake(),
+      author_id: snowflake(),
+      content: '',
+      timestamp: timestamp(),
+      edited_timestamp: null,
+      tts: false,
+      mention_everyone: false,
+      mentions: [],
+      mention_roles: [],
+      pinned: false,
+      type: MessageType.DEFAULT,
+      application_id: snowflake(),
+      ...message,
+      mention_channels: message?.mention_channels?.map(dataChannelMention),
+      embeds: message?.embeds?.map(dataEmbed) ?? [],
+      reactions: message?.reactions?.map(dataReaction) ?? [],
+      activity: message?.activity
+        ? messageActivity(message.activity)
+        : undefined,
+      message_reference: message?.message_reference
+        ? messageReference(message.message_reference)
+        : undefined,
+      referenced_message: message?.referenced_message
+        ? dataMessage()(message.referenced_message)
+        : (message?.referenced_message as null | undefined)
+    }
+    return {
+      attachments:
+        message?.attachments?.map(attachment(channelID, base.id)) ?? [],
+      ...base
+    }
+  })
+
+export const partialOverwrite = (): Pick<DataOverwrite, 'id' | 'type'> => ({
+  id: snowflake(),
+  type: OverwriteType.Role
+})
+
+export const overwrite = d<DataOverwrite>(_overwrite => ({
+  ...partialOverwrite(),
+  allow: BigInt(0),
+  deny: BigInt(0),
+  ..._overwrite
+}))
 
 export const partialChannel = d<APIPartialChannel>(channel => ({
   id: channel?.id ?? snowflake(),
@@ -31,6 +157,27 @@ export const partialChannel = d<APIPartialChannel>(channel => ({
     // Every channel except for DMs can have names
     channel?.type === ChannelType.DM ? undefined : channel?.name ?? 'general'
 }))
+
+const textBasedChannel = (
+  channel: DataPartialDeep<
+    RequireKeys<
+      Pick<DataGuildChannel, 'id' | 'last_message_id' | 'messages'>,
+      'id'
+    >
+  >
+): Required<Pick<DataGuildChannel, 'last_message_id' | 'messages'>> => ({
+  last_message_id: null,
+  messages: channel.messages?.map(dataMessage(channel.id)) ?? []
+})
+
+export const dataDMChannel = d<DataDMChannel>(channel => {
+  const base = partialChannel(channel)
+  return {
+    ...textBasedChannel(base),
+    recipient_id: snowflake(),
+    ...base
+  }
+})
 
 export const dataGuildChannel = d<DataGuildChannel>(channel => {
   const partial = partialChannel(channel)
@@ -46,14 +193,14 @@ export const dataGuildChannel = d<DataGuildChannel>(channel => {
       : {nsfw: false}),
     ...partial,
     permission_overwrites: channel?.permission_overwrites
-      ? channel.permission_overwrites.map(o => overwrite<APIOverwrite>(o))
+      ? channel.permission_overwrites.map(o => overwrite(o))
       : []
   }
   switch (base.type) {
     case ChannelType.GUILD_TEXT:
     case ChannelType.GUILD_NEWS:
       return {
-        last_message_id: null,
+        ...textBasedChannel(base),
         ...(base.type === ChannelType.GUILD_TEXT
           ? {rate_limit_per_user: 0}
           : {}),

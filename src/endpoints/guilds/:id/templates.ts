@@ -3,8 +3,9 @@ import * as convert from '../../../convert'
 import * as defaults from '../../../defaults'
 import {Method, error, errors, formBodyErrors} from '../../../errors'
 import {clientUserID} from '../../../utils'
-import {hasPermissions} from '../../utils'
+import {getPermissions, hasPermissions} from '../../utils'
 import type {
+  APIGuildCreateOverwrite,
   RESTDeleteAPIGuildTemplateResult,
   RESTGetAPIGuildTemplatesResult,
   RESTPatchAPIGuildTemplateJSONBody,
@@ -75,7 +76,10 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
       const member = guild.members.find(m => m.id === userID)
       if (
         member &&
-        hasPermissions(guild, member, PermissionFlagsBits.MANAGE_GUILD)
+        hasPermissions(
+          getPermissions(guild, member),
+          PermissionFlagsBits.MANAGE_GUILD
+        )
       )
         error(errors.MISSING_PERMISSIONS, path, method)
       return guild
@@ -181,10 +185,14 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
                       : channelsMap.get(channel.parent_id),
                   permission_overwrites: channel.permission_overwrites
                     .filter(({type}) => type === OverwriteType.Role)
-                    .map(overwrite => ({
-                      ...overwrite,
-                      id: rolesMap.get(overwrite.id)!
-                    }))
+                    .map<APIGuildCreateOverwrite>(
+                      ({id: overwriteID, allow, deny, ...rest}) => ({
+                        id: rolesMap.get(overwriteID)!,
+                        allow: `${allow}` as const,
+                        deny: `${deny}` as const,
+                        ...rest
+                      })
+                    )
                 })
               ),
               // TODO: also change these two to null (see above regarding parent_id)

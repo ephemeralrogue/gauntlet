@@ -1,5 +1,5 @@
 import * as DM from '../../src'
-import {_withClient, withClient} from '../utils'
+import {withClient, withClientF} from '../utils'
 import type * as D from 'discord.js'
 import type {DeepPartialOmit, MatchObjectGuild} from '../utils'
 import '../matchers'
@@ -13,7 +13,7 @@ describe('get template', () => {
     const code = 'abc'
     const templateName = 'Template name'
     const templateDescription = 'Template description'
-    await _withClient(async client => {
+    await withClient(async client => {
       expect(
         await client.fetchGuildTemplate(code)
       ).toMatchObject<MatchObjectTemplate>({
@@ -26,7 +26,7 @@ describe('get template', () => {
 
   test(
     'errors on invalid code',
-    withClient(async client =>
+    withClientF(async client =>
       expect(client.fetchGuildTemplate('foo')).toThrowAPIError(10_057)
     )
   )
@@ -37,7 +37,7 @@ describe('create guild from template', () => {
     const code = 'abc'
     const name = 'Guild name'
     const afkTimeout = 60
-    await _withClient(
+    await withClient(
       async client => {
         const guild = await (await client.fetchGuildTemplate(code)).createGuild(
           name
@@ -63,7 +63,7 @@ describe('create guild from template', () => {
 
   test('errors on invalid name', async () => {
     const code = 'abc'
-    await _withClient(
+    await withClient(
       async client =>
         expect(
           (await client.fetchGuildTemplate(code)).createGuild('')
@@ -76,7 +76,7 @@ describe('create guild from template', () => {
 describe('get guild templates', () => {
   test(
     'no templates',
-    withClient(async client => {
+    withClientF(async client => {
       expect(
         (await client.guilds.cache.get(guildID)!.fetchTemplates()).size
       ).toBe(0)
@@ -85,7 +85,7 @@ describe('get guild templates', () => {
 
   test('simple template', async () => {
     const templateName = 'Template name'
-    await _withClient(async client => {
+    await withClient(async client => {
       const templates = await client.guilds.cache.get(guildID)!.fetchTemplates()
       expect(templates.size).toBe(1)
       expect(templates.first()!.name).toBe(templateName)
@@ -97,7 +97,7 @@ describe('create guild template', () => {
   test('success', async () => {
     const name = 'name'
     const description = 'description'
-    await _withClient(
+    await withClient(
       async client =>
         expect(
           await client.guilds.cache
@@ -117,7 +117,7 @@ describe('modify guild template', () => {
     const oldName = 'old name'
     const newName = 'new name'
     const description = 'description'
-    await _withClient(
+    await withClient(
       async client =>
         expect(
           await (await getTemplate(client)).edit({name: newName})
@@ -133,7 +133,7 @@ describe('modify guild template', () => {
 describe('delete guild template', () => {
   test('success', async () => {
     const name = 'template name'
-    await _withClient(async client => {
+    await withClient(async client => {
       expect((await (await getTemplate(client)).delete()).name).toBe(name)
     }, DM.guildWithClient({id: guildID, template: {name}})())
   })

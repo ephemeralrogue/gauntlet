@@ -1,12 +1,13 @@
-import {snowflake, timestamp} from '../utils'
+import {randomString, snowflake, timestamp} from '../utils'
 import {
   DEFAULT_CHANNEL_NAME,
   DEFAULT_GUILD_NAME,
   DEFAULT_GUILD_PREFERRED_LOCALE
 } from './constants'
 import {createDefaults as d} from './utils'
-import {overwrite} from './channel'
+import {partialOverwrite} from './channel'
 import type {
+  APIGuildCreateOverwrite,
   APIGuildCreatePartialChannel,
   APIGuildCreateRole,
   APITemplateSerializedSourceGuild
@@ -19,11 +20,18 @@ const guildCreateRole = d<APIGuildCreateRole>(_role => ({
   ..._role
 }))
 
+const guildCreateOverwrite = d<APIGuildCreateOverwrite>(overwrite => ({
+  ...partialOverwrite(),
+  allow: '0',
+  deny: '0',
+  ...overwrite
+}))
+
 const guildCreatePartialChannel = d<APIGuildCreatePartialChannel>(channel => ({
   name: DEFAULT_CHANNEL_NAME,
   ...channel,
   permission_overwrites: channel?.permission_overwrites
-    ? channel.permission_overwrites.map(overwrite)
+    ? channel.permission_overwrites.map(guildCreateOverwrite)
     : undefined
 }))
 
@@ -43,7 +51,7 @@ const templateSerializedSourceGuild = d<APITemplateSerializedSourceGuild>(
 )
 
 export const dataGuildTemplate = d<DataGuildTemplate>(_template => ({
-  code: Math.random().toString(36).slice(2),
+  code: randomString(),
   name: 'Friends & Family',
   description: null,
   usage_count: 0,

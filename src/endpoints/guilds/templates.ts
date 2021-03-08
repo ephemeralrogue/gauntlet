@@ -35,7 +35,7 @@ export const getTemplate = ({guilds}: ResolvedData) => (
   return result
 }
 
-const templates = (
+export default (
   data: ResolvedData,
   clientData: ResolvedClientData,
   hasIntents: HasIntents,
@@ -66,4 +66,3 @@ const templates = (
     }
   }
 }
-export default templates

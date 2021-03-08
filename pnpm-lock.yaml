@@ -1,3 +1,5 @@
+dependencies:
+  discord-markdown: 2.4.2
 devDependencies:
   '@cherryblossom/eslint-config': link:../eslint-config
   '@commitlint/config-conventional': 12.0.0
@@ -27,6 +29,7 @@ devDependencies:
   markdownlint-cli: 0.26.0
   prettier: 2.2.1
   semantic-release: 17.4.0
+  simple-markdown: 0.7.3
   ts-jest: 26.5.2_jest@26.6.3+typescript@4.2.2
   typedoc: 0.20.28_typescript@4.2.2
   typedoc-plugin-param-names: 2.0.0_typedoc@0.20.28
@@ -1087,10 +1090,23 @@ packages:
     dev: true
     resolution:
       integrity: sha512-UEyp8LwZ4Dg30kVU2Q3amHHyTn1jEdhCIE59ANed76GaT1Vp76DD3ZWSAxgCrw6wJ0TqeoBpqmfUHiUDPs//HQ==
+  /@types/prop-types/15.7.3:
+    resolution:
+      integrity: sha512-KfRL3PuHmqQLOG+2tGpRO26Ctg+Cq1E01D2DMriKEATHgWLfeNDmq9e29Q9WIky0dQ3NPkd1mzYH8Lm936Z9qw==
+  /@types/react/17.0.3:
+    dependencies:
+      '@types/prop-types': 15.7.3
+      '@types/scheduler': 0.16.1
+      csstype: 3.0.7
+    resolution:
+      integrity: sha512-wYOUxIgs2HZZ0ACNiIayItyluADNbONl7kt8lkLjVK8IitMH5QMyAh75Fwhmo37r1m7L2JaFj03sIfxBVDvRAg==
   /@types/retry/0.12.0:
     dev: true
     resolution:
       integrity: sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==
+  /@types/scheduler/0.16.1:
+    resolution:
+      integrity: sha512-EaCxbanVeyxDRTQBkdLb3Bvl/HK7PBK6UJjsSixB0iHKoWxE5uu2Q/DgtpOhPIojN0Zl1whvOd7PoHs2P0s5eA==
   /@types/stack-utils/2.0.0:
     dev: true
     resolution:
@@ -2185,6 +2201,9 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-AZL67abkUzIuvcHqk7c09cezpGNcxUxU4Ioi/05xHk4DQeTkWmGYftIE6ctU6AEt+Gn4n1lDStOtj7FKycP71A==
+  /csstype/3.0.7:
+    resolution:
+      integrity: sha512-KxnUB0ZMlnUWCsx2Z8MUsr6qV6ja1w9ArPErJaJaF8a5SOWoHLIszeCTKGRGRgtLgYrs1E8CHkNSP1VZTTPc9g==
   /cz-conventional-changelog/3.2.0:
     dependencies:
       chalk: 2.4.2
@@ -2401,6 +2420,13 @@ packages:
       node: '>=12'
     resolution:
       integrity: sha512-x8dhQqPZUtIEKjDHMdA6D3aAsZUMoeo58fAgFA5WOAdSh+uVyRsvny4+25b+RIRasG2Zf2UpDUsx8NKO5zk/6g==
+  /discord-markdown/2.4.2:
+    dependencies:
+      highlight.js: 10.6.0
+      simple-markdown: 0.7.3
+    dev: false
+    resolution:
+      integrity: sha512-6NsLKLVRwVTojIivqTrVbM7xSWAcOdfOYc3L7oZHxQg3i08ZwhmFf6lxrKjFjS23v3EYLw7xHrN5WTPizIYK4w==
   /doctrine/1.5.0:
     dependencies:
       esutils: 2.0.3
@@ -3529,6 +3555,10 @@ packages:
       node: '>= 0.4.0'
     resolution:
       integrity: sha512-f2dvO0VU6Oej7RkWJGrehjbzMAjFp5/VKPp5tTpWIV4JHHZK1/BxbFRtf/siA2SWTe09caDmVtYYzWEIbBS4zw==
+  /highlight.js/10.6.0:
+    dev: false
+    resolution:
+      integrity: sha512-8mlRcn5vk/r4+QcqerapwBYTe+iPL5ih6xrNylxrnBdHQiijDETfXX7VIxC3UiCRiINBJfANBAsPzAvRQj8RpQ==
   /homedir-polyfill/1.0.3:
     dependencies:
       parse-passwd: 1.0.0
@@ -6446,6 +6476,11 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-iuh+gPf28RkltuJC7W5MRi6XAjTDCAPC/prJUpQoG4vIP3MJZ+GTydVnodXA7pwvTKb2cA0m9OFZW/cdWy/I/w==
+  /simple-markdown/0.7.3:
+    dependencies:
+      '@types/react': 17.0.3
+    resolution:
+      integrity: sha512-uGXIc13NGpqfPeFJIt/7SHHxd6HekEJYtsdoCM06mEBPL9fQH/pSD7LRM6PZ7CKchpSvxKL4tvwMamqAaNDAyg==
   /sisteransi/1.0.5:
     dev: true
     resolution:
@@ -7415,7 +7450,7 @@ packages:
         optional: true
     resolution:
       integrity: sha512-D3RuNkynyHmEJIpD2qrgVkc9DQ23OrN/moAwZX4L8DfvszsJxpjQuUq3LMx6HoYji9fbIOBY18XWBsAux1ZZUA==
-  /ws/7.4.3:
+  /ws/7.4.4:
     dev: true
     engines:
       node: '>=8.3.0'
@@ -7428,7 +7463,7 @@ packages:
       utf-8-validate:
         optional: true
     resolution:
-      integrity: sha512-hr6vCR76GsossIRsr8OLR9acVVm1jyfEWvhbNjtgPOrfvAlKzvyeg/P6r8RuDjRyrcQoPQT7K0DGEPc7Ae6jzA==
+      integrity: sha512-Qm8k8ojNQIMx7S+Zp8u/uHOx7Qazv3Yv4q68MiWWWOJhiwG5W3x7iqmRtJo8xxrciZUY4vRxUTJCKuRnF28ZZw==
   /xml-name-validator/3.0.0:
     dev: true
     resolution:
@@ -7522,7 +7557,7 @@ packages:
       node-fetch: 2.6.1
       prism-media: 1.2.7
       tweetnacl: 1.0.3
-      ws: 7.4.3
+      ws: 7.4.4
     dev: true
     engines:
       node: '>=14.0.0'
@@ -7543,6 +7578,7 @@ specifiers:
   commitlint: ^11.0.0
   cz-conventional-changelog: ^3.3.0
   discord-api-types: ^0.12.1
+  discord-markdown: ^2.4.2
   discord.js: discordjs/discord.js
   eslint: ~7.20.0
   eslint-plugin-eslint-comments: ^3.2.0
@@ -7559,6 +7595,7 @@ specifiers:
   markdownlint-cli: ^0.26.0
   prettier: ^2.2.1
   semantic-release: ^17.4.0
+  simple-markdown: ^0.7.3
   ts-jest: ^26.5.2
   typedoc: ^0.20.28
   typedoc-plugin-param-names: ^2.0.0

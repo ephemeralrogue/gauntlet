@@ -1,10 +1,10 @@
 import {VoiceRegion} from 'discord.js'
-import {withClient} from './utils'
+import {withClientF} from './utils'
 
 describe('fetchVoiceRegions', () => {
   test(
     'default voice regions',
-    withClient(async client => {
+    withClientF(async client => {
       const voiceRegions = await client.fetchVoiceRegions()
       for (const [, region] of voiceRegions)
         expect(region).toBeInstanceOf(VoiceRegion)
@@ -13,7 +13,7 @@ describe('fetchVoiceRegions', () => {
 
   test(
     'custom voice regions',
-    withClient(
+    withClientF(
       async client => {
         const voiceRegions = await client.fetchVoiceRegions()
         for (const [, region] of voiceRegions)

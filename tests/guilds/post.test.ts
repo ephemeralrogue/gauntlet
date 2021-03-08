@@ -4,7 +4,7 @@
 
 import {RESTJSONErrorCodes} from 'discord-api-types/v8'
 import * as DM from '../../src'
-import {_withClient, withClient} from '../utils'
+import {withClient, withClientF} from '../utils'
 import type * as D from 'discord.js'
 import type {Override} from '../../src/utils'
 import type {MatchObjectGuild} from '../utils'
@@ -32,7 +32,7 @@ describe('successes', () => {
 
   test(
     'only name supplied',
-    withClient(async client => {
+    withClientF(async client => {
       expect(await client.guilds.create(name)).toMatchObject<MatchObjectGuild>({
         name,
         afkTimeout: 300,
@@ -45,7 +45,7 @@ describe('successes', () => {
 
   test(
     'overriding basic defaults',
-    withClient(async client => {
+    withClientF(async client => {
       const afkTimeout = 60
       const defaultMessageNotifications: D.DefaultMessageNotifications =
         'MENTIONS'
@@ -71,7 +71,7 @@ describe('successes', () => {
   describe('channels', () => {
     test(
       'parent channel',
-      withClient(async client => {
+      withClientF(async client => {
         const parentID = 0
         const {
           channels: {cache: channels}
@@ -90,7 +90,7 @@ describe('successes', () => {
     test(
       // eslint-disable-next-line jest/lowercase-name -- acronym
       'AFK channel',
-      withClient(async client => {
+      withClientF(async client => {
         const id = 0
         const guild = await client.guilds.create(name, {
           channels: [{name, id, type: 'voice'}],
@@ -102,7 +102,7 @@ describe('successes', () => {
 
     test(
       'system channel',
-      withClient(async client => {
+      withClientF(async client => {
         const id = 0
         const guild = await client.guilds.create(name, {
           channels: [{name, id}],
@@ -114,7 +114,7 @@ describe('successes', () => {
 
     test(
       'channel overrides',
-      withClient(async client => {
+      withClientF(async client => {
         const id = 0
         const deny: D.PermissionString = 'VIEW_CHANNEL'
         const guild = await client.guilds.create(name, {
@@ -135,7 +135,7 @@ describe('successes', () => {
 
 describe('errors', () => {
   test('too many guilds', async () => {
-    await _withClient(
+    await withClient(
       async client =>
         expect(client.guilds.create('name')).toThrowAPIError(
           RESTJSONErrorCodes.MaximumNumberOfGuildsReached
@@ -150,7 +150,7 @@ describe('errors', () => {
   const _formErr = (
     ...args: Parameters<D.GuildManager['create']>
   ): (() => Promise<void>) =>
-    withClient(async client =>
+    withClientF(async client =>
       expect(client.guilds.create(...args)).toThrowAPIFormError()
     )
 

@@ -1,4 +1,4 @@
-import {snowflake} from '../utils'
+import {randomString, snowflake} from '../utils'
 import {team} from './teams'
 import {user} from './user'
 import {createDefaults as d} from './utils'
@@ -28,7 +28,7 @@ export const clientDataApplication = d<ClientDataApplication>(application => ({
   bot_public: false,
   bot_require_code_grant: false,
   // 64 chars
-  verify_key: Math.random().toString(36).slice(2),
+  verify_key: randomString(),
   flags: 0,
   ...application,
   owner: user(application?.owner),

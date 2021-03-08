@@ -1,18 +1,24 @@
 import {clientUserID} from './utils'
 import type {
   APIApplication,
+  APIChannel,
   APIEmoji,
   APIGuild,
   APIGuildMember,
+  APIMessage,
+  APIOverwrite,
   APIRole,
   APITemplate,
   Snowflake
 } from 'discord-api-types'
 import type {
   DataGuild,
+  DataGuildChannel,
   DataGuildEmoji,
   DataGuildMember,
   DataGuildTemplate,
+  DataMessage,
+  DataOverwrite,
   DataRole,
   ResolvedClientData,
   ResolvedData
@@ -27,7 +33,7 @@ export const oauth2Application = (
   ...integration_applications.get(application.id)!
 })
 
-export const addGuildID = <T>(dataGuild: DataGuild) => (
+export const addGuildID = (dataGuild: DataGuild) => <T>(
   dataChannel: T
 ): Override<T, {guild_id: Snowflake}> => ({
   ...dataChannel,
@@ -84,6 +90,27 @@ export const role = ({permissions, ...rest}: DataRole): APIRole => ({
   ...rest,
   permissions: `${permissions}` as const
 })
+
+export const overwrite = ({
+  allow,
+  deny,
+  ...rest
+}: DataOverwrite): APIOverwrite => ({
+  allow: `${allow}` as const,
+  deny: `${deny}` as const,
+  ...rest
+})
+
+export const guildChannel = (
+  dataGuild: DataGuild
+): ((channel: DataGuildChannel) => APIChannel) => {
+  const _addGuildID = addGuildID(dataGuild)
+  return ({messages, permission_overwrites, ...rest}): APIChannel =>
+    _addGuildID({
+      permission_overwrites: permission_overwrites.map(overwrite),
+      ...rest
+    })
+}
 
 /**
  * Converts a `DataGuild` into an `APIGuild`. This does not include fields only
@@ -184,6 +211,7 @@ export const guildCreateGuild = (
   return (dataGuild, convertedGuild): APIGuild => {
     const {large, unavailable, members, channels, presences} = dataGuild
     const userID = clientUserID(data, clientData)
+    const convertGuildChannel = guildChannel(dataGuild)
     return {
       ...(convertedGuild ?? convertGuild(dataGuild)),
       joined_at: members.find(({id}) => id === userID)?.joined_at,
@@ -191,7 +219,7 @@ export const guildCreateGuild = (
       unavailable,
       member_count: members.length,
       members: members.map(convertGuildMember(dataGuild, true)),
-      channels: channels.map(addGuildID(dataGuild)),
+      channels: channels.map(convertGuildChannel),
       presences: presences.map(addGuildID(dataGuild))
     }
   }
@@ -203,4 +231,35 @@ export const template = (data: ResolvedData) => (dataGuild: DataGuild) => (
   ...dataTemplate,
   creator: data.users.get(dataTemplate.creator_id)!,
   source_guild_id: dataGuild.id
+})
+
+export const message = (data: ResolvedData, channelID: Snowflake) => ({
+  application_id,
+  author_id,
+  mentions,
+  mention_channels,
+  stickers,
+  message_reference,
+  referenced_message,
+  ...rest
+}: DataMessage): APIMessage => ({
+  ...rest,
+  application:
+    application_id === undefined
+      ? undefined
+      : data.integration_applications.get(application_id)!,
+  author: data.users.get(author_id)!,
+  channel_id: channelID,
+  mentions: mentions.map(id => data.users.get(id)!),
+  mention_channels: mention_channels?.map(({id, guild_id}) => {
+    const {name, type} = data.guilds
+      .get(guild_id)!
+      .channels.find(chan => chan.id === id)!
+    return {id, guild_id, name, type}
+  }),
+  stickers: stickers?.map(id => data.stickers.get(id)!),
+  message_reference,
+  referenced_message: referenced_message
+    ? message(data, message_reference!.channel_id)(referenced_message)
+    : undefined
 })

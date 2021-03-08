@@ -46,6 +46,36 @@ export type Fn1<A extends readonly [never] = readonly [never], B = unknown> = (
   ...args: A
 ) => B
 
+export type AttachmentURLs = Record<'proxy_url' | 'url', string>
+
+const filterKeys = <T extends object>(
+  object: T,
+  predicate: (key: PropertyKey) => boolean
+): unknown =>
+  Object.fromEntries(Object.entries(object).filter(([k]) => predicate(k)))
+
+export const pick = <T extends object, K extends keyof T>(
+  object: T,
+  keys: K | readonly K[]
+): Pick<T, K> =>
+  filterKeys(
+    object,
+    Array.isArray(keys)
+      ? (key): boolean => (keys as readonly PropertyKey[]).includes(key)
+      : (key): boolean => key === keys
+  ) as Pick<T, K>
+
+export const omit = <T extends object, K extends keyof T>(
+  object: T,
+  keys: K | readonly K[]
+): Omit<T, K> =>
+  filterKeys(
+    object,
+    Array.isArray(keys)
+      ? (key): boolean => !(keys as readonly PropertyKey[]).includes(key)
+      : (key): boolean => key !== keys
+  ) as Omit<T, K>
+
 const isObject = <T>(x: T): x is T & object =>
   typeof x == 'object' && x !== null
 
@@ -132,7 +162,18 @@ export const timestamp = (date?: Date | number): string =>
     : new Date()
   ).toISOString()
 
+export const randomString = (): string => Math.random().toString(36).slice(2)
+
 export const snowflake = SnowflakeUtil.generate as () => Snowflake
+
+export const attachmentURLs = (
+  channelID = snowflake(),
+  messageID = snowflake(),
+  fileName: string
+): AttachmentURLs => ({
+  url: `https://cdn.discordapp.com/attachments/${channelID}/${messageID}/${fileName}`,
+  proxy_url: `https://media.discordapp.net/attachments/${channelID}/${messageID}/${fileName}`
+})
 
 export const clientUserID = (
   {integration_applications}: ResolvedData,

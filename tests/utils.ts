@@ -36,12 +36,12 @@ export interface WithClientOptions {
   clientData?: DM.ClientData
 }
 
-export const _withClient = <T>(
+export const withClient = <T>(
   fn: (client: D.Client) => T,
   {intents = D.Intents.NON_PRIVILEGED, data, clientData}: WithClientOptions = {}
 ): T => fn(new DM.Client({intents}, clientData, new DM.Backend(data)))
 
-export const withClient = <T>(
+export const withClientF = <T>(
   fn: (client: D.Client) => T,
   options?: WithClientOptions
-) => (): T => _withClient(fn, options)
+) => (): T => withClient(fn, options)

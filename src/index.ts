@@ -12,6 +12,10 @@ export {
   ClientData,
   ClientDataApplication,
   Data,
+  DataChannelMention,
+  DataDMChannel,
+  DataEmbed,
+  DataEmbedField,
   DataGuild,
   DataGuildEmoji,
   DataGuildChannel,
@@ -19,7 +23,11 @@ export {
   DataGuildTemplate,
   DataGuildPresence,
   DataGuildVoiceState,
+  DataMessage,
+  DataOverwrite,
   DataPartialDeep,
+  DataPartialEmoji,
+  DataReaction,
   DataRole,
   Presence
 } from './types'

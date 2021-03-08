@@ -25,6 +25,12 @@ export const errors = {
     400,
     RESTJSONErrorCodes.GuildAlreadyHasTemplate
   ],
+  MISSING_ACCESS: ['Missing Access', 403, RESTJSONErrorCodes.MissingAccess],
+  EMPTY_MESSAGE: [
+    'Cannot send an empty message',
+    400,
+    RESTJSONErrorCodes.CannotSendAnEmptyMessage
+  ],
   MISSING_PERMISSIONS: [
     'Missing Permissions',
     403,

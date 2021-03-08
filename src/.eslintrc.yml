@@ -20,3 +20,8 @@ overrides:
   rules:
     # Using the Combinator (which is a function) return type
     '@typescript-eslint/explicit-function-return-type': 0
+- files: '**/*d.ts'
+  rules:
+    import/no-mutable-exports: 0
+    jsdoc/newline-after-description: 0
+    node/no-extraneous-import: 0

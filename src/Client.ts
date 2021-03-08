@@ -1,4 +1,8 @@
-import {GatewayDispatchEvents, GatewayOPCodes} from 'discord-api-types/v8'
+import {
+  GatewayDispatchEvents,
+  GatewayIntentBits,
+  GatewayOPCodes
+} from 'discord-api-types/v8'
 import * as D from 'discord.js'
 import WebSocketShard from '../node_modules/discord.js/src/client/websocket/WebSocketShard'
 import {Backend, api} from './Backend'
@@ -66,7 +70,7 @@ const _mockClient = (
   // Make the websocket manager ready to receive packets
   client.ws['triggerClientReady']()
 
-  if (hasIntents(D.Intents.FLAGS.GUILDS) && data.guilds.size) {
+  if (hasIntents(GatewayIntentBits.GUILDS) && data.guilds.size) {
     // Make each of the guilds available
     const convertGuild = convert.guildCreateGuild(data, clientData)
     for (const [, guild] of data.guilds) {

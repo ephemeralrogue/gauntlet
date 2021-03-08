@@ -11,7 +11,7 @@ import type {Activity, DataGuildPresence, DataPartialDeep} from '../types'
 import type {Override} from '../utils'
 
 export const activityEmoji = d<GatewayActivityEmoji>(_emoji =>
-  !_emoji || _emoji.id === undefined
+  !_emoji || _emoji.id == null
     ? // Ordinary emoji
       {name: _emoji?.name ?? DEFAULT_STANDARD_EMOJI}
     : // Custom emoji

@@ -14,6 +14,7 @@ A mocking library for [discord.js](https://discord.js.org).
 - sharding
 - voice
 - WebhookClient
+- non-rich embeds
 
 ## License
 

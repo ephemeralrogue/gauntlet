@@ -1,9 +1,13 @@
-import {ChannelType, GatewayDispatchEvents} from 'discord-api-types/v8'
+import {
+  APIGuildCreateOverwrite,
+  ChannelType,
+  GatewayDispatchEvents
+} from 'discord-api-types/v8'
 import {Intents} from 'discord.js'
 import {Method, error, errors, formBodyErrors} from '../../errors'
 import * as convert from '../../convert'
 import * as defaults from '../../defaults'
-import {clientUserID, snowflake, timestamp} from '../../utils'
+import {clientUserID, Override, snowflake, timestamp} from '../../utils'
 import type {
   APIGuildCreatePartialChannel,
   APIGuildCreateRole,
@@ -98,7 +102,7 @@ const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
                   : {})
               }
             }
-          : {}
+          : errs
       },
       {}
     )
@@ -299,11 +303,25 @@ export const createGuild = (
                   ? {
                       permission_overwrites: permission_overwrites
                         .filter(overwrite => roleMap.has(overwrite.id))
-                        .map(overwrite =>
-                          defaults.overwrite({
-                            ...overwrite,
-                            id: roleMap.get(overwrite.id)!
-                          })
+                        .map(
+                          ({
+                            id: overwriteID,
+                            allow,
+                            deny,
+                            ...overwriteRest
+                          }: // TODO: fix types in discord-api-types and discord-api-docs (allow/deny/type can be undefined)
+                          Override<
+                            APIGuildCreateOverwrite,
+                            Partial<
+                              Pick<APIGuildCreateOverwrite, 'allow' | 'deny'>
+                            >
+                          >) =>
+                            defaults.overwrite({
+                              id: roleMap.get(overwriteID)!,
+                              allow: BigInt(allow ?? 0),
+                              deny: BigInt(deny ?? 0),
+                              ...overwriteRest
+                            })
                         )
                     }
                   : {})

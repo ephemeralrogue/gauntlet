@@ -1,10 +1,17 @@
 import type {
   APIApplication,
   APIChannel,
+  APIChannelMention,
+  APIEmbed,
+  APIEmbedField,
   APIGuildIntegration,
   APIGuildIntegrationApplication,
   APIGuildMember,
+  APIMessage,
+  APIOverwrite,
+  APIReaction,
   APIRole,
+  APISticker,
   APITemplate,
   APIUser,
   APIVoiceRegion,
@@ -51,11 +58,84 @@ export interface DataGuildEmoji extends Omit<GuildEmoji, 'user'> {
   user_id: Snowflake
 }
 
-/** An altered `APIChannel` for guilds. This is ued in `Data`. */
-export type DataGuildChannel = Omit<
-  RequireKeys<APIChannel, 'permission_overwrites' | 'position'>,
-  'application_id' | 'guild_id' | 'icon' | 'owner_id' | 'recipients'
+export type DataPartialEmoji =
+  // Normal emoji
+  | {id: null; name: string}
+  // Custom emoji
+  | {id: Snowflake; name: string | null}
+
+export type DataChannelMention = Omit<APIChannelMention, 'name' | 'type'>
+
+export interface DataReaction extends APIReaction {
+  emoji: DataPartialEmoji
+}
+
+export type DataEmbedField = RequireKeys<APIEmbedField, 'inline'>
+
+export interface DataEmbed extends APIEmbed {
+  fields?: DataEmbedField[]
+}
+
+export interface DataMessage
+  extends Override<
+    Omit<
+      APIMessage,
+      'application' | 'author' | 'channel_id' | 'guild_id' | 'member'
+    >,
+    {
+      mentions: Snowflake[]
+      mention_channels?: DataChannelMention[]
+      referenced_message?: DataMessage | null
+      stickers?: Snowflake[]
+    }
+  > {
+  application_id?: Snowflake
+  author_id: Snowflake
+  embeds: DataEmbed[]
+  reactions: DataReaction[]
+}
+
+export type DataOverwrite = Override<
+  APIOverwrite,
+  Record<'allow' | 'deny', bigint>
 >
+
+// TODO: better types for each channel
+
+export interface DataDMChannel
+  extends RequireKeys<
+    Omit<
+      APIChannel,
+      | 'application_id'
+      | 'bitrate'
+      | 'guild_id'
+      | 'nsfw'
+      | 'parent_id'
+      | 'permission_overwrites'
+      | 'position'
+      | 'rate_limit_per_user'
+      | 'recipients'
+      | 'user_limit'
+    >,
+    'last_message_id'
+  > {
+  messages: DataMessage[]
+  recipient_id: Snowflake
+}
+
+/** An altered `APIChannel` for guilds. This is ued in `Data`. */
+export interface DataGuildChannel
+  extends Override<
+    Omit<
+      RequireKeys<APIChannel, 'name' | 'position'>,
+      'application_id' | 'guild_id' | 'icon' | 'owner_id' | 'recipients'
+    >,
+    {permission_overwrites: DataOverwrite[]}
+  > {
+  messages?: DataMessage[]
+}
+
+export type DataChannel = DataDMChannel | DataGuildChannel
 
 /** An altered `APIGuildMember`. This is ued in `Data`. */
 export interface DataGuildMember
@@ -115,26 +195,27 @@ export interface DataGuild
 /** The resolved `Data` for the mocked Discord backend used by this library. */
 // TODO: better name
 export interface ResolvedData {
+  dm_channels: Collection<Snowflake, DataDMChannel>
   // TODO: resolve stuff in DataGuild to a Collection
   guilds: Collection<Snowflake, DataGuild>
   integration_applications: Collection<
     Snowflake,
     APIGuildIntegrationApplication
   >
+  stickers: Collection<Snowflake, APISticker>
   users: Collection<Snowflake, APIUser>
   voice_regions: Collection<string, APIVoiceRegion>
 }
 
 /** The data for a `Backend`. */
-export type Data = Override<
-  Omit<DataPartialDeep<ResolvedData>, 'integration_applications'>,
-  {
-    applications?: DataPartialDeep<APIGuildIntegrationApplication>[]
-    guilds?: DataPartialDeep<DataGuild>[]
-    users?: DataPartialDeep<APIUser>[]
-    voice_regions?: DataPartialDeep<APIVoiceRegion>[]
-  }
->
+export interface Data {
+  applications?: DataPartialDeep<APIGuildIntegrationApplication>[]
+  dm_channels?: DataPartialDeep<DataDMChannel>[]
+  guilds?: DataPartialDeep<DataGuild>[]
+  stickers?: DataPartialDeep<APISticker>[]
+  users?: DataPartialDeep<APIUser>[]
+  voice_regions?: DataPartialDeep<APIVoiceRegion>[]
+}
 
 // #endregion Data
 
