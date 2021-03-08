@@ -72,14 +72,20 @@ const getEmbedErrors = ({
   url,
   timestamp = '',
   color = 0,
-  footer: {text: footerText, icon_url: footerIconURL} = {text: ''},
-  image: {url: imageURL} = {},
-  thumbnail: {url: thumbnailURL} = {},
+  footer,
+  image,
+  thumbnail,
   video: {url: videoURL} = {},
   provider: {name: providerName} = {},
-  author: {name: authorName = '', url: authorURL} = {},
+  author,
   fields
 }: APIEmbed): FormBodyErrors[string] => {
+  // TODO: fix discord-api-types: these things can be null (well Discord.js uses null anyway)
+  const {text: footerText, icon_url: footerIconURL} = footer ?? {text: ''}
+  const {url: imageURL} = image ?? {}
+  const {url: thumbnailURL} = thumbnail ?? {}
+  const {name: authorName = '', url: authorURL} = author ?? {}
+
   if (
     title.length +
       description.length +

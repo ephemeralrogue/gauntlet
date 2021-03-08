@@ -13,7 +13,7 @@ import {
   DEFAULT_INTEGRATION_NAME
 } from './constants'
 import {dataGuildEmoji} from './emoji'
-import {dataGuildChannel} from './channel'
+import {dataGuildChannel, dataGuildChannels} from './channel'
 import {dataGuildPresence} from './gateway'
 import {partialApplication} from './oauth2'
 import {dataRole} from './permissions'
@@ -147,7 +147,8 @@ export const dataGuild = d<DataGuild>(guild => {
     members,
     roles: [
       ...roles,
-      ...(roles.some(({name}) => name === '@everyone')
+      // @everyone role
+      ...(roles.some(({id, name}) => id === partial.id || name === '@everyone')
         ? []
         : [dataRole({id: partial.id, name: '@everyone'})]),
       ...[...new Set(members.flatMap(member => member.roles))]
@@ -156,7 +157,7 @@ export const dataGuild = d<DataGuild>(guild => {
     ],
     emojis: guild?.emojis?.map(dataGuildEmoji) ?? [],
     voice_states: guild?.voice_states?.map(dataGuildVoiceState) ?? [],
-    channels: guild?.channels?.map(dataGuildChannel) ?? [],
+    channels: guild?.channels?.map(dataGuildChannel) ?? dataGuildChannels()[0],
     presences: guild?.presences?.map(dataGuildPresence) ?? [],
     audit_log_entries: guild?.audit_log_entries?.map(auditLogEntry) ?? [],
     integrations: guild?.integrations?.map(integration) ?? [],
