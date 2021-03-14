@@ -1,5 +1,6 @@
 .DS_Store
 .eslintcache
+esm.mjs
 pnpm-debug.log
 *.tsbuildinfo
 .history/

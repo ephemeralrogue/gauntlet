@@ -24,6 +24,7 @@ devDependencies:
   eslint-plugin-promise: 4.3.1
   eslint-plugin-unicorn: 28.0.2_eslint@7.20.0
   expect: 26.6.2
+  gen-esm-wrapper: 1.1.1
   husky: 5.1.1
   jest: 26.6.3
   markdownlint-cli: 0.26.0
@@ -1530,6 +1531,13 @@ packages:
       node: '>=0.8'
     resolution:
       integrity: sha1-8S4PPF13sLHN2RRpQuTpbB5N1SU=
+  /assert/1.5.0:
+    dependencies:
+      object-assign: 4.1.1
+      util: 0.10.3
+    dev: true
+    resolution:
+      integrity: sha512-EDsgawzwoun2CZkCgtxJbv392v4nbk9XDD06zI+kQYoBM/3RBWLlEyJARDOmhAAosBjWACEkKL6S+lIZtcAubA==
   /assign-symbols/1.0.0:
     dev: true
     engines:
@@ -3276,6 +3284,13 @@ packages:
     dev: true
     resolution:
       integrity: sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
+  /gen-esm-wrapper/1.1.1:
+    dependencies:
+      is-valid-identifier: 2.0.2
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha512-/ZMuX3itPtnjjWuIArzBi6mDnkGVcsx8guLCeH3WLB+iLeFr8TOKhIrNaYmPuRtQcpeBKrlswCPAY9oLRKIxKw==
   /gensync/1.0.0-beta.1:
     dev: true
     engines:
@@ -3718,6 +3733,10 @@ packages:
     dev: true
     resolution:
       integrity: sha1-Sb1jMdfQLQwJvJEKEHW6gWW1bfk=
+  /inherits/2.0.1:
+    dev: true
+    resolution:
+      integrity: sha1-sX0I0ya0Qj5Wjv9xn5GwscvfafE=
   /inherits/2.0.4:
     dev: true
     resolution:
@@ -4007,6 +4026,12 @@ packages:
     dev: true
     resolution:
       integrity: sha1-Sw2hRCEE0bM2NA6AeX6GXPOffXI=
+  /is-valid-identifier/2.0.2:
+    dependencies:
+      assert: 1.5.0
+    dev: true
+    resolution:
+      integrity: sha512-mpS5EGqXOwzXtKAg6I44jIAqeBfntFLxpAth1rrKbxtKyI6LPktyDYpHBI+tHlduhhX/SF26mFXmxQu995QVqg==
   /is-windows/1.0.2:
     dev: true
     engines:
@@ -5431,6 +5456,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-fexhUFFPTGV8ybAtSIGbV6gOkSv8UtRbDBnAyLQw4QPKkgNlsH2ByPGtMUqdWkos6YCRmAqViwgZrJc/mRDzZQ==
+  /object-assign/4.1.1:
+    dev: true
+    engines:
+      node: '>=0.10.0'
+    resolution:
+      integrity: sha1-IQmtx5ZYh8/AXLvUQsrIv7s2CGM=
   /object-copy/0.1.0:
     dependencies:
       copy-descriptor: 0.1.1
@@ -7267,6 +7298,12 @@ packages:
     dev: true
     resolution:
       integrity: sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=
+  /util/0.10.3:
+    dependencies:
+      inherits: 2.0.1
+    dev: true
+    resolution:
+      integrity: sha1-evsa/lCAUkZInj23/g7TeTNqwPk=
   /uuid/3.4.0:
     dev: true
     hasBin: true
@@ -7590,6 +7627,7 @@ specifiers:
   eslint-plugin-promise: ^4.3.1
   eslint-plugin-unicorn: ^28.0.2
   expect: ^26.6.2
+  gen-esm-wrapper: ^1.1.1
   husky: ^5.1.1
   jest: ^26.6.3
   markdownlint-cli: ^0.26.0

@@ -25,8 +25,11 @@ jobs:
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       uses: actions/upload-artifact@v2
       with:
-        name: dist
-        path: dist
+        name: build-data
+        path: |
+          dist
+          esm.mjs
+        if-no-files-found: error
 
   release:
     name: Release
@@ -52,8 +55,7 @@ jobs:
     - name: Download build data
       uses: actions/download-artifact@v2
       with:
-        name: dist
-        path: dist
+        name: build-data
 
     - name: Release
       run: pnpx semantic-release
