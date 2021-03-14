@@ -154,6 +154,17 @@ export const resolveCollection: {
     })
   )
 
+export const toCollection: {
+  <V extends object, K extends keyof V>(
+    array: readonly V[],
+    key: K
+  ): Collection<V[K], V>
+  <V extends Record<'id', unknown>>(array: readonly V[]): Collection<V['id'], V>
+} = <V extends object, K extends keyof V>(
+  array: readonly V[],
+  key: K = 'id' as K
+): Collection<V[K], V> => new Collection(array.map(x => [x[key], x]))
+
 export const timestamp = (date?: Date | number): string =>
   (date instanceof Date
     ? date

@@ -7,7 +7,7 @@ import type {
   GatewayActivityParty,
   GatewayPresenceUpdate
 } from 'discord-api-types/v8'
-import type {Activity, DataGuildPresence, DataPartialDeep} from '../types'
+import type {GatewayActivity, D} from '../types'
 import type {Override} from '../utils'
 
 export const activityEmoji = d<GatewayActivityEmoji>(_emoji =>
@@ -29,7 +29,7 @@ export const party = d<GatewayActivityParty>(_party => {
   }
   return {
     ...(_party as Override<
-      DataPartialDeep<GatewayActivityParty>,
+      D.PartialDeep<GatewayActivityParty>,
       {
         size?: undefined
       }
@@ -37,7 +37,7 @@ export const party = d<GatewayActivityParty>(_party => {
   }
 })
 
-export const activity = d<Activity>(_activity => {
+export const activity = d<GatewayActivity>(_activity => {
   const name = _activity?.name ?? 'Twitch'
   const type = _activity?.type ?? ActivityType.Streaming
   return {
@@ -62,9 +62,9 @@ export const presenceUser = d<GatewayPresenceUpdate['user']>(_user => ({
   ..._user
 }))
 
-export const dataGuildPresence = d<DataGuildPresence>(_presence => ({
+export const dataGuildPresence = d<D.GuildPresence>(_presence => ({
   ..._presence,
-  user: presenceUser(_presence?.user),
+  user_id: snowflake(),
   activities: _presence?.activities
     ? _presence.activities.map(activity)
     : undefined

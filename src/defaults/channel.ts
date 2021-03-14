@@ -18,17 +18,7 @@ import type {
   APISticker,
   Snowflake
 } from 'discord-api-types/v8'
-import type {
-  DataChannelMention,
-  DataDMChannel,
-  DataEmbed,
-  DataEmbedField,
-  DataGuildChannel,
-  DataMessage,
-  DataOverwrite,
-  DataPartialDeep,
-  DataReaction
-} from '../types'
+import type {D} from '../types'
 import type {RequireKeys} from '../utils'
 import type {Defaults} from './utils'
 
@@ -43,7 +33,7 @@ export const sticker = d<APISticker>(_sticker => ({
   ..._sticker
 }))
 
-export const dataChannelMention = d<DataChannelMention>(mention => ({
+export const dataChannelMention = d<D.ChannelMention>(mention => ({
   id: snowflake(),
   guild_id: snowflake(),
   ...mention
@@ -66,7 +56,7 @@ export const attachment = (
     }
   })
 
-export const dataEmbedField = d<DataEmbedField>(field => ({
+export const dataEmbedField = d<D.EmbedField>(field => ({
   name: 'field name',
   value: 'field value',
   inline: false,
@@ -78,13 +68,13 @@ export const embedFooter = d<APIEmbedFooter>(footer => ({
   ...footer
 }))
 
-export const dataEmbed = d<DataEmbed>(embed => ({
+export const dataEmbed = d<D.Embed>(embed => ({
   ...embed,
   footer: embed?.footer ? embedFooter(embed.footer) : undefined,
   fields: embed?.fields?.map(dataEmbedField)
 }))
 
-export const dataReaction = d<DataReaction>(reaction => ({
+export const dataReaction = d<D.Reaction>(reaction => ({
   count: 1,
   me: false,
   ...reaction,
@@ -101,10 +91,10 @@ export const messageReference = d<APIMessageReference>(reference => ({
   ...reference
 }))
 
-export const dataMessage = (channelID = snowflake()): Defaults<DataMessage> =>
-  d<DataMessage>(message => {
+export const dataMessage = (channelID = snowflake()): Defaults<D.Message> =>
+  d<D.Message>(message => {
     // TODO: do something like dataGuildChannel: do stuff based on message type
-    const base: Omit<DataMessage, 'attachments'> = {
+    const base: Omit<D.Message, 'attachments'> = {
       id: snowflake(),
       author_id: snowflake(),
       content: '',
@@ -138,12 +128,12 @@ export const dataMessage = (channelID = snowflake()): Defaults<DataMessage> =>
     }
   })
 
-export const partialOverwrite = (): Pick<DataOverwrite, 'id' | 'type'> => ({
+export const partialOverwrite = (): Pick<D.Overwrite, 'id' | 'type'> => ({
   id: snowflake(),
   type: OverwriteType.Role
 })
 
-export const overwrite = d<DataOverwrite>(_overwrite => ({
+export const overwrite = d<D.Overwrite>(_overwrite => ({
   ...partialOverwrite(),
   allow: BigInt(0),
   deny: BigInt(0),
@@ -159,18 +149,18 @@ export const partialChannel = d<APIPartialChannel>(channel => ({
 }))
 
 const textBasedChannel = (
-  channel: DataPartialDeep<
+  channel: D.PartialDeep<
     RequireKeys<
-      Pick<DataGuildChannel, 'id' | 'last_message_id' | 'messages'>,
+      Pick<D.GuildChannel, 'id' | 'last_message_id' | 'messages'>,
       'id'
     >
   >
-): Required<Pick<DataGuildChannel, 'last_message_id' | 'messages'>> => ({
+): Required<Pick<D.GuildChannel, 'last_message_id' | 'messages'>> => ({
   last_message_id: null,
   messages: channel.messages?.map(dataMessage(channel.id)) ?? []
 })
 
-export const dataDMChannel = d<DataDMChannel>(channel => {
+export const dataDMChannel = d<D.DMChannel>(channel => {
   const base = partialChannel(channel)
   return {
     ...textBasedChannel(base),
@@ -179,9 +169,9 @@ export const dataDMChannel = d<DataDMChannel>(channel => {
   }
 })
 
-export const dataGuildChannel = d<DataGuildChannel>(channel => {
+export const dataGuildChannel = d<D.GuildChannel>(channel => {
   const partial = partialChannel(channel)
-  const base: DataGuildChannel = {
+  const base: D.GuildChannel = {
     ...(partial.type === ChannelType.GUILD_CATEGORY
       ? {}
       : {parent_id: channel?.parent_id}),
@@ -217,7 +207,7 @@ export const dataGuildChannel = d<DataGuildChannel>(channel => {
 })
 
 export const dataGuildChannels = (): [
-  channels: DataGuildChannel[],
+  channels: D.GuildChannel[],
   generalChannelID: Snowflake
 ] => {
   const textChannels = dataGuildChannel({

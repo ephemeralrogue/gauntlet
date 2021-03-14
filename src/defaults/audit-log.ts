@@ -22,17 +22,16 @@ import {
 } from './constants'
 import {createDefaults as d} from './utils'
 import type {
-  APIAuditLogChange,
   APIAuditLogChangeKeyID,
   APIAuditLogOptions,
   Snowflake
 } from 'discord-api-types/v8'
 import type {RequireKeys} from '../utils'
 import type {
-  AuditLogChange,
-  AuditLogChangeKeyOverwriteType,
-  AuditLogEntry,
-  DataPartialDeep
+  APIAuditLogChange,
+  APIAuditLogChangeKeyOverwriteType,
+  APIAuditLogEntry,
+  D
 } from '../types'
 
 const overwriteTypeChangeToOptions: Readonly<
@@ -44,9 +43,9 @@ const overwriteTypeChangeToOptions: Readonly<
 
 // TODO: refactor so it's <= 200 lines
 // eslint-disable-next-line complexity, max-lines-per-function -- mainly due to the switch case
-export const auditLogEntry = d<AuditLogEntry>(entry => {
+export const auditLogEntry = d<APIAuditLogEntry>(entry => {
   const base: RequireKeys<
-    DataPartialDeep<AuditLogEntry>,
+    D.PartialDeep<APIAuditLogEntry>,
     'action_type' | 'id' | 'user_id'
   > = {
     user_id: snowflake(),
@@ -65,25 +64,25 @@ export const auditLogEntry = d<AuditLogEntry>(entry => {
   })
 
   const changes = (
-    ..._changes: AuditLogChange[]
-  ): Required<Pick<AuditLogEntry, 'changes'>> => ({
+    ..._changes: APIAuditLogChange[]
+  ): Required<Pick<APIAuditLogEntry, 'changes'>> => ({
     changes: base.changes?.length ?? 0 ? base.changes! : _changes
   })
 
   const targetAndChanges = (
     options?: APIAuditLogOptions,
-    ..._changes: readonly AuditLogChange[]
-  ): AuditLogEntry => ({
+    ..._changes: readonly APIAuditLogChange[]
+  ): APIAuditLogEntry => ({
     ...withTarget(),
     ...changes(..._changes),
     options
   })
 
   const targetAndChangesNoOptions = (
-    ..._changes: readonly AuditLogChange[]
-  ): AuditLogEntry => targetAndChanges(undefined, ..._changes)
+    ..._changes: readonly APIAuditLogChange[]
+  ): APIAuditLogEntry => targetAndChanges(undefined, ..._changes)
 
-  const targetNoChanges = (options: APIAuditLogOptions): AuditLogEntry => ({
+  const targetNoChanges = (options: APIAuditLogOptions): APIAuditLogEntry => ({
     ...withTarget(),
     changes: undefined,
     options
@@ -92,7 +91,7 @@ export const auditLogEntry = d<AuditLogEntry>(entry => {
   const noTarget = (
     options?: APIAuditLogOptions,
     ..._changes: readonly APIAuditLogChange[]
-  ): AuditLogEntry => ({
+  ): APIAuditLogEntry => ({
     ...base,
     target_id: null,
     ...(_changes.length ? changes(..._changes) : {changes: undefined}),
@@ -101,12 +100,12 @@ export const auditLogEntry = d<AuditLogEntry>(entry => {
 
   const noTargetOrOptions = (
     ..._changes: readonly APIAuditLogChange[]
-  ): AuditLogEntry => noTarget(undefined, ..._changes)
+  ): APIAuditLogEntry => noTarget(undefined, ..._changes)
 
   const createOrDelete = (
     createEvent: AuditLogEvent,
-    getEntry: (key: 'new_value' | 'old_value') => AuditLogEntry
-  ): AuditLogEntry =>
+    getEntry: (key: 'new_value' | 'old_value') => APIAuditLogEntry
+  ): APIAuditLogEntry =>
     getEntry(base.action_type === createEvent ? 'new_value' : 'old_value')
 
   switch (base.action_type) {
@@ -152,7 +151,7 @@ export const auditLogEntry = d<AuditLogEntry>(entry => {
         base.options?.type ??
         ((): AuditLogOptionsType | undefined => {
           const foundChange = base.changes?.find(
-            (change): change is AuditLogChangeKeyOverwriteType =>
+            (change): change is APIAuditLogChangeKeyOverwriteType =>
               change.key === 'type'
           )
           const foundType = foundChange?.old_value ?? foundChange?.new_value

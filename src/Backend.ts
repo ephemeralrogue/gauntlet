@@ -1,6 +1,7 @@
 import {Collection} from 'discord.js'
 import * as defaults from './defaults'
 import * as endpoints from './endpoints'
+import * as resolve from './resolve'
 import {resolveCollection} from './utils'
 import type {
   APIUser,
@@ -9,8 +10,7 @@ import type {
   GatewayIntentBits,
   Snowflake
 } from 'discord-api-types/v8'
-import type {Data, DataGuild, ResolvedClientData, ResolvedData} from './types'
-import type {RequireKeys} from './utils'
+import type {D, Data, ResolvedClientData, RD, ResolvedData} from './types'
 import type {Channels, Guilds, OAuth2, Voice} from './endpoints'
 
 interface API {
@@ -52,8 +52,12 @@ export class Backend {
       dm_channels,
       'id',
       defaults.dataDMChannel
-    )
-    const resolvedGuilds = resolveCollection(guilds, 'id', defaults.dataGuild)
+    ).mapValues<RD.DMChannel>(resolve.dmChannel)
+    const resolvedGuilds = resolveCollection(
+      guilds,
+      'id',
+      defaults.dataGuild
+    ).mapValues(resolve.guild)
     const resolvedApps = resolveCollection(
       applications,
       'id',
@@ -61,43 +65,49 @@ export class Backend {
     )
     const resolvedUsers = resolveCollection(users, 'id', defaults.user)
 
-    // eslint-disable-next-line unicorn/prefer-array-flat-map -- Collection, not array
-    const messages = resolvedGuilds
-      .map(({channels}) => channels.flatMap(channel => channel.messages ?? []))
-      .flat()
+    const messages = resolvedGuilds.flatMap(({channels}) =>
+      channels.flatMap<D.Message>(
+        channel => channel.messages ?? new Collection()
+      )
+    )
     this.resolvedData = {
       dm_channels: resolvedDMChannels,
       guilds: new Collection([
         ...resolvedGuilds.entries(),
         // Add all channels from channel mentions in messages
-        ...messages.flatMap(
-          ({mention_channels}) =>
-            mention_channels
-              ?.filter(
-                ({id, guild_id}) =>
-                  !resolvedGuilds.has(guild_id) ||
-                  !resolvedGuilds
-                    .get(guild_id)!
-                    .channels.some(channel => channel.id === id)
-              )
-              .map<[Snowflake, DataGuild]>(({id, guild_id}) => {
-                const guild =
-                  resolvedGuilds.get(guild_id) ??
-                  defaults.dataGuild({id: guild_id})
-                return [
-                  guild_id,
-                  {
-                    ...guild,
-                    channels: guild.channels.some(chan => chan.id === id)
-                      ? guild.channels
-                      : [
-                          ...guild.channels.filter(chan => chan.id !== id),
-                          defaults.dataGuildChannel({id})
-                        ]
-                  }
-                ]
-              }) ?? []
-        )
+        // eslint-disable-next-line unicorn/prefer-array-flat-map -- collection
+        ...messages
+          .map(
+            ({mention_channels}) =>
+              mention_channels
+                ?.filter(
+                  ({id, guild_id}) =>
+                    !resolvedGuilds.has(guild_id) ||
+                    !resolvedGuilds
+                      .get(guild_id)!
+                      .channels.some(channel => channel.id === id)
+                )
+                .map<[Snowflake, RD.Guild]>(({id, guild_id}) => {
+                  const guild =
+                    resolvedGuilds.get(guild_id) ??
+                    resolve.guild(defaults.dataGuild({id: guild_id}))
+                  return [
+                    guild_id,
+                    {
+                      ...guild,
+                      channels: guild.channels.some(chan => chan.id === id)
+                        ? guild.channels
+                        : guild.channels.set(
+                            id,
+                            resolve.guildChannel(
+                              defaults.dataGuildChannel({id})
+                            )
+                          )
+                    }
+                  ]
+                }) ?? []
+          )
+          .flat()
       ]),
       integration_applications: new Collection([
         ...resolvedApps.entries(),
@@ -106,14 +116,15 @@ export class Backend {
           .filter(
             (
               message
-            ): message is RequireKeys<typeof message, 'application_id'> =>
+              // TODO: add refinement types for Discord.js' Collection
+            ) /* : message is RequireKeys<typeof message, 'application_id'> */ =>
               message.application_id !== undefined &&
               !resolvedApps.has(message.application_id)
           )
           .map(
             ({application_id}) =>
               [
-                application_id,
+                application_id!,
                 defaults.integrationApplication({id: application_id})
               ] as const
           )
@@ -125,13 +136,16 @@ export class Backend {
         ...messages
           .filter(({author_id}) => !resolvedUsers.has(author_id))
           .map(({author_id}) => userEntry(author_id)),
-        // Add users from guild members and guild template creators
+        // Add users from guild members, guild template creators, and guild presences
         // eslint-disable-next-line unicorn/prefer-array-flat-map -- Collection, not array
         ...resolvedGuilds
-          .map(({members, template}) => [
+          .map(({members, presences, template}) => [
             ...members
               .filter(({id}) => !resolvedUsers.has(id))
               .map(({id}) => userEntry(id)),
+            ...presences
+              .filter(({user_id}) => !resolvedUsers.has(user_id))
+              .map(({user_id}) => userEntry(user_id)),
             ...(template && !resolvedUsers.has(template.creator_id)
               ? [userEntry(template.creator_id)]
               : [])

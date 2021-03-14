@@ -7,12 +7,7 @@ import type {
   RESTPostAPITemplateCreateGuildResult
 } from 'discord-api-types/v8'
 import type {EmitPacket, HasIntents} from '../../Backend'
-import type {
-  DataGuild,
-  DataGuildTemplate,
-  ResolvedClientData,
-  ResolvedData
-} from '../../types'
+import type {D, ResolvedClientData, RD, ResolvedData} from '../../types'
 
 export type GuildsTemplates = (
   code: string
@@ -27,10 +22,10 @@ export const getTemplate = ({guilds}: ResolvedData) => (
   code: string,
   path: string,
   method: Method
-): [DataGuild, DataGuildTemplate] => {
+): [RD.Guild, D.GuildTemplate] => {
   const result = guilds
     .map(guild => [guild, guild.template] as const)
-    .find((res): res is [DataGuild, DataGuildTemplate] => res[1]?.code === code)
+    .find((res): res is [RD.Guild, D.GuildTemplate] => res[1]?.code === code)
   if (!result) error(errors.UNKNOWN_GUILD_TEMPLATE, path, method)
   return result
 }

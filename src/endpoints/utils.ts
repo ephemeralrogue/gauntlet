@@ -1,12 +1,6 @@
 import {PermissionFlagsBits} from 'discord-api-types/v8'
 import type {Snowflake} from 'discord-api-types/v8'
-import type {
-  DataGuildChannel,
-  DataGuild,
-  DataGuildMember,
-  ResolvedData,
-  DataChannel
-} from '../types'
+import type {D, RD, ResolvedData} from '../types'
 
 // const ALL_PERMISSIONS =
 //   PermissionFlagsBits.ADD_REACTIONS |
@@ -51,9 +45,9 @@ import type {
  * @returns The permissions of `member` in `channel`.
  */
 export const getPermissions = (
-  guild: DataGuild,
-  member: DataGuildMember,
-  channel?: DataGuildChannel
+  guild: RD.Guild,
+  member: D.GuildMember,
+  channel?: RD.GuildChannel
 ): bigint => {
   const everyoneRole = guild.roles.find(({id}) => id === guild.id)!
   const memberRoles = new Set(member.roles)
@@ -103,10 +97,12 @@ export const hasPermissions = (x: bigint, y: bigint): boolean =>
 
 export const getChannel = ({dm_channels, guilds}: ResolvedData) => (
   id: Snowflake
-): [guild?: DataGuild, channel?: DataChannel] => {
+): [guild?: RD.Guild, channel?: RD.Channel] => {
   const dmChannel = dm_channels.get(id)
   if (dmChannel) return [undefined, dmChannel]
-  for (const [, guild] of guilds)
-    for (const chan of guild.channels) if (chan.id === id) return [guild, chan]
+  for (const [, guild] of guilds) {
+    const channel = guild.channels.find(chan => chan.id === id)
+    if (channel) return [guild, channel]
+  }
   return [undefined, undefined]
 }

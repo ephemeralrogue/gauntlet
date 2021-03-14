@@ -14,7 +14,7 @@ import type {
   RESTPostAPIGuildTemplatesResult,
   Snowflake
 } from 'discord-api-types/v8'
-import type {DataGuild, ResolvedClientData, ResolvedData} from '../../../types'
+import type {ResolvedClientData, RD, ResolvedData} from '../../../types'
 import type {FormBodyErrors} from '../../../errors'
 
 type GuildsIdTemplatesFn = (
@@ -70,7 +70,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
         path = basePath,
         userID = clientUserID(data, clientData)
       }: {path?: string; userID?: Snowflake} = {}
-    ): DataGuild => {
+    ): RD.Guild => {
       const guild = data.guilds.get(id)
       if (!guild) error(errors.UNKNOWN_GUILD, path, method)
       const member = guild.members.find(m => m.id === userID)
@@ -145,10 +145,10 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
             system_channel_flags
           } = guild
           const rolesMap: ReadonlyMap<Snowflake, number> = new Map(
-            roles.map((role, i) => [role.id, i])
+            roles.array().map((role, i) => [role.id, i])
           )
           const channelsMap: ReadonlyMap<Snowflake, number> = new Map(
-            channels.map((channel, i) => [channel.id, i])
+            channels.array().map((channel, i) => [channel.id, i])
           )
           guild.template = defaults.dataGuildTemplate({
             name,

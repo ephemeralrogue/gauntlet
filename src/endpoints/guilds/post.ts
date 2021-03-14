@@ -1,14 +1,12 @@
-import {
-  APIGuildCreateOverwrite,
-  ChannelType,
-  GatewayDispatchEvents
-} from 'discord-api-types/v8'
+import {ChannelType, GatewayDispatchEvents} from 'discord-api-types/v8'
 import {Intents} from 'discord.js'
 import {Method, error, errors, formBodyErrors} from '../../errors'
 import * as convert from '../../convert'
 import * as defaults from '../../defaults'
-import {clientUserID, Override, snowflake, timestamp} from '../../utils'
+import * as resolve from '../../resolve'
+import {clientUserID, snowflake, timestamp} from '../../utils'
 import type {
+  APIGuildCreateOverwrite,
   APIGuildCreatePartialChannel,
   APIGuildCreateRole,
   RESTPostAPIGuildsJSONBody,
@@ -16,15 +14,9 @@ import type {
   Snowflake
 } from 'discord-api-types/v8'
 import type {EmitPacket, HasIntents} from '../../Backend'
-import type {
-  DataGuild,
-  DataGuildChannel,
-  DataRole,
-  ResolvedClientData,
-  ResolvedData
-} from '../../types'
+import type {D, ResolvedClientData, ResolvedData} from '../../types'
 import type {FormBodyError, FormBodyErrors} from '../../errors'
-import type {KeysMatching, RequireKeys} from '../../utils'
+import type {KeysMatching, Override, RequireKeys} from '../../utils'
 
 export type GuildsPost = (options: {
   data: RESTPostAPIGuildsJSONBody
@@ -208,7 +200,7 @@ const roleFromGuildCreateRole = (
     ...rest
   }: Omit<APIGuildCreateRole, 'id'>,
   id: Snowflake
-): DataRole =>
+): D.Role =>
   defaults.dataRole({
     ...rest,
     id,
@@ -256,7 +248,7 @@ export const createGuild = (
 
   type IDMap = ReadonlyMap<number | string, Snowflake>
 
-  type ResolveRolesResult = [DataRole[], IDMap]
+  type ResolveRolesResult = [D.Role[], IDMap]
   const [resolvedRoles, roleMap]: ResolveRolesResult =
     roles?.length ?? 0
       ? ((): ResolveRolesResult => {
@@ -279,7 +271,7 @@ export const createGuild = (
         })()
       : [[defaults.dataRole({id: base.id, name: '@everyone'})], new Map()]
 
-  type ResolveChannelResult = [DataGuildChannel[], Snowflake | null, IDMap]
+  type ResolveChannelResult = [D.GuildChannel[], Snowflake | null, IDMap]
   const [resolvedChannels, systemChannelID, channelMap]: ResolveChannelResult =
     channels?.length ?? 0
       ? ((): ResolveChannelResult => {
@@ -335,14 +327,14 @@ export const createGuild = (
         })()
       : [...defaults.dataGuildChannels(), new Map()]
 
-  const guildData: DataGuild = {
+  const guildData = resolve.guild({
     ...base,
     roles: resolvedRoles,
     channels: resolvedChannels,
     afk_channel_id:
       afk_channel_id === undefined ? null : channelMap.get(afk_channel_id)!,
     system_channel_id: systemChannelID
-  }
+  })
   data.guilds.set(guildData.id, guildData)
 
   const apiGuild = convert.guild(data)(guildData)

@@ -1,17 +1,6 @@
 // Various discord-api-types changes
 
-import type {
-  APIAuditLogChange,
-  APIAuditLogChangeKey$Add,
-  APIAuditLogChangeKey$Remove,
-  APIAuditLogEntry,
-  APIEmoji,
-  APIGuild,
-  APIRole,
-  GatewayActivity,
-  GatewayPresenceUpdate,
-  Snowflake
-} from 'discord-api-types/v8'
+import type * as DAT from 'discord-api-types/v8'
 import type {Override, RequireKeys} from '../utils'
 
 // TODO: add this stuff in the Discord docs and discord-api-types
@@ -20,7 +9,7 @@ export const enum ChangeOverwriteType {
   Member = 1
 }
 
-export interface AuditLogChangeKeyOverwriteType {
+export interface APIAuditLogChangeKeyOverwriteType {
   key: 'type'
   new_value?: ChangeOverwriteType
   old_value?: ChangeOverwriteType
@@ -29,12 +18,12 @@ export interface AuditLogChangeKeyOverwriteType {
 // TODO: add to discord-api-types (APIAuditLogChangeKey$(Add|Remove) has APIRole
 // for the changes when it only has the id and name props and the docs say it's
 // partial)
-type PartialRole = Pick<APIRole, 'id' | 'name'>
-export type AuditLogChange =
-  | AuditLogChangeKeyOverwriteType
+type PartialRole = Pick<DAT.APIRole, 'id' | 'name'>
+export type APIAuditLogChange =
+  | APIAuditLogChangeKeyOverwriteType
   | Exclude<
-      APIAuditLogChange,
-      APIAuditLogChangeKey$Add | APIAuditLogChangeKey$Remove
+      DAT.APIAuditLogChange,
+      DAT.APIAuditLogChangeKey$Add | DAT.APIAuditLogChangeKey$Remove
     >
   | {
       key: '$add' | '$remove'
@@ -42,29 +31,29 @@ export type AuditLogChange =
       new_value?: PartialRole[]
     }
 
-export type AuditLogEntry = Override<
-  APIAuditLogEntry,
-  {changes?: AuditLogChange[]}
+export type APIAuditLogEntry = Override<
+  DAT.APIAuditLogEntry,
+  {changes?: APIAuditLogChange[]}
 >
 
 // Bots only receive strings for the buttons
-export interface Activity extends GatewayActivity {
+export interface GatewayActivity extends DAT.GatewayActivity {
   buttons?: string[]
 }
 
-export interface Presence extends GatewayPresenceUpdate {
-  activities?: Activity[]
+export interface GatewayPresenceUpdate extends DAT.GatewayPresenceUpdate {
+  activities?: GatewayActivity[]
 }
 
-export interface GuildEmoji
+export interface APIGuildEmoji
   extends RequireKeys<
-    APIEmoji,
+    DAT.APIEmoji,
     'animated' | 'available' | 'managed' | 'require_colons' | 'roles'
   > {
-  id: Snowflake
+  id: DAT.Snowflake
   name: string
 }
 
-export interface Guild extends APIGuild {
-  emojis: GuildEmoji[]
+export interface APiGuild extends DAT.APIGuild {
+  emojis: APIGuildEmoji[]
 }

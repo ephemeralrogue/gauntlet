@@ -28,7 +28,7 @@ import type {
   APIIntegrationAccount,
   APIPartialGuild
 } from 'discord-api-types/v8'
-import type {DataGuild, DataGuildMember, DataGuildVoiceState} from '../types'
+import type {D} from '../types'
 // eslint-disable-next-line import/max-dependencies -- type imports
 import type {NonEmptyArray} from '../utils'
 
@@ -82,7 +82,7 @@ export const integration = d<APIGuildIntegration>(_integration => ({
     : undefined
 }))
 
-const dataGuildMember = d<DataGuildMember>(member => ({
+const dataGuildMember = d<D.GuildMember>(member => ({
   id: snowflake(),
   nick: null,
   roles: [],
@@ -92,7 +92,7 @@ const dataGuildMember = d<DataGuildMember>(member => ({
   ...member
 }))
 
-const dataGuildVoiceState = d<DataGuildVoiceState>(voiceState => ({
+const dataGuildVoiceState = d<D.GuildVoiceState>(voiceState => ({
   channel_id: null,
   user_id: snowflake(),
   // TODO: investigate proper session_id
@@ -109,13 +109,13 @@ const dataGuildVoiceState = d<DataGuildVoiceState>(voiceState => ({
   ...voiceState
 }))
 
-export const dataGuild = d<DataGuild>(guild => {
+export const dataGuild = d<D.Guild>(guild => {
   /** Includes extra properties from `Guild` not in `APIPartialGuild`. */
   const partial = partialGuild(guild)
   const _members = guild?.members?.map(dataGuildMember)
-  const members: NonEmptyArray<DataGuildMember> =
+  const members: NonEmptyArray<D.GuildMember> =
     _members?.length ?? 0
-      ? (_members as NonEmptyArray<DataGuildMember>)
+      ? (_members as NonEmptyArray<D.GuildMember>)
       : [dataGuildMember()]
   const roles = guild?.roles?.map(dataRole) ?? []
   return {

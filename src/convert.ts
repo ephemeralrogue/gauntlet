@@ -12,15 +12,10 @@ import type {
   Snowflake
 } from 'discord-api-types'
 import type {
-  DataGuild,
-  DataGuildChannel,
-  DataGuildEmoji,
-  DataGuildMember,
-  DataGuildTemplate,
-  DataMessage,
-  DataOverwrite,
-  DataRole,
+  D,
+  GatewayPresenceUpdate,
   ResolvedClientData,
+  RD,
   ResolvedData
 } from './types'
 import type {Override} from './utils'
@@ -33,7 +28,7 @@ export const oauth2Application = (
   ...integration_applications.get(application.id)!
 })
 
-export const addGuildID = (dataGuild: DataGuild) => <T>(
+export const addGuildID = (dataGuild: RD.Guild) => <T>(
   dataChannel: T
 ): Override<T, {guild_id: Snowflake}> => ({
   ...dataChannel,
@@ -49,7 +44,7 @@ export const guildEmoji = ({users}: ResolvedData) => ({
   managed,
   animated,
   available
-}: DataGuildEmoji): APIEmoji => ({
+}: D.GuildEmoji): APIEmoji => ({
   id,
   name,
   roles,
@@ -61,7 +56,7 @@ export const guildEmoji = ({users}: ResolvedData) => ({
 })
 
 export const guildMember = ({users}: ResolvedData) => (
-  dataGuild: DataGuild,
+  dataGuild: RD.Guild,
   includePending = false
 ) => ({
   id,
@@ -70,7 +65,7 @@ export const guildMember = ({users}: ResolvedData) => (
   joined_at,
   premium_since,
   pending
-}: DataGuildMember): APIGuildMember => {
+}: D.GuildMember): APIGuildMember => {
   const {deaf, mute} = dataGuild.voice_states.find(
     ({user_id}) => user_id === id
   ) ?? {deaf: false, mute: false}
@@ -86,7 +81,7 @@ export const guildMember = ({users}: ResolvedData) => (
   }
 }
 
-export const role = ({permissions, ...rest}: DataRole): APIRole => ({
+export const role = ({permissions, ...rest}: D.Role): APIRole => ({
   ...rest,
   permissions: `${permissions}` as const
 })
@@ -95,21 +90,29 @@ export const overwrite = ({
   allow,
   deny,
   ...rest
-}: DataOverwrite): APIOverwrite => ({
+}: D.Overwrite): APIOverwrite => ({
   allow: `${allow}` as const,
   deny: `${deny}` as const,
   ...rest
 })
 
 export const guildChannel = (
-  dataGuild: DataGuild
-): ((channel: DataGuildChannel) => APIChannel) => {
+  dataGuild: RD.Guild
+): ((channel: RD.GuildChannel) => APIChannel) => {
   const _addGuildID = addGuildID(dataGuild)
   return ({messages, permission_overwrites, ...rest}): APIChannel =>
     _addGuildID({
       permission_overwrites: permission_overwrites.map(overwrite),
       ...rest
     })
+}
+
+export const guildPresence = ({users}: ResolvedData) => (
+  dataGuild: RD.Guild
+): ((dataPresence: D.GuildPresence) => GatewayPresenceUpdate) => {
+  const _addGuildID = addGuildID(dataGuild)
+  return ({user_id, ...rest}): GatewayPresenceUpdate =>
+    _addGuildID({user: users.get(user_id)!, ...rest})
 }
 
 /**
@@ -123,7 +126,7 @@ export const guildChannel = (
  */
 export const guild = (
   data: ResolvedData
-): ((dataGuild: DataGuild) => APIGuild) => {
+): ((dataGuild: RD.Guild) => APIGuild) => {
   const convertGuildEmoji = guildEmoji(data)
   return ({
     id,
@@ -205,28 +208,28 @@ export const guild = (
 export const guildCreateGuild = (
   data: ResolvedData,
   clientData: ResolvedClientData
-): ((dataGuild: DataGuild, convertedGuild?: APIGuild) => APIGuild) => {
+): ((dataGuild: RD.Guild, convertedGuild?: APIGuild) => APIGuild) => {
   const convertGuild = guild(data)
   const convertGuildMember = guildMember(data)
+  const convertGuildPresence = guildPresence(data)
   return (dataGuild, convertedGuild): APIGuild => {
     const {large, unavailable, members, channels, presences} = dataGuild
     const userID = clientUserID(data, clientData)
-    const convertGuildChannel = guildChannel(dataGuild)
     return {
       ...(convertedGuild ?? convertGuild(dataGuild)),
       joined_at: members.find(({id}) => id === userID)?.joined_at,
       large,
       unavailable,
-      member_count: members.length,
+      member_count: members.size,
       members: members.map(convertGuildMember(dataGuild, true)),
-      channels: channels.map(convertGuildChannel),
-      presences: presences.map(addGuildID(dataGuild))
+      channels: channels.map(guildChannel(dataGuild)),
+      presences: presences.map(convertGuildPresence(dataGuild))
     }
   }
 }
 
-export const template = (data: ResolvedData) => (dataGuild: DataGuild) => (
-  dataTemplate: DataGuildTemplate
+export const template = (data: ResolvedData) => (dataGuild: RD.Guild) => (
+  dataTemplate: D.GuildTemplate
 ): APITemplate => ({
   ...dataTemplate,
   creator: data.users.get(dataTemplate.creator_id)!,
@@ -242,7 +245,7 @@ export const message = (data: ResolvedData, channelID: Snowflake) => ({
   message_reference,
   referenced_message,
   ...rest
-}: DataMessage): APIMessage => ({
+}: D.Message): APIMessage => ({
   ...rest,
   application:
     application_id === undefined

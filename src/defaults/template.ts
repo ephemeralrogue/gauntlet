@@ -12,7 +12,7 @@ import type {
   APIGuildCreateRole,
   APITemplateSerializedSourceGuild
 } from 'discord-api-types/v8'
-import type {DataGuildTemplate} from '../types'
+import type {D} from '../types'
 
 // These live here instead of in ./guild.ts to avoid dependency cycles
 const guildCreateRole = d<APIGuildCreateRole>(_role => ({
@@ -50,7 +50,7 @@ const templateSerializedSourceGuild = d<APITemplateSerializedSourceGuild>(
   })
 )
 
-export const dataGuildTemplate = d<DataGuildTemplate>(_template => ({
+export const dataGuildTemplate = d<D.GuildTemplate>(_template => ({
   code: randomString(),
   name: 'Friends & Family',
   description: null,

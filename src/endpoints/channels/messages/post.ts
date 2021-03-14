@@ -19,14 +19,7 @@ import type {
 } from 'discord-api-types/v8'
 import type {EmitPacket, HasIntents} from '../../../Backend'
 import type {FormBodyError, FormBodyErrors} from '../../../errors'
-import type {
-  DataEmbed,
-  DataGuild,
-  DataGuildChannel,
-  DataMessage,
-  ResolvedClientData,
-  ResolvedData
-} from '../../../types'
+import type {D, ResolvedClientData, RD, ResolvedData} from '../../../types'
 import type {AttachmentURLs, RequireKeys} from '../../../utils'
 import type {File} from '../../types'
 
@@ -306,8 +299,8 @@ export default (
   const userID = clientUserID(data, clientData)
 
   const checkPermissions = (
-    guild: DataGuild,
-    channel: DataGuildChannel
+    guild: RD.Guild,
+    channel: RD.GuildChannel
   ): bigint => {
     const permissions = getPermissions(
       guild,
@@ -340,7 +333,7 @@ export default (
 
   // Permissions
   const permissions = guild
-    ? checkPermissions(guild, channel as DataGuildChannel)
+    ? checkPermissions(guild, channel as RD.GuildChannel)
     : undefined
 
   // Empty message
@@ -413,7 +406,7 @@ export default (
     thumbnail,
     author,
     fields
-  }: APIEmbed): DataEmbed =>
+  }: APIEmbed): D.Embed =>
     defaults.dataEmbed({
       title,
       description,
@@ -435,14 +428,14 @@ export default (
     })
 
   const defaultAttachment = defaults.attachment(channelID, base.id)
-  const message: DataMessage = {
+  const message: D.Message = {
     ...base,
     embeds: embed ? [resolveEmbed(embed)] : [],
     attachments:
       files?.map(({name}) => defaultAttachment({filename: name})) ?? []
   }
 
-  channel.messages!.push(message)
+  channel.messages!.set(message.id, message)
   channel.last_message_id = message.id
 
   const apiMessage = convert.message(data, channelID)(message)

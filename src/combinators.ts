@@ -1,12 +1,6 @@
 import {snowflake} from './utils'
 import type {APIGuildIntegrationApplication} from 'discord-api-types/v8'
-import type {
-  ClientData,
-  ClientDataApplication,
-  Data,
-  DataGuild,
-  DataPartialDeep
-} from './types'
+import type {ClientData, ClientDataApplication, D, Data} from './types'
 import type {Fn1, ReadonlyNonEmptyArray} from './utils'
 
 export interface CombinatorData {
@@ -17,7 +11,7 @@ export interface CombinatorData {
 export type Combinator = (input?: CombinatorData) => CombinatorData
 
 export const botData = (
-  app: DataPartialDeep<
+  app: D.PartialDeep<
     APIGuildIntegrationApplication & ClientDataApplication
   > = {}
 ): Combinator => ({data, clientData} = {}) => {
@@ -32,7 +26,7 @@ export const botData = (
 }
 
 export const guildWithClient = (
-  guild: DataPartialDeep<DataGuild> = {}
+  guild: D.PartialDeep<D.Guild> = {}
 ): Combinator => (input = {}) => {
   const {data, clientData} =
     input.clientData?.application?.id === undefined ? botData()(input) : input

@@ -17,7 +17,7 @@ const betterAssert: (
 ) => asserts value = assert
 
 const guildDataExtra = (
-  guild: DM.DataPartialDeep<DM.DataGuild>
+  guild: DM.Data.PartialDeep<DM.Data.Guild>
 ): DM.Combinator =>
   DM.guildWithClient({
     channels: [{type: ChannelType.GUILD_TEXT}],

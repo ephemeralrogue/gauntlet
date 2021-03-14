@@ -1,9 +1,9 @@
 import {snowflake} from '../utils'
 import {DEFAULT_PERMISSIONS, DEFAULT_ROLE_NAME} from './constants'
 import {createDefaults as d} from './utils'
-import type {DataRole} from '../types'
+import type {D} from '../types'
 
-export const dataRole = d<DataRole>(_role => ({
+export const dataRole = d<D.Role>(_role => ({
   id: snowflake(),
   name: DEFAULT_ROLE_NAME,
   color: 0,
