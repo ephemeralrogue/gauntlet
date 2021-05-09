@@ -160,7 +160,8 @@ export const guild = (
     premium_subscription_count,
     preferred_locale,
     public_updates_channel_id,
-    max_video_channel_users
+    max_video_channel_users,
+    nsfw
   }): APIGuild => ({
     id,
     name,
@@ -193,7 +194,8 @@ export const guild = (
     premium_subscription_count,
     preferred_locale,
     public_updates_channel_id,
-    max_video_channel_users
+    max_video_channel_users,
+    nsfw
   })
 }
 

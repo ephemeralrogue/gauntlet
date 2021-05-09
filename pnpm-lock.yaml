@@ -12,7 +12,7 @@ specifiers:
   commitizen: ^4.2.4
   commitlint: ^12.1.1
   cz-conventional-changelog: ^3.3.0
-  discord-api-types: ^0.12.1
+  discord-api-types: ^0.18.1
   discord-markdown: ^2.4.2
   discord.js: discordjs/discord.js
   eslint: ^7.26.0
@@ -52,7 +52,7 @@ devDependencies:
   commitizen: 4.2.4
   commitlint: 12.1.1
   cz-conventional-changelog: 3.3.0
-  discord-api-types: 0.12.1
+  discord-api-types: 0.18.1
   discord.js: github.com/discordjs/discord.js/0e40f9b86826ba50aa3840807fb86e1bce6b1c3d
   eslint: 7.26.0
   eslint-plugin-eslint-comments: 3.2.0_eslint@7.26.0
@@ -2599,8 +2599,8 @@ packages:
       path-type: 4.0.0
     dev: true
 
-  /discord-api-types/0.12.1:
-    resolution: {integrity: sha512-x8dhQqPZUtIEKjDHMdA6D3aAsZUMoeo58fAgFA5WOAdSh+uVyRsvny4+25b+RIRasG2Zf2UpDUsx8NKO5zk/6g==}
+  /discord-api-types/0.18.1:
+    resolution: {integrity: sha512-hNC38R9ZF4uaujaZQtQfm5CdQO58uhdkoHQAVvMfIL0LgOSZeW575W8H6upngQOuoxWd8tiRII3LLJm9zuQKYg==}
     engines: {node: '>=12'}
     dev: true
 

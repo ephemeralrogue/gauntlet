@@ -34,6 +34,7 @@ import type {NonEmptyArray} from '../utils'
 
 const welcomeScreenChannel = d<APIGuildWelcomeScreenChannel>(_channel => ({
   channel_id: snowflake(),
+  description: 'Follow for official Discord API updates',
   emoji_id: null,
   emoji_name: null,
   ..._channel
@@ -106,6 +107,7 @@ const dataGuildVoiceState = d<D.GuildVoiceState>(voiceState => ({
   // TODO: find out what suppress actually does (muting another user doesn't
   // seem to make this true)
   suppress: false,
+  request_to_speak_timestamp: null,
   ...voiceState
 }))
 
@@ -143,6 +145,7 @@ export const dataGuild = d<D.Guild>(guild => {
     preferred_locale: DEFAULT_GUILD_PREFERRED_LOCALE,
     max_video_channel_users: 25,
     public_updates_channel_id: null,
+    nsfw: false,
     ...partial,
     members,
     roles: [

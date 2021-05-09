@@ -1,5 +1,6 @@
 import {
   ChannelType,
+  InteractionType,
   MessageActivityType,
   MessageType,
   OverwriteType,
@@ -8,11 +9,13 @@ import {
 import {attachmentURLs, randomString, snowflake, timestamp} from '../utils'
 import {DEFAULT_CHANNEL_NAME} from './constants'
 import {dataPartialEmoji} from './emoji'
+import {user} from './user'
 import {createDefaults as d} from './utils'
 import type {
   APIAttachment,
   APIEmbedFooter,
   APIMessageActivity,
+  APIMessageInteraction,
   APIMessageReference,
   APIPartialChannel,
   APISticker,
@@ -91,6 +94,14 @@ export const messageReference = d<APIMessageReference>(reference => ({
   ...reference
 }))
 
+export const messageInteraction = d<APIMessageInteraction>(interaction => ({
+  id: snowflake(),
+  type: InteractionType.ApplicationCommand,
+  name: 'blep',
+  ...interaction,
+  user: user(interaction?.user)
+}))
+
 export const dataMessage = (channelID = snowflake()): Defaults<D.Message> =>
   d<D.Message>(message => {
     // TODO: do something like dataGuildChannel: do stuff based on message type
@@ -119,7 +130,10 @@ export const dataMessage = (channelID = snowflake()): Defaults<D.Message> =>
         : undefined,
       referenced_message: message?.referenced_message
         ? dataMessage()(message.referenced_message)
-        : (message?.referenced_message as null | undefined)
+        : (message?.referenced_message as null | undefined),
+      interaction: message?.interaction
+        ? messageInteraction(message.interaction)
+        : undefined
     }
     return {
       attachments:

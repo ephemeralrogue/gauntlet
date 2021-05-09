@@ -150,12 +150,12 @@ const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
     }
 
     const checkChannel = (
-      key: KeysMatching<RESTPostAPIGuildsJSONBody, AnyID | undefined>,
+      key: KeysMatching<RESTPostAPIGuildsJSONBody, AnyID | null | undefined>,
       type: ChannelType,
       invalidTypeError: FormBodyError
     ) => {
       const channelID = guild[key]
-      if (channelID !== undefined) {
+      if (channelID != null) {
         const channel = channels?.find(({id}) => id === channelID)
         if (!channel) {
           error(errors.INVALID_FORM_BODY, path, method, {
@@ -319,9 +319,7 @@ export const createGuild = (
                   : {})
               })
             ),
-            system_channel_id === undefined
-              ? null
-              : map.get(system_channel_id)!,
+            system_channel_id == null ? null : map.get(system_channel_id)!,
             map
           ]
         })()
@@ -332,7 +330,7 @@ export const createGuild = (
     roles: resolvedRoles,
     channels: resolvedChannels,
     afk_channel_id:
-      afk_channel_id === undefined ? null : channelMap.get(afk_channel_id)!,
+      afk_channel_id == null ? null : channelMap.get(afk_channel_id)!,
     system_channel_id: systemChannelID
   })
   data.guilds.set(guildData.id, guildData)
