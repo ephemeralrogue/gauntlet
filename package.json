@@ -30,7 +30,7 @@
     "test": "./tests"
   },
   "scripts": {
-    "prepare": "ln -sf ../../../../../../../../../../types/WebSocketShard.d.ts node_modules/discord.js/src/client/websocket/WebSocketShard.d.ts",
+    "prepare": "ln -sf ../../../../../../../../types/WebSocketShard.d.ts node_modules/discord.js/src/client/websocket/WebSocketShard.d.ts",
     "build": "tsc -b src && gen-esm-wrapper . esm.mjs",
     "build:dev": "tsc -b src/tsconfig.dev.json",
     "watch": "pnpm build:dev -- -w",
