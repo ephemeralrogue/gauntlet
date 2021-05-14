@@ -5,7 +5,9 @@ describe('fetchApplication', () => {
   test(
     'default application',
     withClientF(async client =>
-      expect(await client.fetchApplication()).toBeInstanceOf(ClientApplication)
+      expect(await client.application?.fetch()).toBeInstanceOf(
+        ClientApplication
+      )
     )
   )
 
@@ -13,9 +15,15 @@ describe('fetchApplication', () => {
     const applicationID = '0'
     const name = 'Application Name'
     const ownerUsername = 'app owner'
+    const expectInstanceOf: <T, U extends T>(
+      actual: T,
+      expected: new (...args: never[]) => U
+    ) => asserts actual is U = (actual, expected) =>
+      expect(actual).toBeInstanceOf(expected)
     await withClient(
       async client => {
-        const application = await client.fetchApplication()
+        const application = await client.application?.fetch()
+        expectInstanceOf(application, ClientApplication)
         expect(application).toBeInstanceOf(ClientApplication)
         expect(application.name).toBe(name)
         expect(application.owner).toBeInstanceOf(User)

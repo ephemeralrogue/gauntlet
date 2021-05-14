@@ -8,12 +8,12 @@ describe('initial guilds', () => {
     const userID = '3'
     const client = new D.Client({intents: ['GUILDS']})
     const promise = new Promise<void>(resolve => {
-      client.on('guildCreate', guild => {
+      client.on('guildCreate', async guild => {
         expect(guild.id).toBe(guildID)
         expect(guild.members.cache.size).toBe(1)
         expect(guild.members.cache.get(userID)).toBeDefined()
         expect(guild.ownerID).toBe(userID)
-        expect(guild.owner?.id).toBe(userID)
+        expect((await guild.fetchOwner()).id).toBe(userID)
         resolve()
       })
     })
@@ -35,12 +35,12 @@ describe('initial guilds', () => {
     const userID = '3'
     const client = new D.Client({intents: ['GUILDS']})
     const promise = new Promise<void>(resolve => {
-      client.on('guildCreate', guild => {
+      client.on('guildCreate', async guild => {
         expect(guild.id).toBe(guildID)
         expect(guild.members.cache.size).toBe(1)
         expect(guild.members.cache.get(userID)).toBeDefined()
         expect(guild.ownerID).toBe(userID)
-        expect(guild.owner?.id).toBe(userID)
+        expect((await guild.fetchOwner()).id).toBe(userID)
         resolve()
       })
     })
