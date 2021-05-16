@@ -14,7 +14,7 @@ specifiers:
   cz-conventional-changelog: ^3.3.0
   discord-api-types: ^0.18.1
   discord-markdown: ^2.4.2
-  discord.js: discordjs/discord.js#0e40f9b86826ba50aa3840807fb86e1bce6b1c3d
+  discord.js: file:../../forks/discord.js
   eslint: ^7.26.0
   eslint-plugin-eslint-comments: ^3.2.0
   eslint-plugin-import: ^2.23.1
@@ -53,7 +53,7 @@ devDependencies:
   commitlint: 12.1.4
   cz-conventional-changelog: 3.3.0
   discord-api-types: 0.18.1
-  discord.js: github.com/discordjs/discord.js/0e40f9b86826ba50aa3840807fb86e1bce6b1c3d
+  discord.js: link:../../forks/discord.js
   eslint: 7.26.0
   eslint-plugin-eslint-comments: 3.2.0_eslint@7.26.0
   eslint-plugin-import: 2.23.1_eslint@7.26.0
@@ -754,19 +754,6 @@ packages:
     engines: {node: '>=v10'}
     dependencies:
       chalk: 4.1.0
-    dev: true
-
-  /@discordjs/collection/0.1.6:
-    resolution: {integrity: sha512-utRNxnd9kSS2qhyivo9lMlt5qgAUasH2gb7BEOn6p0efFh24gjGomHzWKMAPn2hEReOPQZCJaRKoURwRotKucQ==}
-    dev: true
-
-  /@discordjs/form-data/3.0.1:
-    resolution: {integrity: sha512-ZfFsbgEXW71Rw/6EtBdrP5VxBJy4dthyC0tpQKGKmYFImlmmrykO14Za+BiIVduwjte0jXEBlhSKf0MWbFp9Eg==}
-    engines: {node: '>= 6'}
-    dependencies:
-      asynckit: 0.4.0
-      combined-stream: 1.0.8
-      mime-types: 2.1.27
     dev: true
 
   /@es-joy/jsdoccomment/0.4.4:
@@ -1566,13 +1553,6 @@ packages:
 
   /abab/2.0.5:
     resolution: {integrity: sha512-9IK9EadsbHo6jLWIpxpR6pL0sazTXV6+SQv25ZB+F7Bj9mJNaOc4nCRabwd5M/JwmUa8idz6Eci6eKfJryPs6Q==}
-    dev: true
-
-  /abort-controller/3.0.0:
-    resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
-    engines: {node: '>=6.5'}
-    dependencies:
-      event-target-shim: 5.0.1
     dev: true
 
   /acorn-globals/6.0.0:
@@ -3083,11 +3063,6 @@ packages:
   /esutils/2.0.3:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
-    dev: true
-
-  /event-target-shim/5.0.1:
-    resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
-    engines: {node: '>=6'}
     dev: true
 
   /exec-sh/0.3.4:
@@ -5980,24 +5955,6 @@ packages:
       react-is: 17.0.1
     dev: true
 
-  /prism-media/1.2.9:
-    resolution: {integrity: sha512-UHCYuqHipbTR1ZsXr5eg4JUmHER8Ss4YEb9Azn+9zzJ7/jlTtD1h0lc4g6tNx3eMlB8Mp6bfll0LPMAV4R6r3Q==}
-    peerDependencies:
-      '@discordjs/opus': ^0.5.0
-      ffmpeg-static: ^4.2.7 || ^3.0.0 || ^2.4.0
-      node-opus: ^0.3.3
-      opusscript: ^0.0.8
-    peerDependenciesMeta:
-      '@discordjs/opus':
-        optional: true
-      ffmpeg-static:
-        optional: true
-      node-opus:
-        optional: true
-      opusscript:
-        optional: true
-    dev: true
-
   /process-nextick-args/2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
     dev: true
@@ -7103,10 +7060,6 @@ packages:
     resolution: {integrity: sha1-WuaBd/GS1EViadEIr6k/+HQ/T2Q=}
     dev: true
 
-  /tweetnacl/1.0.3:
-    resolution: {integrity: sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw==}
-    dev: true
-
   /type-check/0.3.2:
     resolution: {integrity: sha1-WITKtRLPHTVeP7eE8wgEsrUg23I=}
     engines: {node: '>= 0.8.0'}
@@ -7560,26 +7513,4 @@ packages:
       string-width: 4.2.0
       y18n: 5.0.5
       yargs-parser: 20.2.3
-    dev: true
-
-  github.com/discordjs/discord.js/0e40f9b86826ba50aa3840807fb86e1bce6b1c3d:
-    resolution: {tarball: https://codeload.github.com/discordjs/discord.js/tar.gz/0e40f9b86826ba50aa3840807fb86e1bce6b1c3d}
-    name: discord.js
-    version: 12.5.0
-    engines: {node: '>=14.0.0'}
-    dependencies:
-      '@discordjs/collection': 0.1.6
-      '@discordjs/form-data': 3.0.1
-      abort-controller: 3.0.0
-      node-fetch: 2.6.1
-      prism-media: 1.2.9
-      tweetnacl: 1.0.3
-      ws: 7.3.1
-    transitivePeerDependencies:
-      - '@discordjs/opus'
-      - bufferutil
-      - ffmpeg-static
-      - node-opus
-      - opusscript
-      - utf-8-validate
     dev: true

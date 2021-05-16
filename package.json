@@ -30,7 +30,7 @@
     "test": "./tests"
   },
   "scripts": {
-    "prepare": "ln -sf ../../../../../../../../types/WebSocketShard.d.ts node_modules/discord.js/src/client/websocket/WebSocketShard.d.ts",
+    "prepare": "ln -sf ../../../../../node/discord.js-mock/types/WebSocketShard.d.ts node_modules/discord.js/src/client/websocket/WebSocketShard.d.ts",
     "build": "tsc -b src && gen-esm-wrapper . esm.mjs",
     "build:dev": "tsc -b src/tsconfig.dev.json",
     "watch": "pnpm build:dev -- -w",
@@ -64,7 +64,7 @@
     "commitlint": "^12.1.4",
     "cz-conventional-changelog": "^3.3.0",
     "discord-api-types": "^0.18.1",
-    "discord.js": "discordjs/discord.js#0e40f9b86826ba50aa3840807fb86e1bce6b1c3d",
+    "discord.js": "file:../../forks/discord.js",
     "eslint": "^7.26.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-import": "^2.23.1",
