@@ -6,6 +6,7 @@ import * as defaults from '../../defaults'
 import * as resolve from '../../resolve'
 import {clientUserID, snowflake, timestamp} from '../../utils'
 import type {
+  APIGuild,
   APIGuildCreateOverwrite,
   APIGuildCreatePartialChannel,
   APIGuildCreateRole,
@@ -32,17 +33,16 @@ const validAFKTimeouts = new Set([60, 300, 900, 1800, 3600])
 
 type AnyID = Snowflake | number
 
-export const checkClientGuildCount = (
-  data: ResolvedData,
-  clientData: ResolvedClientData
-) => (path: string, method: Method): void => {
-  const userID = clientUserID(data, clientData)
-  if (
-    data.guilds.filter(({members}) => members.some(({id}) => id === userID))
-      .size >= 10
-  )
-    error(errors.MAXIMUM_GUILDS, path, method)
-}
+export const checkClientGuildCount =
+  (data: ResolvedData, clientData: ResolvedClientData) =>
+  (path: string, method: Method): void => {
+    const userID = clientUserID(data, clientData)
+    if (
+      data.guilds.filter(({members}) => members.some(({id}) => id === userID))
+        .size >= 10
+    )
+      error(errors.MAXIMUM_GUILDS, path, method)
+  }
 
 export const getNameErrors = (name: string): FormBodyErrors | undefined =>
   name.length < 2 || name.length > 100
@@ -211,139 +211,147 @@ const roleFromGuildCreateRole = (
     ...(mentionable == null ? {} : {mentionable})
   })
 
-export const createGuild = (
+// Type annotation required
+export const createGuild: (
   data: ResolvedData,
   clientData: ResolvedClientData,
   hasIntents: HasIntents,
   emitPacket: EmitPacket
-) => (guild: RESTPostAPIGuildsJSONBody) => {
-  const {
-    name,
-    region,
-    icon,
-    verification_level,
-    default_message_notifications,
-    explicit_content_filter,
-    roles,
-    channels,
-    afk_channel_id,
-    afk_timeout,
-    system_channel_id,
-    system_channel_flags
-  } = guild
-  const userID = clientUserID(data, clientData)
-  const base = defaults.dataGuild({
-    name,
-    icon,
-    region,
-    afk_timeout,
-    verification_level,
-    default_message_notifications,
-    explicit_content_filter,
-    system_channel_flags,
-    owner_id: userID,
-    application_id: userID,
-    members: [{id: userID, joined_at: timestamp()}]
-  })
+) => (guild: RESTPostAPIGuildsJSONBody) => APIGuild =
+  (data, clientData, hasIntents, emitPacket) => guild => {
+    const {
+      name,
+      region,
+      icon,
+      verification_level,
+      default_message_notifications,
+      explicit_content_filter,
+      roles,
+      channels,
+      afk_channel_id,
+      afk_timeout,
+      system_channel_id,
+      system_channel_flags
+    } = guild
+    const userID = clientUserID(data, clientData)
+    const base = defaults.dataGuild({
+      name,
+      icon,
+      region,
+      afk_timeout,
+      verification_level,
+      default_message_notifications,
+      explicit_content_filter,
+      system_channel_flags,
+      owner_id: userID,
+      application_id: userID,
+      members: [{id: userID, joined_at: timestamp()}]
+    })
 
-  type IDMap = ReadonlyMap<number | string, Snowflake>
+    type IDMap = ReadonlyMap<number | string, Snowflake>
 
-  type ResolveRolesResult = [D.Role[], IDMap]
-  const [resolvedRoles, roleMap]: ResolveRolesResult =
-    roles?.length ?? 0
-      ? ((): ResolveRolesResult => {
-          const map: IDMap = new Map([
-            [roles![0]!.id, base.id],
-            ...roles!.slice(1).map(({id}) => [id, snowflake()] as const)
-          ])
-          return [
-            [
-              roleFromGuildCreateRole(
-                {...roles![0]!, name: '@everyone'},
-                base.id
-              ),
-              ...roles!
-                .slice(1)
-                .map(role => roleFromGuildCreateRole(role, map.get(role.id)!))
-            ],
-            map
-          ]
-        })()
-      : [[defaults.dataRole({id: base.id, name: '@everyone'})], new Map()]
+    type ResolveRolesResult = [D.Role[], IDMap]
+    const [resolvedRoles, roleMap]: ResolveRolesResult =
+      roles?.length ?? 0
+        ? ((): ResolveRolesResult => {
+            const map: IDMap = new Map([
+              [roles![0]!.id, base.id],
+              ...roles!.slice(1).map(({id}) => [id, snowflake()] as const)
+            ])
+            return [
+              [
+                roleFromGuildCreateRole(
+                  {...roles![0]!, name: '@everyone'},
+                  base.id
+                ),
+                ...roles!
+                  .slice(1)
+                  .map(role => roleFromGuildCreateRole(role, map.get(role.id)!))
+              ],
+              map
+            ]
+          })()
+        : [[defaults.dataRole({id: base.id, name: '@everyone'})], new Map()]
 
-  type ResolveChannelResult = [D.GuildChannel[], Snowflake | null, IDMap]
-  const [resolvedChannels, systemChannelID, channelMap]: ResolveChannelResult =
-    channels?.length ?? 0
-      ? ((): ResolveChannelResult => {
-          const map: IDMap = new Map(
-            channels!
-              .filter(
-                (
-                  channel
-                ): channel is RequireKeys<APIGuildCreatePartialChannel, 'id'> =>
-                  channel.id !== undefined
-              )
-              .map(({id}) => [id, snowflake()])
-          )
-          return [
-            channels!.map(({id, parent_id, permission_overwrites, ...rest}) =>
-              defaults.dataGuildChannel({
-                ...rest,
-                ...(id === undefined ? {} : {id: map.get(id)}),
-                ...(parent_id == null ? {} : {parent_id: map.get(parent_id)}),
-                ...(permission_overwrites
-                  ? {
-                      permission_overwrites: permission_overwrites
-                        .filter(overwrite => roleMap.has(overwrite.id))
-                        .map(
-                          ({
-                            id: overwriteID,
-                            allow,
-                            deny,
-                            ...overwriteRest
-                          }: // TODO: fix types in discord-api-types and discord-api-docs (allow/deny/type can be undefined)
-                          Override<
-                            APIGuildCreateOverwrite,
-                            Partial<
-                              Pick<APIGuildCreateOverwrite, 'allow' | 'deny'>
-                            >
-                          >) =>
-                            defaults.overwrite({
-                              id: roleMap.get(overwriteID)!,
-                              allow: BigInt(allow ?? 0),
-                              deny: BigInt(deny ?? 0),
+    type ResolveChannelResult = [D.GuildChannel[], Snowflake | null, IDMap]
+    const [
+      resolvedChannels,
+      systemChannelID,
+      channelMap
+    ]: ResolveChannelResult =
+      channels?.length ?? 0
+        ? ((): ResolveChannelResult => {
+            const map: IDMap = new Map(
+              channels!
+                .filter(
+                  (
+                    channel
+                  ): channel is RequireKeys<
+                    APIGuildCreatePartialChannel,
+                    'id'
+                  > => channel.id !== undefined
+                )
+                .map(({id}) => [id, snowflake()])
+            )
+            return [
+              channels!.map(({id, parent_id, permission_overwrites, ...rest}) =>
+                defaults.dataGuildChannel({
+                  ...rest,
+                  ...(id === undefined ? {} : {id: map.get(id)}),
+                  ...(parent_id == null ? {} : {parent_id: map.get(parent_id)}),
+                  ...(permission_overwrites
+                    ? {
+                        permission_overwrites: permission_overwrites
+                          .filter(overwrite => roleMap.has(overwrite.id))
+                          .map(
+                            ({
+                              id: overwriteID,
+                              allow,
+                              deny,
                               ...overwriteRest
-                            })
-                        )
-                    }
-                  : {})
-              })
-            ),
-            system_channel_id == null ? null : map.get(system_channel_id)!,
-            map
-          ]
-        })()
-      : [...defaults.dataGuildChannels(), new Map()]
+                            }: // TODO: fix types in discord-api-types and discord-api-docs (allow/deny/type can be undefined)
+                            Override<
+                              APIGuildCreateOverwrite,
+                              Partial<
+                                Pick<APIGuildCreateOverwrite, 'allow' | 'deny'>
+                              >
+                            >) =>
+                              defaults.overwrite({
+                                id: roleMap.get(overwriteID)!,
+                                allow: BigInt(allow ?? 0),
+                                deny: BigInt(deny ?? 0),
+                                ...overwriteRest
+                              })
+                          )
+                      }
+                    : {})
+                })
+              ),
+              system_channel_id == null ? null : map.get(system_channel_id)!,
+              map
+            ]
+          })()
+        : [...defaults.dataGuildChannels(), new Map()]
 
-  const guildData = resolve.guild({
-    ...base,
-    roles: resolvedRoles,
-    channels: resolvedChannels,
-    afk_channel_id:
-      afk_channel_id == null ? null : channelMap.get(afk_channel_id)!,
-    system_channel_id: systemChannelID
-  })
-  data.guilds.set(guildData.id, guildData)
+    const guildData = resolve.guild({
+      ...base,
+      roles: resolvedRoles,
+      channels: resolvedChannels,
+      afk_channel_id:
+        afk_channel_id == null ? null : channelMap.get(afk_channel_id)!,
+      system_channel_id: systemChannelID
+    })
+    data.guilds.set(guildData.id, guildData)
 
-  const apiGuild = convert.guild(data)(guildData)
-  if (hasIntents(Intents.FLAGS.GUILDS)) {
-    emitPacket(
-      GatewayDispatchEvents.GuildCreate,
-      convert.guildCreateGuild(data, clientData)(guildData, apiGuild)
-    )
+    const apiGuild = convert.guild(data)(guildData)
+    if (hasIntents(Intents.FLAGS.GUILDS)) {
+      emitPacket(
+        GatewayDispatchEvents.GuildCreate,
+        convert.guildCreateGuild(data, clientData)(guildData, apiGuild)
+      )
+    }
+    return apiGuild
   }
-  return apiGuild
-}
 
 // https://discord.com/developers/docs/resources/guild#create-guild
 export default (

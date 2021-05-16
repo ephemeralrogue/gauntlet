@@ -2,6 +2,11 @@ import * as D from 'discord.js'
 import * as DM from '../src'
 import type {AnyFunction} from '../src/utils'
 
+export const expectNotToBeNull: <T>(
+  actual: T
+) => asserts actual is Exclude<T, null> = actual =>
+  expect(actual).not.toBeNull()
+
 /* eslint-disable @typescript-eslint/ban-types -- any object */
 type ObjectDeepPartialOmit<T extends object, O extends PropertyKey> = {
   // eslint-disable-next-line @typescript-eslint/no-use-before-define -- recursive

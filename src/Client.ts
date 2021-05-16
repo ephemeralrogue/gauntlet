@@ -16,33 +16,33 @@ import type {ClientData, ResolvedClientData} from './types'
 const _mockClient = (
   backend: Backend,
   client: D.Client,
-  {application}: ClientData = {}
+  {application: app}: ClientData = {}
 ): void => {
   const data = backend['resolvedData']
 
   // Stop the RESTManager from setting an interval
   client.options.restSweepInterval = 0
 
-  const app = defaults.clientDataApplication(application)
+  const application = defaults.clientDataApplication(app)
   const user: APIUser = {
-    ...(data.users.get(app.id) ??
-      data.integration_applications.get(app.id)?.bot ??
+    ...(data.users.get(application.id) ??
+      data.integration_applications.get(application.id)?.bot ??
       defaults.user()),
     bot: true
   }
   data.users.set(user.id, user)
-  if (data.integration_applications.has(app.id))
-    data.integration_applications.get(app.id)!.bot = user
+  if (data.integration_applications.has(application.id))
+    data.integration_applications.get(application.id)!.bot = user
   else {
     data.integration_applications.set(
-      app.id,
-      defaults.integrationApplication({id: app.id, bot: user})
+      application.id,
+      defaults.integrationApplication({id: application.id, bot: user})
     )
   }
 
   const hasIntents: HasIntents = intents =>
     // Intents are always resolved
-    // https://github.com/discordjs/discord.js/blob/d744e51c1bdb4c7a26c0faeea1f2f45baaf5fd3c/src/client/Client.js#L463
+    // https://github.com/discordjs/discord.js/blob/0e40f9b86826ba50aa3840807fb86e1bce6b1c3d/src/client/Client.js#L463
     !!((client.options.intents as number) & intents)
   const emitPacket: EmitPacket = (t, d) => {
     client.ws['handlePacket'](
@@ -50,9 +50,7 @@ const _mockClient = (
       client.ws.shards.first()
     )
   }
-  const clientData: ResolvedClientData = {
-    application: app
-  }
+  const clientData: ResolvedClientData = {application}
   // Initialise the mocked API. This needs to be done with
   // Object.defineProperty because api is originally a getter
   Object.defineProperty(client, 'api', {
@@ -60,8 +58,9 @@ const _mockClient = (
     configurable: true
   })
 
-  // Initialise the client user
+  // Initialise the client user and application
   client.user = new D.ClientUser(client, user)
+  client.application = new D.ClientApplication(client, application)
 
   // Create a shard
   const shard = new WebSocketShard(client.ws, 0)

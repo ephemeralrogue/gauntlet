@@ -9,6 +9,7 @@ import type {
 } from 'discord-api-types/v8'
 import type {GatewayActivity, D} from '../types'
 import type {Override} from '../utils'
+import type {Defaults} from './utils'
 
 export const activityEmoji = d<GatewayActivityEmoji>(_emoji =>
   !_emoji || _emoji.id == null
@@ -57,10 +58,13 @@ export const activity = d<GatewayActivity>(_activity => {
   }
 })
 
-export const presenceUser = d<GatewayPresenceUpdate['user']>(_user => ({
-  id: snowflake(),
-  ..._user
-}))
+// Type annotation required
+export const presenceUser: Defaults<GatewayPresenceUpdate['user']> = d(
+  _user => ({
+    id: snowflake(),
+    ..._user
+  })
+)
 
 export const dataGuildPresence = d<D.GuildPresence>(_presence => ({
   ..._presence,

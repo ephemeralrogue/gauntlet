@@ -1,29 +1,24 @@
 import {ClientApplication, User} from 'discord.js'
-import {withClient, withClientF} from './utils'
+import {expectNotToBeNull, withClient, withClientF} from './utils'
+import './matchers'
 
 describe('fetchApplication', () => {
   test(
     'default application',
-    withClientF(async client =>
-      expect(await client.application?.fetch()).toBeInstanceOf(
-        ClientApplication
-      )
-    )
+    withClientF(async client => {
+      expectNotToBeNull(client.application)
+      await expect(client.application.fetch()).toResolve()
+    })
   )
 
   test('custom application', async () => {
     const applicationID = '0'
     const name = 'Application Name'
     const ownerUsername = 'app owner'
-    const expectInstanceOf: <T, U extends T>(
-      actual: T,
-      expected: new (...args: never[]) => U
-    ) => asserts actual is U = (actual, expected) =>
-      expect(actual).toBeInstanceOf(expected)
     await withClient(
       async client => {
-        const application = await client.application?.fetch()
-        expectInstanceOf(application, ClientApplication)
+        expectNotToBeNull(client.application)
+        const application = await client.application.fetch()
         expect(application).toBeInstanceOf(ClientApplication)
         expect(application.name).toBe(name)
         expect(application.owner).toBeInstanceOf(User)

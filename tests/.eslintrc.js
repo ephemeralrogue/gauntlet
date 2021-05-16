@@ -28,6 +28,10 @@ const config = {
     {
       files: '**/*.test.ts',
       rules: {
+        'jest/expect-expect': [
+          2,
+          {assertFunctionNames: ['expect', 'expectNotToBeNull']}
+        ],
         'unicorn/consistent-function-scoping': 0
       }
     }
