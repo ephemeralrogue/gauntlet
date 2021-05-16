@@ -13,22 +13,20 @@ type ObjectDeepPartialOmit<T extends object, O extends PropertyKey> = {
   [K in keyof T as Exclude<K, O>]?: DeepPartialOmit<T[K], O>
 }
 
-export type DeepPartialOmit<
-  T,
-  O extends PropertyKey = never
-> = T extends readonly (infer U)[]
-  ? number extends T['length']
-    ? T extends unknown[]
-      ? DeepPartialOmit<U>[] // ordinary mutable array
-      : readonly DeepPartialOmit<U>[] // ordinary readonly array
-    : ObjectDeepPartialOmit<T, O> // tuple
-  : T extends AnyFunction
-  ? T
-  : T extends Map<infer K, infer V>
-  ? Map<DeepPartialOmit<K, O>, DeepPartialOmit<V, O>>
-  : T extends object
-  ? ObjectDeepPartialOmit<T, O>
-  : T
+export type DeepPartialOmit<T, O extends PropertyKey = never> =
+  T extends readonly (infer U)[]
+    ? number extends T['length']
+      ? T extends unknown[]
+        ? DeepPartialOmit<U>[] // ordinary mutable array
+        : readonly DeepPartialOmit<U>[] // ordinary readonly array
+      : ObjectDeepPartialOmit<T, O> // tuple
+    : T extends AnyFunction
+    ? T
+    : T extends Map<infer K, infer V>
+    ? Map<DeepPartialOmit<K, O>, DeepPartialOmit<V, O>>
+    : T extends object
+    ? ObjectDeepPartialOmit<T, O>
+    : T
 /* eslint-enable @typescript-eslint/ban-types */
 
 // Omitting valueOf because ({...}).valueOf() is Object, whereas
@@ -46,7 +44,7 @@ export const withClient = <T>(
   {intents = D.Intents.NON_PRIVILEGED, data, clientData}: WithClientOptions = {}
 ): T => fn(new DM.Client({intents}, clientData, new DM.Backend(data)))
 
-export const withClientF = <T>(
-  fn: (client: D.Client) => T,
-  options?: WithClientOptions
-) => (): T => withClient(fn, options)
+export const withClientF =
+  <T>(fn: (client: D.Client) => T, options?: WithClientOptions) =>
+  (): T =>
+    withClient(fn, options)

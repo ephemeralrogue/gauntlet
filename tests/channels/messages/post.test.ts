@@ -51,9 +51,11 @@ const send = async (
   client: D.Client,
   ...args: SingleMessageSendArgs
 ): Promise<D.Message> =>
-  (getChannel(client) as {
-    send: (...args_: SingleMessageSendArgs) => Promise<D.Message>
-  }).send(...args)
+  (
+    getChannel(client) as {
+      send: (...args_: SingleMessageSendArgs) => Promise<D.Message>
+    }
+  ).send(...args)
 
 describe('successes', () => {
   test('has same content', async () => {
@@ -95,7 +97,9 @@ describe('successes', () => {
     await withClient(
       async client =>
         expect(
-          (await send(client, {embed: {title, description, fields}})).embeds
+          (
+            await send(client, {embed: {title, description, fields}})
+          ).embeds
         ).toMatchObject<DeepPartialOmit<D.MessageEmbed[]>>([
           {title, description, fields}
         ]),

@@ -17,9 +17,7 @@ import type {
 import type {ResolvedClientData, RD, ResolvedData} from '../../../types'
 import type {FormBodyErrors} from '../../../errors'
 
-type GuildsIdTemplatesFn = (
-  code: string
-) => {
+type GuildsIdTemplatesFn = (code: string) => {
   delete: () => Promise<RESTDeleteAPIGuildTemplateResult>
   patch: (options: {
     data: RESTPatchAPIGuildTemplateJSONBody
@@ -180,8 +178,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
                   id: channelsMap.get(channel.id)!,
                   parent_id:
                     channel.parent_id == null
-                      ? // TODO: change to null once https://github.com/discordjs/discord-api-types/pull/91 lands
-                        undefined // null
+                      ? null
                       : channelsMap.get(channel.parent_id),
                   permission_overwrites: channel.permission_overwrites
                     .filter(({type}) => type === OverwriteType.Role)
@@ -195,14 +192,13 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
                     )
                 })
               ),
-              // TODO: also change these two to null (see above regarding parent_id)
               afk_channel_id:
                 afk_channel_id == null
-                  ? undefined
+                  ? null
                   : channelsMap.get(afk_channel_id)!,
               system_channel_id:
                 system_channel_id == null
-                  ? undefined
+                  ? null
                   : channelsMap.get(system_channel_id)!,
               system_channel_flags
             }

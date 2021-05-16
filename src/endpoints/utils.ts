@@ -95,14 +95,14 @@ export const getPermissions = (
 export const hasPermissions = (x: bigint, y: bigint): boolean =>
   x & PermissionFlagsBits.ADMINISTRATOR ? true : !!(x & y)
 
-export const getChannel = ({dm_channels, guilds}: ResolvedData) => (
-  id: Snowflake
-): [guild?: RD.Guild, channel?: RD.Channel] => {
-  const dmChannel = dm_channels.get(id)
-  if (dmChannel) return [undefined, dmChannel]
-  for (const [, guild] of guilds) {
-    const channel = guild.channels.find(chan => chan.id === id)
-    if (channel) return [guild, channel]
+export const getChannel =
+  ({dm_channels, guilds}: ResolvedData) =>
+  (id: Snowflake): [guild?: RD.Guild, channel?: RD.Channel] => {
+    const dmChannel = dm_channels.get(id)
+    if (dmChannel) return [undefined, dmChannel]
+    for (const [, guild] of guilds) {
+      const channel = guild.channels.find(chan => chan.id === id)
+      if (channel) return [guild, channel]
+    }
+    return [undefined, undefined]
   }
-  return [undefined, undefined]
-}

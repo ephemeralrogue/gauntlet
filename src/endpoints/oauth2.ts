@@ -4,9 +4,9 @@ import type {ResolvedClientData, ResolvedData} from '../types'
 
 export interface OAuth2 {
   authorize: string
-  applications: (
-    _: '@me'
-  ) => {get: () => Promise<RESTGetAPIOauth2CurrentApplicationResult>}
+  applications: (_: '@me') => {
+    get: () => Promise<RESTGetAPIOauth2CurrentApplicationResult>
+  }
 }
 
 export const oauth2 = (

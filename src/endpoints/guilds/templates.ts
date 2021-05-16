@@ -9,26 +9,22 @@ import type {
 import type {EmitPacket, HasIntents} from '../../Backend'
 import type {D, ResolvedClientData, RD, ResolvedData} from '../../types'
 
-export type GuildsTemplates = (
-  code: string
-) => {
+export type GuildsTemplates = (code: string) => {
   get: () => Promise<RESTGetAPITemplateResult>
   post: (options: {
     data: RESTPostAPITemplateCreateGuildJSONBody
   }) => Promise<RESTPostAPITemplateCreateGuildResult>
 }
 
-export const getTemplate = ({guilds}: ResolvedData) => (
-  code: string,
-  path: string,
-  method: Method
-): [RD.Guild, D.GuildTemplate] => {
-  const result = guilds
-    .map(guild => [guild, guild.template] as const)
-    .find((res): res is [RD.Guild, D.GuildTemplate] => res[1]?.code === code)
-  if (!result) error(errors.UNKNOWN_GUILD_TEMPLATE, path, method)
-  return result
-}
+export const getTemplate =
+  ({guilds}: ResolvedData) =>
+  (code: string, path: string, method: Method): [RD.Guild, D.GuildTemplate] => {
+    const result = guilds
+      .map(guild => [guild, guild.template] as const)
+      .find((res): res is [RD.Guild, D.GuildTemplate] => res[1]?.code === code)
+    if (!result) error(errors.UNKNOWN_GUILD_TEMPLATE, path, method)
+    return result
+  }
 
 export default (
   data: ResolvedData,

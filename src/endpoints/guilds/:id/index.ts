@@ -4,9 +4,7 @@ import type {EmitPacket, HasIntents} from '../../../Backend'
 import type {ResolvedClientData, ResolvedData} from '../../../types'
 import type {GuildsIdTemplates} from './templates'
 
-export type GuildsFn = (
-  id: Snowflake
-) => {
+export type GuildsFn = (id: Snowflake) => {
   /* channels: {
     post: (options: {
       data: RESTPostAPIGuildChannelJSONBody
@@ -26,8 +24,9 @@ export type GuildsFn = (
 }
 
 export default (
-  data: ResolvedData,
-  clientData: ResolvedClientData,
-  _hasIntents: HasIntents,
-  _emitPacket: EmitPacket
-): GuildsFn => id => ({templates: templates(data, clientData)(id)})
+    data: ResolvedData,
+    clientData: ResolvedClientData,
+    _hasIntents: HasIntents,
+    _emitPacket: EmitPacket
+  ): GuildsFn =>
+  id => ({templates: templates(data, clientData)(id)})

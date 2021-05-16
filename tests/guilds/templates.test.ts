@@ -39,9 +39,9 @@ describe('create guild from template', () => {
     const afkTimeout = 60
     await withClient(
       async client => {
-        const guild = await (await client.fetchGuildTemplate(code)).createGuild(
-          name
-        )
+        const guild = await (
+          await client.fetchGuildTemplate(code)
+        ).createGuild(name)
         expect(guild).toMatchObject<MatchObjectGuild>({
           name,
           afkTimeout

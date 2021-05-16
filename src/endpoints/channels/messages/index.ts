@@ -9,10 +9,11 @@ export interface Messages {
 }
 
 export default (
-  data: ResolvedData,
-  clientData: ResolvedClientData,
-  hasIntents: HasIntents,
-  emitPacket: EmitPacket
-) => (id: Snowflake): Messages => ({
-  post: post(data, clientData, hasIntents, emitPacket)(id)
-})
+    data: ResolvedData,
+    clientData: ResolvedClientData,
+    hasIntents: HasIntents,
+    emitPacket: EmitPacket
+  ) =>
+  (id: Snowflake): Messages => ({
+    post: post(data, clientData, hasIntents, emitPacket)(id)
+  })

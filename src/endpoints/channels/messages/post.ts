@@ -285,167 +285,178 @@ const filterMentions = (
 }
 
 export default (
-  data: ResolvedData,
-  clientData: ResolvedClientData,
-  hasIntents: HasIntents,
-  emitPacket: EmitPacket
-) => (channelID: Snowflake): MessagesPost => async ({
-  data: {content = '', nonce, tts, embed, allowed_mentions, message_reference},
-  files
-}): Promise<RESTPostAPIChannelMessageResult> => {
-  // Errors
-  const path = `/channels/${channelID}/messages`
-  const method = Method.POST
-  const userID = clientUserID(data, clientData)
+    data: ResolvedData,
+    clientData: ResolvedClientData,
+    hasIntents: HasIntents,
+    emitPacket: EmitPacket
+  ) =>
+  (channelID: Snowflake): MessagesPost =>
+  async ({
+    data: {
+      content = '',
+      nonce,
+      tts,
+      embed,
+      allowed_mentions,
+      message_reference
+    },
+    files
+  }): Promise<RESTPostAPIChannelMessageResult> => {
+    // Errors
+    const path = `/channels/${channelID}/messages`
+    const method = Method.POST
+    const userID = clientUserID(data, clientData)
 
-  const checkPermissions = (
-    guild: RD.Guild,
-    channel: RD.GuildChannel
-  ): bigint => {
-    const permissions = getPermissions(
-      guild,
-      guild.members.find(member => member.id === userID)!,
-      channel
-    )
-    if (!hasPermissions(permissions, PermissionFlagsBits.VIEW_CHANNEL))
-      error(errors.MISSING_ACCESS, path, method)
-    if (
-      !hasPermissions(
-        permissions,
-        PermissionFlagsBits.SEND_MESSAGES |
-          (files?.length ?? 0 ? PermissionFlagsBits.ATTACH_FILES : BigInt(0)) |
-          (embed ? PermissionFlagsBits.EMBED_LINKS : BigInt(0))
+    const checkPermissions = (
+      guild: RD.Guild,
+      channel: RD.GuildChannel
+    ): bigint => {
+      const permissions = getPermissions(
+        guild,
+        guild.members.find(member => member.id === userID)!,
+        channel
       )
-    )
-      error(errors.MISSING_PERMISSIONS, path, method)
-    return permissions
-  }
-
-  // if hasn't connected to gateway: 400, {"message": "Unauthorized", "code": 40001}
-  // Basic validation
-  const formErrs = getFormErrors({allowed_mentions, content, nonce, embed})
-  if (Object.keys(formErrs).length)
-    error(errors.INVALID_FORM_BODY, path, method, formErrs)
-
-  // Unknown channel
-  const [guild, channel] = getChannel(data)(channelID)
-  if (!channel) error(errors.UNKNOWN_CHANNEL, path, method)
-
-  // Permissions
-  const permissions = guild
-    ? checkPermissions(guild, channel as RD.GuildChannel)
-    : undefined
-
-  // Empty message
-  if (!content && !embed && !(files?.length ?? 0))
-    error(errors.EMPTY_MESSAGE, path, method)
-
-  // Replies
-  if (message_reference) {
-    let err: FormBodyError | undefined
-    if (message_reference.channel_id !== channelID)
-      err = formBodyErrors.REPLIES_CANNOT_REFERENCE_OTHER_CHANNEL
-    if (message_reference.guild_id !== guild?.id)
-      err = formBodyErrors.REPLIES_UNKNOWN_MESSAGE
-    if (err) {
-      error(errors.INVALID_FORM_BODY, path, method, {
-        message_reference: {_errors: [err]}
-      })
+      if (!hasPermissions(permissions, PermissionFlagsBits.VIEW_CHANNEL))
+        error(errors.MISSING_ACCESS, path, method)
+      if (
+        !hasPermissions(
+          permissions,
+          PermissionFlagsBits.SEND_MESSAGES |
+            (files?.length ?? 0
+              ? PermissionFlagsBits.ATTACH_FILES
+              : BigInt(0)) |
+            (embed ? PermissionFlagsBits.EMBED_LINKS : BigInt(0))
+        )
+      )
+        error(errors.MISSING_PERMISSIONS, path, method)
+      return permissions
     }
-  }
 
-  const mentions = filterMentions(
-    foldMapMentions(md.parser(content)),
-    allowed_mentions
-  )
-  const canMentionEveryone =
-    permissions !== undefined &&
-    hasPermissions(permissions, PermissionFlagsBits.MENTION_EVERYONE)
-  const base = defaults.dataMessage(channelID)({
-    content,
-    nonce,
-    tts:
-      (tts ?? false) &&
-      permissions !== undefined &&
-      hasPermissions(permissions, PermissionFlagsBits.SEND_TTS_MESSAGES),
-    author_id: userID,
-    message_reference,
-    mention_everyone: mentions.everyone && guild && canMentionEveryone,
-    mentions: mentions.users.filter(id => data.users.has(id)),
-    mention_roles: guild
-      ? mentions.roles.filter(id => {
-          const role = guild.roles.find(r => r.id === id)
-          return role && (role.mentionable || canMentionEveryone)
+    // if hasn't connected to gateway: 400, {"message": "Unauthorized", "code": 40001}
+    // Basic validation
+    const formErrs = getFormErrors({allowed_mentions, content, nonce, embed})
+    if (Object.keys(formErrs).length)
+      error(errors.INVALID_FORM_BODY, path, method, formErrs)
+
+    // Unknown channel
+    const [guild, channel] = getChannel(data)(channelID)
+    if (!channel) error(errors.UNKNOWN_CHANNEL, path, method)
+
+    // Permissions
+    const permissions = guild
+      ? checkPermissions(guild, channel as RD.GuildChannel)
+      : undefined
+
+    // Empty message
+    if (!content && !embed && !(files?.length ?? 0))
+      error(errors.EMPTY_MESSAGE, path, method)
+
+    // Replies
+    if (message_reference) {
+      let err: FormBodyError | undefined
+      if (message_reference.channel_id !== channelID)
+        err = formBodyErrors.REPLIES_CANNOT_REFERENCE_OTHER_CHANNEL
+      if (message_reference.guild_id !== guild?.id)
+        err = formBodyErrors.REPLIES_UNKNOWN_MESSAGE
+      if (err) {
+        error(errors.INVALID_FORM_BODY, path, method, {
+          message_reference: {_errors: [err]}
         })
-      : []
-  })
-
-  const resolveURL: {
-    <T extends {icon_url?: string}>(object: T, icon: true): T
-    <T extends {url?: string}>(object: T, icon?: false): T
-  } = <T extends Record<string, unknown>>(object: T, icon = false): T => {
-    const fileURL = object[icon ? 'url' : 'icon_url'] as string | undefined
-    let urls: AttachmentURLs | undefined
-    if (fileURL?.startsWith(ATTACHMENT_SCHEME) ?? false) {
-      const file = files?.find(
-        ({name}) => name === fileURL!.slice(ATTACHMENT_SCHEME.length)
-      )
-      if (file) urls = attachmentURLs(channelID, base.id, file.name)
+      }
     }
-    return {...object, ...urls}
-  }
 
-  const resolveEmbed = ({
-    title,
-    description,
-    url,
-    timestamp,
-    color,
-    footer,
-    image,
-    thumbnail,
-    author,
-    fields
-  }: APIEmbed): D.Embed =>
-    defaults.dataEmbed({
+    const mentions = filterMentions(
+      foldMapMentions(md.parser(content)),
+      allowed_mentions
+    )
+    const canMentionEveryone =
+      permissions !== undefined &&
+      hasPermissions(permissions, PermissionFlagsBits.MENTION_EVERYONE)
+    const base = defaults.dataMessage(channelID)({
+      content,
+      nonce,
+      tts:
+        (tts ?? false) &&
+        permissions !== undefined &&
+        hasPermissions(permissions, PermissionFlagsBits.SEND_TTS_MESSAGES),
+      author_id: userID,
+      message_reference,
+      mention_everyone: mentions.everyone && guild && canMentionEveryone,
+      mentions: mentions.users.filter(id => data.users.has(id)),
+      mention_roles: guild
+        ? mentions.roles.filter(id => {
+            const role = guild.roles.find(r => r.id === id)
+            return role && (role.mentionable || canMentionEveryone)
+          })
+        : []
+    })
+
+    const resolveURL: {
+      <T extends {icon_url?: string}>(object: T, icon: true): T
+      <T extends {url?: string}>(object: T, icon?: false): T
+    } = <T extends Record<string, unknown>>(object: T, icon = false): T => {
+      const fileURL = object[icon ? 'url' : 'icon_url'] as string | undefined
+      let urls: AttachmentURLs | undefined
+      if (fileURL?.startsWith(ATTACHMENT_SCHEME) ?? false) {
+        const file = files?.find(
+          ({name}) => name === fileURL!.slice(ATTACHMENT_SCHEME.length)
+        )
+        if (file) urls = attachmentURLs(channelID, base.id, file.name)
+      }
+      return {...object, ...urls}
+    }
+
+    const resolveEmbed = ({
       title,
       description,
       url,
       timestamp,
-      color: color === undefined ? undefined : Math.floor(color),
-      // Not bothering with proxied URls that an
-      // https://images-ext-1.discordapp.net/external/aVEDne7SrZM-yQgNzl8kSN6ljPFN4SbV5ev7oSSji5Q/https/some-website.com/image.png
-      footer: footer
-        ? resolveURL(omit(footer, 'proxy_icon_url'), true)
-        : undefined,
-      // Also not bothering with height/widths
-      image: image ? resolveURL(pick(image, 'url')) : undefined,
-      thumbnail: thumbnail ? resolveURL(pick(thumbnail, 'url')) : undefined,
-      author: author
-        ? resolveURL(omit(author, 'proxy_icon_url'), true)
-        : undefined,
-      fields: fields?.slice(0, 25)
-    })
+      color,
+      footer,
+      image,
+      thumbnail,
+      author,
+      fields
+    }: APIEmbed): D.Embed =>
+      defaults.dataEmbed({
+        title,
+        description,
+        url,
+        timestamp,
+        color: color === undefined ? undefined : Math.floor(color),
+        // Not bothering with proxied URls that an
+        // https://images-ext-1.discordapp.net/external/aVEDne7SrZM-yQgNzl8kSN6ljPFN4SbV5ev7oSSji5Q/https/some-website.com/image.png
+        footer: footer
+          ? resolveURL(omit(footer, 'proxy_icon_url'), true)
+          : undefined,
+        // Also not bothering with height/widths
+        image: image ? resolveURL(pick(image, 'url')) : undefined,
+        thumbnail: thumbnail ? resolveURL(pick(thumbnail, 'url')) : undefined,
+        author: author
+          ? resolveURL(omit(author, 'proxy_icon_url'), true)
+          : undefined,
+        fields: fields?.slice(0, 25)
+      })
 
-  const defaultAttachment = defaults.attachment(channelID, base.id)
-  const message: D.Message = {
-    ...base,
-    embeds: embed ? [resolveEmbed(embed)] : [],
-    attachments:
-      files?.map(({name}) => defaultAttachment({filename: name})) ?? []
-  }
+    const defaultAttachment = defaults.attachment(channelID, base.id)
+    const message: D.Message = {
+      ...base,
+      embeds: embed ? [resolveEmbed(embed)] : [],
+      attachments:
+        files?.map(({name}) => defaultAttachment({filename: name})) ?? []
+    }
 
-  channel.messages!.set(message.id, message)
-  channel.last_message_id = message.id
+    channel.messages!.set(message.id, message)
+    channel.last_message_id = message.id
 
-  const apiMessage = convert.message(data, channelID)(message)
-  if (
-    hasIntents(
-      guild
-        ? GatewayIntentBits.GUILD_MESSAGES
-        : GatewayIntentBits.DIRECT_MESSAGES
+    const apiMessage = convert.message(data, channelID)(message)
+    if (
+      hasIntents(
+        guild
+          ? GatewayIntentBits.GUILD_MESSAGES
+          : GatewayIntentBits.DIRECT_MESSAGES
+      )
     )
-  )
-    emitPacket(GatewayDispatchEvents.MessageCreate, apiMessage)
-  return apiMessage
-}
+      emitPacket(GatewayDispatchEvents.MessageCreate, apiMessage)
+    return apiMessage
+  }

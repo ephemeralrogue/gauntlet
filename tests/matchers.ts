@@ -12,6 +12,11 @@ declare global {
   namespace jest {
     interface Matchers<R, T> {
       toResolve(...args: OnlyType<T, Promise<unknown>>): Promise<void>
+      toStrictEqualMapEntries(
+        expectedEntries: T extends Map<infer K, infer V>
+          ? Iterable<readonly [K, V]>
+          : never
+      ): R
       toEqualBitfield(
         ...args: T extends D.BitField<infer S, infer N> | undefined
           ? [bits: D.BitFieldResolvable<S, N>]
@@ -125,6 +130,42 @@ expect.extend({
 
 Expected: promise ${isNot ? 'not ' : ''}to resolve
 Received: ${pass ? 'resolved' : 'rejected'} with ${utils.printReceived(result)}`
+    }
+  },
+
+  toStrictEqualMapEntries<K, V>(
+    this: jest.MatcherContext,
+    received: Map<K, V>,
+    expectedEntries: Iterable<readonly [K, V]>
+  ) {
+    const {isNot, promise, utils} = this
+    const expected = new Map(expectedEntries)
+
+    const pass = ((): boolean => {
+      if (received.size !== expected.size) return false
+      for (const [key, value] of expected) {
+        if (
+          !received.has(key) ||
+          !this.equals(received.get(key), value, undefined, true)
+        )
+          return false
+      }
+      return true
+    })()
+
+    const matcherHintOptions: jest.MatcherHintOptions = {isNot, promise}
+
+    return {
+      pass,
+      message: (): string => `${utils.matcherHint(
+        'toStrictEqualMapEntries',
+        undefined,
+        'expectedEntries',
+        matcherHintOptions
+      )}
+
+Expected: ${pass ? 'not ' : ''}${utils.printExpected(expected)}
+Received: ${utils.printReceived(received)}`
     }
   },
 
