@@ -47,8 +47,6 @@ export type PartialDeep<T> = T extends APIAuditLogChange
   ? ObjectPartialDeep<T>
   : T
 
-/* eslint-disable import/no-unused-modules -- eslint-plugin-import bug */
-
 /** An altered `GuildEmoji`. This is ued in `Data`. */
 export interface GuildEmoji extends Omit<APIGuildEmoji, 'user'> {
   user_id: Snowflake
@@ -141,8 +139,6 @@ export interface GuildMember
 
 type VoiceState = Omit<RequireKeys<GatewayVoiceState, 'self_stream'>, 'member'>
 export type GuildVoiceState = Omit<VoiceState, 'guild_id'>
-
-/* eslint-enable import/no-unused-modules */
 
 interface Presence extends Omit<GatewayPresenceUpdate, 'user'> {
   user_id: Snowflake

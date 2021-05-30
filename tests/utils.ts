@@ -33,7 +33,7 @@ export type DeepPartialOmit<T, O extends PropertyKey = never> =
 // (guild as D.Guild).valueOf() is string
 export type MatchObjectGuild = DeepPartialOmit<D.Guild, 'valueOf'>
 
-export interface WithClientOptions {
+interface WithClientOptions {
   intents?: D.ClientOptions['intents']
   data?: DM.Data.Data
   clientData?: DM.ClientData

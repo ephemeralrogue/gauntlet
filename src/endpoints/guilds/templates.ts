@@ -16,7 +16,7 @@ export type GuildsTemplates = (code: string) => {
   }) => Promise<RESTPostAPITemplateCreateGuildResult>
 }
 
-export const getTemplate =
+const getTemplate =
   ({guilds}: ResolvedData) =>
   (code: string, path: string, method: Method): [RD.Guild, D.GuildTemplate] => {
     const result = guilds

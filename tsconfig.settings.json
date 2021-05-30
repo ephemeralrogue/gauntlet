@@ -10,6 +10,7 @@
 
     "allowUnreachableCode": false,
     "importsNotUsedAsValues": "error",
+    "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

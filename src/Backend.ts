@@ -166,9 +166,6 @@ type ExtractGatewayPayload<
   E extends GatewayDispatchEvents,
   P extends GatewayDispatchPayload = GatewayDispatchPayload
 > = P extends {t: infer T} ? (T extends E ? P['d'] : never) : never
-// TODO: remove these eslint-disable import/no-unused-modules when
-// https://github.com/benmosher/eslint-plugin-import/pull/1974 is merged
-// eslint-disable-next-line import/no-unused-modules -- eslint-plugin-import bug
 export type EmitPacket = <T extends GatewayDispatchEvents>(
   t: T,
   d: ExtractGatewayPayload<T>

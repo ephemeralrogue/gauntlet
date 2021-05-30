@@ -4,7 +4,7 @@ import type {Messages} from './messages'
 import type {EmitPacket, HasIntents} from '../../Backend'
 import type {ResolvedClientData, ResolvedData} from '../../types'
 
-// TODO [typescript@>=4.3] Change string to Snowflake (https://github.com/microsoft/TypeScript/pull/26797)
+// TODO [typescript@>=4.4] Change string to Snowflake (https://github.com/microsoft/TypeScript/pull/26797)
 export type Channels = Record<string /* Snowflake */, {messages: Messages}>
 
 export const channels = (
