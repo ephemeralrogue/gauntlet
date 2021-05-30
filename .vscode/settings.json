@@ -6,5 +6,5 @@
     "RESTJSON",
     "Spidey"
   ],
-  "jest.pathToConfig": "jest.config.dev.js"
+  "jest.jestCommandLine": "pnpx jest -c jest.config.dev.js"
 }
