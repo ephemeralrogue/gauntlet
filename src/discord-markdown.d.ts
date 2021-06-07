@@ -1,10 +1,6 @@
 // TODO: add to DT
 declare module 'discord-markdown' {
-  import type markdown from 'simple-markdown'
-
-  type DefaultRules = markdown.DefaultRules
-  type Output = markdown.Output
-  type ParserRule = markdown.ParserRule
+  import type md from 'simple-markdown'
 
   interface BaseNode {
     type: string
@@ -163,14 +159,14 @@ declare module 'discord-markdown' {
     cssModuleNames?: Record<string, string> | null
   }
 
-  type Rule<R extends ParserRule, N extends markdown.SingleASTNode> = Omit<
+  type Rule<R extends md.ParserRule, N extends md.SingleASTNode> = Omit<
     R,
     'parse'
   > & {
     parse: (...args: Parameters<R['parse']>) => Omit<N, 'type'>
   }
 
-  type DiscordMarkdownRule = markdown.NonNullHtmlOutputRule & ParserRule
+  type DiscordMarkdownRule = md.NonNullHtmlOutputRule & md.ParserRule
 
   export interface DiscordRules {
     discordUser: Rule<DiscordMarkdownRule, DiscordUserNode>
@@ -179,23 +175,23 @@ declare module 'discord-markdown' {
     discordEmoji: Rule<DiscordMarkdownRule, DiscordEmojiNode>
     discordEveryone: Rule<DiscordMarkdownRule, DiscordEveryoneNode>
     discordHere: Rule<DiscordMarkdownRule, DiscordHereNode>
-    text: Rule<DefaultRules['text'], TextNode>
+    text: Rule<md.DefaultRules['text'], TextNode>
   }
 
   export interface Rules extends DiscordRules {
-    blockQuote: Rule<DefaultRules['blockQuote'], BlockQuoteNode>
-    codeBlock: Rule<DefaultRules['codeBlock'], CodeBlockNode>
-    newline: DefaultRules['newline']
-    escape: DefaultRules['escape']
-    autolink: Rule<DefaultRules['autolink'], AutolinkNode>
-    url: Rule<DefaultRules['url'], URLNode>
-    em: Rule<DefaultRules['em'], EmphasisNode>
-    strong: Rule<DefaultRules['strong'], StrongNode>
-    u: Rule<DefaultRules['u'], UnderlineNode>
-    strike: Rule<DefaultRules['del'], StrikeNode>
-    inlineCode: Rule<DefaultRules['inlineCode'], InlineCodeNode>
+    blockQuote: Rule<md.DefaultRules['blockQuote'], BlockQuoteNode>
+    codeBlock: Rule<md.DefaultRules['codeBlock'], CodeBlockNode>
+    newline: md.DefaultRules['newline']
+    escape: md.DefaultRules['escape']
+    autolink: Rule<md.DefaultRules['autolink'], AutolinkNode>
+    url: Rule<md.DefaultRules['url'], URLNode>
+    em: Rule<md.DefaultRules['em'], EmphasisNode>
+    strong: Rule<md.DefaultRules['strong'], StrongNode>
+    u: Rule<md.DefaultRules['u'], UnderlineNode>
+    strike: Rule<md.DefaultRules['del'], StrikeNode>
+    inlineCode: Rule<md.DefaultRules['inlineCode'], InlineCodeNode>
     emoticon: Rule<DiscordMarkdownRule, TextNode>
-    br: Rule<DefaultRules['br'], BreakNode>
+    br: Rule<md.DefaultRules['br'], BreakNode>
     spoiler: Rule<DiscordMarkdownRule, SpoilerNode>
   }
 
@@ -207,42 +203,41 @@ declare module 'discord-markdown' {
   }
 
   export interface EmbedRules extends Rules {
-    link: Rule<DefaultRules['link'], LinkNode>
+    link: Rule<md.DefaultRules['link'], LinkNode>
   }
 
-  export let parser: (
-    source: string,
-    state?: markdown.OptionalState
-  ) => ASTNode[]
-  export let htmlOutput: Output<string>
+  export let parser: (source: string, state?: md.OptionalState) => ASTNode[]
+  export let htmlOutput: md.Output<string>
 
   /**
    * Parse markdown and return the HTML output
    * @param source Source markdown content
    * @param options Options for the parser
    */
-  export let toHTML: (
-    source: string,
-    options?: ToHTMLOptions,
-    ...args:
-      | [customParser: markdown.Parser, customHtmlOutput: Output<string>]
-      | [customParser?: undefined, customHtmlOutput?: undefined]
-  ) => string
+  export let toHTML: {
+    (source: string, options?: ToHTMLOptions): string
+    <T>(
+      source: string,
+      options?: ToHTMLOptions,
+      customParser: md.Parser,
+      customHtmlOutput: md.Output<T>
+    ): T
+  }
 
   export let rules: Rules
   export let rulesDiscordOnly: DiscordRules
   export let rulesEmbed: EmbedRules
-  export let markdownEngine: typeof markdown
+  export let markdownEngine: typeof md
 
   /**
+   * @param [attributes={}]
    * @param [isClosed=true]
    * @param [state={}]
    */
   export let htmlTag: (
     tagName: string,
     content: string,
-    attributes: Record<string, markdown.Attr>,
-    isClosed?: boolean,
-    state?: Pick<ToHTMLOptions, 'cssModuleNames'>
+    attributes?: Record<string, md.Attr>,
+    ...args: [isClosed?: boolean, state?: HTMLTagState] | [state?: HTMLTagState]
   ) => string
 }

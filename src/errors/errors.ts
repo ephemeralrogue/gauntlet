@@ -82,7 +82,6 @@ export const error: {
   throw new DiscordAPIError(errorObject, status, {
     path,
     method,
-    status,
     options: {}
   })
 }
