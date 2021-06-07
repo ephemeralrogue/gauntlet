@@ -39,12 +39,12 @@ const getChannel = (client: D.Client): D.TextChannel => {
 type SingleMessageSendArgs =
   | [
       content:
-        | D.APIMessageContentResolvable
         | D.MessageAdditions
+        | string
         | (D.MessageOptions & {split?: false})
     ]
   | [
-      content: D.StringResolvable,
+      content: string,
       options: D.MessageAdditions | (D.MessageOptions & {split?: false})
     ]
 const send = async (

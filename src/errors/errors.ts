@@ -78,5 +78,11 @@ export const error: {
     code,
     ...(formBodyErrors ? {errors: formBodyErrors} : {})
   }
-  throw new DiscordAPIError(path, errorObject, method, status)
+  // TODO: request.options.data, request.options.files
+  throw new DiscordAPIError(errorObject, status, {
+    path,
+    method,
+    status,
+    options: {}
+  })
 }
