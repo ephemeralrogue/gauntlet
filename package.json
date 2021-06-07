@@ -64,7 +64,7 @@
     "commitlint": "^12.1.4",
     "cz-conventional-changelog": "^3.3.0",
     "discord-api-types": "^0.18.1",
-    "discord.js": "discordjs/discord.js#dec191aa1e4f22690285ca06c6eee7e6086b2930",
+    "discord.js": "13.0.0-dev.dec191aa1e4f22690285ca06c6eee7e6086b2930",
     "eslint": "^7.28.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-import": "^2.23.4",
