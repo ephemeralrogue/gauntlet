@@ -215,6 +215,8 @@ export const dataGuildChannel = d<D.GuildChannel>(channel => {
     case ChannelType.GUILD_CATEGORY:
     case ChannelType.GUILD_STORE:
       return base
+    case ChannelType.GUILD_STAGE_VOICE:
+      return {birate: 40_000, user_limit: 2000, ...base}
     default:
       throw new TypeError(`Invalid guild channel type: ${base.type}`)
   }
