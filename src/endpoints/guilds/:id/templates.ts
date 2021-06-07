@@ -1,7 +1,7 @@
 import {OverwriteType, PermissionFlagsBits} from 'discord-api-types/v8'
 import * as convert from '../../../convert'
 import * as defaults from '../../../defaults'
-import {Method, error, errors, formBodyErrors} from '../../../errors'
+import {Method, error, errors, formBodyErrors, mkRequest} from '../../../errors'
 import {clientUserID} from '../../../utils'
 import {getPermissions, hasPermissions} from '../../utils'
 import type {
@@ -15,7 +15,7 @@ import type {
   Snowflake
 } from 'discord-api-types/v8'
 import type {ResolvedClientData, RD, ResolvedData} from '../../../types'
-import type {FormBodyErrors} from '../../../errors'
+import type {FormBodyErrors, Request} from '../../../errors'
 
 type GuildsIdTemplatesFn = (code: string) => {
   delete: () => Promise<RESTDeleteAPIGuildTemplateResult>
@@ -37,10 +37,9 @@ export interface GuildsIdTemplates
     GuildsIdsTemplatesObject {}
 
 const checkTemplateInput = (
+  request: Request,
   name: string | undefined,
-  description: string | null | undefined,
-  path: string,
-  method: Method
+  description: string | null | undefined
 ): void => {
   const errs: FormBodyErrors = {
     ...(description != null && description.length > 120
@@ -54,8 +53,7 @@ const checkTemplateInput = (
       ? {name: {_errors: [formBodyErrors.BASE_TYPE_BAD_LENGTH(1, 100)]}}
       : {})
   }
-  if (Object.keys(errs).length)
-    error(errors.INVALID_FORM_BODY, path, method, errs)
+  if (Object.keys(errs).length) error(request, errors.INVALID_FORM_BODY, errs)
 }
 
 export default (data: ResolvedData, clientData: ResolvedClientData) => {
@@ -63,14 +61,11 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
   return (id: Snowflake): GuildsIdTemplates => {
     const basePath = `/guilds/${id}/templates`
     const getGuildAndCheckPermissions = (
-      method: Method,
-      {
-        path = basePath,
-        userID = clientUserID(data, clientData)
-      }: {path?: string; userID?: Snowflake} = {}
+      request: Request,
+      userID = clientUserID(data, clientData)
     ): RD.Guild => {
       const guild = data.guilds.get(id)
-      if (!guild) error(errors.UNKNOWN_GUILD, path, method)
+      if (!guild) error(request, errors.UNKNOWN_GUILD)
       const member = guild.members.find(m => m.id === userID)
       if (
         member &&
@@ -79,7 +74,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
           PermissionFlagsBits.MANAGE_GUILD
         )
       )
-        error(errors.MISSING_PERMISSIONS, path, method)
+        error(request, errors.MISSING_PERMISSIONS)
       return guild
     }
 
@@ -89,22 +84,25 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
         return {
           // https://discord.com/developers/docs/resources/template#delete-guild-template
           delete: async () => {
-            const method = Method.DELETE
-            const guild = getGuildAndCheckPermissions(method, {path})
+            const request = mkRequest(path, Method.DELETE)
+            const guild = getGuildAndCheckPermissions(request)
             if (guild.template?.code !== code)
-              error(errors.UNKNOWN_GUILD_TEMPLATE, path, method)
+              error(request, errors.UNKNOWN_GUILD_TEMPLATE)
             const {template} = guild
             guild.template = undefined
             return convertTemplate(guild)(template)
           },
 
           // https://discord.com/developers/docs/resources/template#modify-guild-template
-          patch: async ({data: {name, description}}) => {
-            const method = Method.PATCH
-            checkTemplateInput(name, description, path, method)
-            const guild = getGuildAndCheckPermissions(method, {path})
+          patch: async options => {
+            const {
+              data: {name, description}
+            } = options
+            const request = mkRequest(path, Method.PATCH, options)
+            checkTemplateInput(request, name, description)
+            const guild = getGuildAndCheckPermissions(request)
             if (guild.template?.code !== code)
-              error(errors.UNKNOWN_GUILD_TEMPLATE, path, method)
+              error(request, errors.UNKNOWN_GUILD_TEMPLATE)
             if (name !== undefined) guild.template.name = name
             if (description ?? '') guild.template.description = description!
             return convertTemplate(guild)(guild.template)
@@ -114,19 +112,23 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
       {
         // https://discord.com/developers/docs/resources/template#get-guild-templates
         get: async () => {
-          const guild = getGuildAndCheckPermissions(Method.GET)
+          const guild = getGuildAndCheckPermissions(
+            mkRequest(basePath, Method.GET)
+          )
           return guild.template ? [convertTemplate(guild)(guild.template)] : []
         },
 
         // https://discord.com/developers/docs/resources/template#create-guild-template
-        post: async ({data: {name, description = null}}) => {
-          const method = Method.POST
-          checkTemplateInput(name, description, basePath, method)
+        post: async options => {
+          const {
+            data: {name, description = null}
+          } = options
+          const request = mkRequest(basePath, Method.POST, options)
+          checkTemplateInput(request, name, description)
 
           const userID = clientUserID(data, clientData)
-          const guild = getGuildAndCheckPermissions(method, {userID})
-          if (guild.template)
-            error(errors.ALREADY_HAS_TEMPLATE, basePath, method)
+          const guild = getGuildAndCheckPermissions(request, userID)
+          if (guild.template) error(request, errors.ALREADY_HAS_TEMPLATE)
 
           const {
             region,

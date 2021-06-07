@@ -9,7 +9,8 @@ import * as convert from '../../../convert'
 import * as defaults from '../../../defaults'
 import {attachmentURLs, clientUserID, pick, omit} from '../../../utils'
 import {getChannel, getPermissions, hasPermissions} from '../../utils'
-import {Method, error, errors, formBodyErrors} from '../../../errors'
+import {Method, error, errors, formBodyErrors, mkRequest} from '../../../errors'
+import type {HTTPAttachmentData} from 'discord.js'
 import type {
   APIAllowedMentions,
   APIEmbed,
@@ -21,11 +22,10 @@ import type {EmitPacket, HasIntents} from '../../../Backend'
 import type {FormBodyError, FormBodyErrors} from '../../../errors'
 import type {D, ResolvedClientData, RD, ResolvedData} from '../../../types'
 import type {AttachmentURLs, RequireKeys} from '../../../utils'
-import type {File} from '../../types'
 
 export type MessagesPost = (options: {
   data: RESTPostAPIChannelMessageJSONBody
-  files?: File[]
+  files?: HTTPAttachmentData[]
 }) => Promise<RESTPostAPIChannelMessageResult>
 
 // #region Errors
@@ -291,20 +291,24 @@ export default (
     emitPacket: EmitPacket
   ) =>
   (channelID: Snowflake): MessagesPost =>
-  async ({
-    data: {
-      content = '',
-      nonce,
-      tts,
-      embed,
-      allowed_mentions,
-      message_reference
-    },
-    files
-  }): Promise<RESTPostAPIChannelMessageResult> => {
+  async (options): Promise<RESTPostAPIChannelMessageResult> => {
+    const {
+      data: {
+        content = '',
+        nonce,
+        tts,
+        embed,
+        allowed_mentions,
+        message_reference
+      },
+      files
+    } = options
     // Errors
-    const path = `/channels/${channelID}/messages`
-    const method = Method.POST
+    const request = mkRequest(
+      `/channels/${channelID}/messages`,
+      Method.POST,
+      options
+    )
     const userID = clientUserID(data, clientData)
 
     const checkPermissions = (
@@ -317,7 +321,7 @@ export default (
         channel
       )
       if (!hasPermissions(permissions, PermissionFlagsBits.VIEW_CHANNEL))
-        error(errors.MISSING_ACCESS, path, method)
+        error(request, errors.MISSING_ACCESS)
       if (
         !hasPermissions(
           permissions,
@@ -328,7 +332,7 @@ export default (
             (embed ? PermissionFlagsBits.EMBED_LINKS : BigInt(0))
         )
       )
-        error(errors.MISSING_PERMISSIONS, path, method)
+        error(request, errors.MISSING_PERMISSIONS)
       return permissions
     }
 
@@ -336,11 +340,11 @@ export default (
     // Basic validation
     const formErrs = getFormErrors({allowed_mentions, content, nonce, embed})
     if (Object.keys(formErrs).length)
-      error(errors.INVALID_FORM_BODY, path, method, formErrs)
+      error(request, errors.INVALID_FORM_BODY, formErrs)
 
     // Unknown channel
     const [guild, channel] = getChannel(data)(channelID)
-    if (!channel) error(errors.UNKNOWN_CHANNEL, path, method)
+    if (!channel) error(request, errors.UNKNOWN_CHANNEL)
 
     // Permissions
     const permissions = guild
@@ -349,7 +353,7 @@ export default (
 
     // Empty message
     if (!content && !embed && !(files?.length ?? 0))
-      error(errors.EMPTY_MESSAGE, path, method)
+      error(request, errors.EMPTY_MESSAGE)
 
     // Replies
     if (message_reference) {
@@ -359,7 +363,7 @@ export default (
       if (message_reference.guild_id !== guild?.id)
         err = formBodyErrors.REPLIES_UNKNOWN_MESSAGE
       if (err) {
-        error(errors.INVALID_FORM_BODY, path, method, {
+        error(request, errors.INVALID_FORM_BODY, {
           message_reference: {_errors: [err]}
         })
       }

@@ -1,5 +1,5 @@
-import {Method, error, errors} from '../../errors'
 import * as convert from '../../convert'
+import {Method, error, errors, mkRequest} from '../../errors'
 import {checkClientGuildCount, createGuild, getNameErrors} from './post'
 import type {
   RESTGetAPITemplateResult,
@@ -7,6 +7,7 @@ import type {
   RESTPostAPITemplateCreateGuildResult
 } from 'discord-api-types/v8'
 import type {EmitPacket, HasIntents} from '../../Backend'
+import type {Request} from '../../errors'
 import type {D, ResolvedClientData, RD, ResolvedData} from '../../types'
 
 export type GuildsTemplates = (code: string) => {
@@ -18,11 +19,11 @@ export type GuildsTemplates = (code: string) => {
 
 const getTemplate =
   ({guilds}: ResolvedData) =>
-  (code: string, path: string, method: Method): [RD.Guild, D.GuildTemplate] => {
+  (request: Request, code: string): [RD.Guild, D.GuildTemplate] => {
     const result = guilds
       .map(guild => [guild, guild.template] as const)
       .find((res): res is [RD.Guild, D.GuildTemplate] => res[1]?.code === code)
-    if (!result) error(errors.UNKNOWN_GUILD_TEMPLATE, path, method)
+    if (!result) error(request, errors.UNKNOWN_GUILD_TEMPLATE)
     return result
   }
 
@@ -41,17 +42,19 @@ export default (
     return {
       // https://discord.com/developers/docs/resources/template#get-template
       get: async () => {
-        const [guild, template] = _getTemplate(code, path, Method.GET)
+        const [guild, template] = _getTemplate(
+          mkRequest(path, Method.GET),
+          code
+        )
         return _convertTemplate(guild)(template)
       },
       // https://discord.com/developers/docs/resources/template#create-guild-from-template
       post: async ({data: {name, icon}}) => {
-        const method = Method.POST
-        const [, template] = _getTemplate(code, path, method)
-        _checkClientGuildCount(path, method)
+        const request = mkRequest(path, Method.POST)
+        const [, template] = _getTemplate(request, code)
+        _checkClientGuildCount(request)
         const nameErrors = getNameErrors(name)
-        if (nameErrors)
-          error(errors.INVALID_FORM_BODY, path, method, nameErrors)
+        if (nameErrors) error(request, errors.INVALID_FORM_BODY, nameErrors)
         return _createGuild({...template.serialized_source_guild, name, icon})
       }
     }

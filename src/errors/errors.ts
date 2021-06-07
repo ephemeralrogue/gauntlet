@@ -1,5 +1,6 @@
 import {DiscordAPIError} from 'discord.js'
 import {RESTJSONErrorCodes} from 'discord-api-types/v8'
+import type {HTTPErrorData} from 'discord.js'
 import type {FormBodyErrors} from './form-body-errors'
 
 /** https://discord.com/developers/docs/topics/opcodes-and-status-codes#json */
@@ -55,22 +56,32 @@ export const enum Method {
 type DiscordError = typeof errors[keyof typeof errors]
 type InvalidFormBodyError = typeof errors.INVALID_FORM_BODY
 
-export const error: {
-  (
-    error: InvalidFormBodyError,
-    path: string,
-    method: Method,
-    formBodyErrors: FormBodyErrors
-  ): never
-  (
-    error: Exclude<DiscordError, InvalidFormBodyError>,
-    path: string,
-    method: Method
-  ): never
-} = (
-  [message, status, code]: DiscordError,
+export interface RequestOptions extends Partial<Pick<HTTPErrorData, 'files'>> {
+  data?: HTTPErrorData['json']
+}
+
+export interface Request {
+  path: string
+  method: Method
+  options: RequestOptions
+}
+
+export const mkRequest = (
   path: string,
   method: Method,
+  options: RequestOptions = {}
+): Request => ({path, method, options})
+
+export const error: {
+  (
+    request: Request,
+    error: InvalidFormBodyError,
+    formBodyErrors: FormBodyErrors
+  ): never
+  (request: Request, error: Exclude<DiscordError, InvalidFormBodyError>): never
+} = (
+  request: Request,
+  [message, status, code]: DiscordError,
   formBodyErrors?: FormBodyErrors
 ) => {
   const errorObject: APIError = {
@@ -78,10 +89,5 @@ export const error: {
     code,
     ...(formBodyErrors ? {errors: formBodyErrors} : {})
   }
-  // TODO: request.options.data, request.options.files
-  throw new DiscordAPIError(errorObject, status, {
-    path,
-    method,
-    options: {}
-  })
+  throw new DiscordAPIError(errorObject, status, request)
 }

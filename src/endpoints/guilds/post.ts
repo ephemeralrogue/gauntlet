@@ -1,6 +1,6 @@
 import {ChannelType, GatewayDispatchEvents} from 'discord-api-types/v8'
 import {Intents} from 'discord.js'
-import {Method, error, errors, formBodyErrors} from '../../errors'
+import {Method, error, errors, formBodyErrors, mkRequest} from '../../errors'
 import * as convert from '../../convert'
 import * as defaults from '../../defaults'
 import * as resolve from '../../resolve'
@@ -16,12 +16,16 @@ import type {
 } from 'discord-api-types/v8'
 import type {EmitPacket, HasIntents} from '../../Backend'
 import type {D, ResolvedClientData, ResolvedData} from '../../types'
-import type {FormBodyError, FormBodyErrors} from '../../errors'
+import type {FormBodyError, FormBodyErrors, Request} from '../../errors'
 import type {KeysMatching, Override, RequireKeys} from '../../utils'
 
-export type GuildsPost = (options: {
+interface GuildsPostOptions {
   data: RESTPostAPIGuildsJSONBody
-}) => Promise<RESTPostAPIGuildsResult>
+}
+
+export type GuildsPost = (
+  options: GuildsPostOptions
+) => Promise<RESTPostAPIGuildsResult>
 
 const validGuildChannelTypes = new Set([
   ChannelType.GUILD_TEXT,
@@ -35,13 +39,13 @@ type AnyID = Snowflake | number
 
 export const checkClientGuildCount =
   (data: ResolvedData, clientData: ResolvedClientData) =>
-  (path: string, method: Method): void => {
+  (request: Request): void => {
     const userID = clientUserID(data, clientData)
     if (
       data.guilds.filter(({members}) => members.some(({id}) => id === userID))
         .size >= 10
     )
-      error(errors.MAXIMUM_GUILDS, path, method)
+      error(request, errors.MAXIMUM_GUILDS)
   }
 
 export const getNameErrors = (name: string): FormBodyErrors | undefined =>
@@ -53,12 +57,12 @@ const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
   const _checkClientGuildCount = checkClientGuildCount(data, clientData)
   // TODO: refactor so it's <= 20 statements
   // TODO: icon validation?
-  return (guild: RESTPostAPIGuildsJSONBody) => {
+  return (options: GuildsPostOptions) => {
+    const {data: guild} = options
     const {name, channels, afk_timeout} = guild
-    const path = '/guilds'
-    const method = Method.POST
+    const request = mkRequest('/guilds', Method.POST, options)
 
-    _checkClientGuildCount(path, method)
+    _checkClientGuildCount(request)
 
     const channelErrors = channels?.reduce<FormBodyErrors>(
       (errs, {name: channelName, type}, i) => {
@@ -112,15 +116,14 @@ const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
         : {}),
       ...getNameErrors(name)
     }
-    if (Object.keys(errs).length)
-      error(errors.INVALID_FORM_BODY, path, method, errs)
+    if (Object.keys(errs).length) error(request, errors.INVALID_FORM_BODY, errs)
 
     if (channels) {
       for (const [i, {parent_id}] of channels.entries()) {
         if (parent_id != null) {
           const parent = channels.find(({id}) => id === parent_id)
           if (!parent) {
-            error(errors.INVALID_FORM_BODY, path, method, {
+            error(request, errors.INVALID_FORM_BODY, {
               channels: {
                 _errors: [
                   formBodyErrors.GUILD_CREATE_CHANNEL_ID_INVALID(
@@ -132,12 +135,12 @@ const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
             })
           }
           if (parent.type !== ChannelType.GUILD_CATEGORY) {
-            error(errors.INVALID_FORM_BODY, path, method, {
+            error(request, errors.INVALID_FORM_BODY, {
               channels: {_errors: [formBodyErrors.CHANNEL_PARENT_INVALID_TYPE]}
             })
           }
           if (channels.indexOf(parent) > i) {
-            error(errors.INVALID_FORM_BODY, path, method, {
+            error(request, errors.INVALID_FORM_BODY, {
               channels: {
                 _errors: [
                   formBodyErrors.GUILD_CREATE_CHANNEL_CATEGORY_NOT_FIRST
@@ -158,7 +161,7 @@ const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
       if (channelID != null) {
         const channel = channels?.find(({id}) => id === channelID)
         if (!channel) {
-          error(errors.INVALID_FORM_BODY, path, method, {
+          error(request, errors.INVALID_FORM_BODY, {
             channels: {
               _errors: [
                 formBodyErrors.GUILD_CREATE_CHANNEL_ID_INVALID(key, channelID)
@@ -167,7 +170,7 @@ const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
           })
         }
         if ((channel.type ?? ChannelType.GUILD_TEXT) !== type) {
-          error(errors.INVALID_FORM_BODY, path, method, {
+          error(request, errors.INVALID_FORM_BODY, {
             channels: {_errors: [invalidTypeError]}
           })
         }
@@ -362,8 +365,8 @@ export default (
 ): GuildsPost => {
   const _checkErrors = checkErrors(data, clientData)
   const _createGuild = createGuild(data, clientData, hasIntents, emitPacket)
-  return async ({data: guild}) => {
-    _checkErrors(guild)
-    return _createGuild(guild)
+  return async options => {
+    _checkErrors(options)
+    return _createGuild(options.data)
   }
 }
