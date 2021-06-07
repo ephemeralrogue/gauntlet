@@ -75,8 +75,8 @@ export class Backend {
       guilds: new Collection([
         ...resolvedGuilds.entries(),
         // Add all channels from channel mentions in messages
-        // eslint-disable-next-line unicorn/prefer-array-flat-map -- collection
         ...messages
+          // eslint-disable-next-line unicorn/prefer-array-flat-map -- collection
           .map(
             ({mention_channels}) =>
               mention_channels
@@ -137,8 +137,8 @@ export class Backend {
           .filter(({author_id}) => !resolvedUsers.has(author_id))
           .map(({author_id}) => userEntry(author_id)),
         // Add users from guild members, guild template creators, and guild presences
-        // eslint-disable-next-line unicorn/prefer-array-flat-map -- Collection, not array
         ...resolvedGuilds
+          // eslint-disable-next-line unicorn/prefer-array-flat-map -- Collection, not array
           .map(({members, presences, template}) => [
             ...members
               .filter(({id}) => !resolvedUsers.has(id))
