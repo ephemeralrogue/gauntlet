@@ -40,7 +40,7 @@
     "lint": "eslint --max-warnings 0 --ext js,ts .",
     "typecheck": "tsc -b tsconfig.config.json && tsc -b tests",
     "lint:dev": "pnpm lint -- --cache",
-    "lint:md": "markdownlint .",
+    "lint:md": "markdownlint-cli2 .",
     "test": "jest",
     "test:dev": "jest -c jest.config.dev.js",
     "docs": "typedoc src/index.ts"
@@ -78,7 +78,7 @@
     "gen-esm-wrapper": "^1.1.2",
     "husky": "^7.0.1",
     "jest": "^27.0.6",
-    "markdownlint-cli": "^0.27.1",
+    "markdownlint-cli2": "^0.1.3",
     "prettier": "^2.3.2",
     "semantic-release": "^17.4.4",
     "simple-markdown": "^0.7.3",
