@@ -4,7 +4,6 @@
 const config = {
   root: true,
   extends: '@cherryblossom/eslint-config/node',
-  reportUnusedDisableDirectives: true,
   parserOptions: {
     project: [
       'src/tsconfig.json',
