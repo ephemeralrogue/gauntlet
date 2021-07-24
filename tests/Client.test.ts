@@ -7,7 +7,7 @@ describe('mockClient', () => {
   test('ready event is emitted', async () => {
     const client = new D.Client({intents: []})
     const promise = new Promise<void>(resolve => {
-      client.on('ready', resolve)
+      client.on('ready', () => resolve())
     })
     DM.mockClient(client)
     await expect(promise).toResolve()

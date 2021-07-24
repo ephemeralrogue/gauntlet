@@ -95,7 +95,7 @@ export const mockClient: (
 ) => void = (client, data, backend = new Backend()): void => {
   // Clear RESTManager interval
   client.options.restSweepInterval = 0
-  for (const interval of client['_intervals']) client.clearInterval(interval)
+  clearInterval(client.sweepMessageInterval)
 
   _mockClient(backend, client, data)
 }

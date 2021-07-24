@@ -14,7 +14,7 @@ specifiers:
   cz-conventional-changelog: ^3.3.0
   discord-api-types: ^0.20.2
   discord-markdown: ^2.5.0
-  discord.js: 13.0.0-dev.d6c43a5.1625875428
+  discord.js: 13.0.0-dev.4886ae2.1627085022
   eslint: ^7.31.0
   eslint-plugin-eslint-comments: ^3.2.0
   eslint-plugin-import: ^2.23.4
@@ -53,7 +53,7 @@ devDependencies:
   commitlint: 12.1.4
   cz-conventional-changelog: 3.3.0
   discord-api-types: 0.20.2
-  discord.js: 13.0.0-dev.d6c43a5.1625875428
+  discord.js: 13.0.0-dev.4886ae2.1627085022
   eslint: 7.31.0
   eslint-plugin-eslint-comments: 3.2.0_eslint@7.31.0
   eslint-plugin-import: 2.23.4_eslint@7.31.0
@@ -2484,12 +2484,12 @@ packages:
   /discord-api-types/0.18.1:
     resolution: {integrity: sha512-hNC38R9ZF4uaujaZQtQfm5CdQO58uhdkoHQAVvMfIL0LgOSZeW575W8H6upngQOuoxWd8tiRII3LLJm9zuQKYg==}
     engines: {node: '>=12'}
+    deprecated: ' '
     dev: true
 
-  /discord-api-types/0.19.0-next.f393ba520d7d6d2aacaca7b3ca5d355fab614f6e:
-    resolution: {integrity: sha512-ttRA/8e/WKHDbGFfED5WlS7gID+kalmNr6iMiWBCvkphQ7kFHiTOVbnj/zX9ksaRaYXp/I38SCQ+qZvLu8DJZg==}
+  /discord-api-types/0.19.0:
+    resolution: {integrity: sha512-t2HKLd43Lbe+rf+ffYfKVv9Kk5f6p7sFqvO6CMV55ZB0PgZv8WigCkt9FoJciYo5S3Q6CGYK+WnE/ZG+6vkBDQ==}
     engines: {node: '>=12'}
-    deprecated: No longer supported. Install the latest @next release
     dev: true
 
   /discord-api-types/0.20.2:
@@ -2504,8 +2504,8 @@ packages:
       simple-markdown: 0.7.3
     dev: false
 
-  /discord.js/13.0.0-dev.d6c43a5.1625875428:
-    resolution: {integrity: sha512-mTW3MpURf2QMjZe1O/H8owreUZttTfDyGY48Ka79l3GIJIHXOKx+hxv+yI5ve5GWF2ie6z8MPQ4hHqlTHk8OKg==}
+  /discord.js/13.0.0-dev.4886ae2.1627085022:
+    resolution: {integrity: sha512-io2ecUFRK41YbfN+zlxmbfL8y5wsJOqvjXjCCb68VmiIQHPjKmOxnQkWnlT6JrkFkPbBdiDX93VKvnie1JLpoA==}
     engines: {node: '>=14.0.0', npm: '>=7.0.0'}
     dependencies:
       '@discordjs/builders': 0.2.0
@@ -2514,7 +2514,7 @@ packages:
       '@sapphire/async-queue': 1.1.4
       '@types/ws': 7.4.6
       abort-controller: 3.0.0
-      discord-api-types: 0.19.0-next.f393ba520d7d6d2aacaca7b3ca5d355fab614f6e
+      discord-api-types: 0.19.0
       node-fetch: 2.6.1
       ws: 7.5.3
     transitivePeerDependencies:

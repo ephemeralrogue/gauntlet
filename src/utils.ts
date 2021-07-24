@@ -17,6 +17,10 @@ declare module 'discord.js' {
       fn: (value: V, key: K, collection: this) => T
     ): Collection<K, T>
   }
+
+  interface Client {
+    sweepMessageInterval: NodeJS.Timeout
+  }
 }
 
 export type NonEmptyArray<T> = [T, ...T[]]
