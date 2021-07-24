@@ -18,9 +18,9 @@ import type {
   RESTPostAPIChannelMessageResult,
   Snowflake
 } from 'discord-api-types/v9'
-import type {EmitPacket, HasIntents} from '../../../Backend'
+import type {Backend, EmitPacket, HasIntents} from '../../../Backend'
 import type {FormBodyError, FormBodyErrors} from '../../../errors'
-import type {D, ResolvedClientData, RD, ResolvedData} from '../../../types'
+import type {Embed, Guild, GuildChannel, Message} from '../../../types'
 import type {AttachmentURLs, RequireKeys} from '../../../utils'
 
 export type MessagesPost = (options: {
@@ -301,8 +301,8 @@ const filterMentions = (
 }
 
 export default (
-    data: ResolvedData,
-    clientData: ResolvedClientData,
+    backend: Backend,
+    applicationId: Snowflake,
     hasIntents: HasIntents,
     emitPacket: EmitPacket
   ) =>
@@ -325,12 +325,9 @@ export default (
       Method.POST,
       options
     )
-    const userId = clientUserId(data, clientData)
+    const userId = clientUserId(backend, applicationId)
 
-    const checkPermissions = (
-      guild: RD.Guild,
-      channel: RD.GuildChannel
-    ): bigint => {
+    const checkPermissions = (guild: Guild, channel: GuildChannel): bigint => {
       const permissions = getPermissions(
         guild,
         guild.members.find(member => member.id === userId)!,
@@ -357,12 +354,12 @@ export default (
       error(request, errors.INVALID_FORM_BODY, formErrs)
 
     // Unknown channel
-    const [guild, channel] = getChannel(data)(channelId)
+    const [guild, channel] = getChannel(backend)(channelId)
     if (!channel) error(request, errors.UNKNOWN_CHANNEL)
 
     // Permissions
     const permissions = guild
-      ? checkPermissions(guild, channel as RD.GuildChannel)
+      ? checkPermissions(guild, channel as GuildChannel)
       : undefined
 
     // Empty message
@@ -400,7 +397,7 @@ export default (
       author_id: userId,
       message_reference,
       mention_everyone: mentions.everyone && guild && canMentionEveryone,
-      mentions: mentions.users.filter(id => data.users.has(id)),
+      mentions: mentions.users.filter(id => backend.users.has(id)),
       mention_roles: guild
         ? mentions.roles.filter(id => {
             const role = guild.roles.find(r => r.id === id)
@@ -435,7 +432,7 @@ export default (
       thumbnail,
       author,
       fields
-    }: APIEmbed): D.Embed =>
+    }: APIEmbed): Embed =>
       defaults.dataEmbed({
         title,
         description,
@@ -457,7 +454,7 @@ export default (
       })
 
     const defaultAttachment = defaults.attachment(channelId, base.id)
-    const message: D.Message = {
+    const message: Message = {
       ...base,
       embeds: embeds?.map(resolveEmbed) ?? [],
       attachments:
@@ -467,7 +464,7 @@ export default (
     channel.messages!.set(message.id, message)
     channel.last_message_id = message.id
 
-    const apiMessage = convert.message(data, channelId)(message)
+    const apiMessage = convert.message(backend, channelId)(message)
     if (
       hasIntents(
         guild

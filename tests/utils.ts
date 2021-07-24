@@ -37,8 +37,8 @@ export type MatchObjectGuild = DeepPartialOmit<D.Guild, 'valueOf'>
 
 interface WithClientOptions {
   intents?: D.ClientOptions['intents']
-  data?: DM.Data.Data
-  clientData?: DM.ClientData
+  backend?: DM.Backend
+  applicationId?: DM.Snowflake
 }
 
 const defaultIntents = new D.Intents([
@@ -51,8 +51,8 @@ const defaultIntents = new D.Intents([
 
 export const withClient = <T>(
   fn: (client: D.Client) => T,
-  {intents = defaultIntents, data, clientData}: WithClientOptions = {}
-): T => fn(new DM.Client({intents}, clientData, new DM.Backend(data)))
+  {intents = defaultIntents, backend, applicationId}: WithClientOptions = {}
+): T => fn(new DM.Client({intents}, backend, applicationId))
 
 export const withClientF =
   <T>(fn: (client: D.Client) => T, options?: WithClientOptions) =>

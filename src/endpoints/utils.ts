@@ -1,39 +1,45 @@
 import {PermissionFlagsBits} from 'discord-api-types/v9'
-import type {Snowflake} from 'discord-api-types/v9'
-import type {D, RD, ResolvedData} from '../types'
+import type {Backend} from '../Backend'
+import type {
+  Channel,
+  Guild,
+  GuildChannel,
+  GuildMember,
+  Snowflake
+} from '../types'
 
 // const ALL_PERMISSIONS =
-//   PermissionFlagsBits.ADD_REACTIONS |
+//   PermissionFlagsBits.AddReactions |
 //   PermissionFlagsBits.Administrator |
 //   PermissionFlagsBits.AttachFiles |
-//   PermissionFlagsBits.BAN_MEMBERS |
-//   PermissionFlagsBits.CHANGE_NICKNAME |
-//   PermissionFlagsBits.CONNECT |
-//   PermissionFlagsBits.CREATE_INSTANT_INVITE |
-//   PermissionFlagsBits.DEAFEN_MEMBERS |
+//   PermissionFlagsBits.BanMembers |
+//   PermissionFlagsBits.ChangeNickname |
+//   PermissionFlagsBits.Connect |
+//   PermissionFlagsBits.CreateInstantInvite |
+//   PermissionFlagsBits.DeafenMembers |
 //   PermissionFlagsBits.EmbedLinks |
-//   PermissionFlagsBits.KICK_MEMBERS |
-//   PermissionFlagsBits.MANAGE_CHANNELS |
-//   PermissionFlagsBits.MANAGE_EMOJIS |
+//   PermissionFlagsBits.KickMembers |
+//   PermissionFlagsBits.ManageChannels |
+//   PermissionFlagsBits.ManageEmojis |
 //   PermissionFlagsBits.ManageGuild |
-//   PermissionFlagsBits.MANAGE_MESSAGES |
-//   PermissionFlagsBits.MANAGE_NICKNAMES |
-//   PermissionFlagsBits.MANAGE_ROLES |
-//   PermissionFlagsBits.MANAGE_WEBHOOKS |
+//   PermissionFlagsBits.ManageMessages |
+//   PermissionFlagsBits.ManageNicknames |
+//   PermissionFlagsBits.ManageRoles |
+//   PermissionFlagsBits.MnaageWebhooks |
 //   PermissionFlagsBits.MentionEveryone |
-//   PermissionFlagsBits.MOVE_MEMBERS |
-//   PermissionFlagsBits.MUTE_MEMBERS |
-//   PermissionFlagsBits.PRIORITY_SPEAKER |
-//   PermissionFlagsBits.READ_MESSAGE_HISTORY |
+//   PermissionFlagsBits.MoveMembers |
+//   PermissionFlagsBits.MuteMembers |
+//   PermissionFlagsBits.PrioritySpeaker |
+//   PermissionFlagsBits.ReadMessageHistory |
 //   PermissionFlagsBits.SendMessages |
 //   PermissionFlagsBits.SendTTSMessages |
 //   PermissionFlagsBits.SendTTSMessages |
-//   PermissionFlagsBits.STREAM |
-//   PermissionFlagsBits.USE_EXTERNAL_EMOJIS |
-//   PermissionFlagsBits.USE_VAD |
-//   PermissionFlagsBits.VIEW_AUDIT_LOG |
+//   PermissionFlagsBits.Stream |
+//   PermissionFlagsBits.UseExternalEmojis |
+//   PermissionFlagsBits.UseVAD |
+//   PermissionFlagsBits.ViewAuditLog |
 //   PermissionFlagsBits.ViewChannel |
-//   PermissionFlagsBits.VIEW_GUILD_INSIGHTS
+//   PermissionFlagsBits.ViewGuildInsights
 
 /**
  * Gets the permissions of a guild member. The `Administrator` permission is not
@@ -45,9 +51,9 @@ import type {D, RD, ResolvedData} from '../types'
  * @returns The permissions of `member` in `channel`.
  */
 export const getPermissions = (
-  guild: RD.Guild,
-  member: D.GuildMember,
-  channel?: RD.GuildChannel
+  guild: Guild,
+  member: GuildMember,
+  channel?: GuildChannel
 ): bigint => {
   const everyoneRole = guild.roles.find(({id}) => id === guild.id)!
   const memberRoles = new Set(member.roles)
@@ -96,9 +102,9 @@ export const hasPermissions = (x: bigint, y: bigint): boolean =>
   x & PermissionFlagsBits.Administrator ? true : !!(x & y)
 
 export const getChannel =
-  ({dm_channels, guilds}: ResolvedData) =>
-  (id: Snowflake): [guild?: RD.Guild, channel?: RD.Channel] => {
-    const dmChannel = dm_channels.get(id)
+  ({dmChannels, guilds}: Backend) =>
+  (id: Snowflake): [guild?: Guild, channel?: Channel] => {
+    const dmChannel = dmChannels.get(id)
     if (dmChannel) return [undefined, dmChannel]
     for (const [, guild] of guilds) {
       const channel = guild.channels.find(chan => chan.id === id)

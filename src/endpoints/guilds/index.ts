@@ -1,13 +1,11 @@
 import guildsId from './:id'
 import templates from './templates'
 import post from './post'
-import type {EmitPacket, HasIntents} from '../../Backend'
-import type {ResolvedClientData, ResolvedData} from '../../types'
+import type {Backend, EmitPacket, HasIntents} from '../../Backend'
+import type {Snowflake} from '../../types'
 import type {GuildsFn} from './:id'
 import type {GuildsTemplates} from './templates'
 import type {GuildsPost} from './post'
-
-// TODO: make endpoints a proxy https://github.com/discordjs/discord.js/pull/5256
 
 export interface Guilds extends GuildsFn {
   templates: GuildsTemplates
@@ -15,12 +13,12 @@ export interface Guilds extends GuildsFn {
 }
 
 export const guilds = (
-  data: ResolvedData,
-  clientData: ResolvedClientData,
+  backend: Backend,
+  applicationId: Snowflake,
   hasIntents: HasIntents,
   emitPacket: EmitPacket
 ): Guilds =>
-  Object.assign(guildsId(data, clientData, hasIntents, emitPacket), {
-    templates: templates(data, clientData, hasIntents, emitPacket),
-    post: post(data, clientData, hasIntents, emitPacket)
+  Object.assign(guildsId(backend, applicationId), {
+    templates: templates(backend, applicationId, hasIntents, emitPacket),
+    post: post(backend, applicationId, hasIntents, emitPacket)
   })

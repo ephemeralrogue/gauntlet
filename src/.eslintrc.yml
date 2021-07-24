@@ -1,8 +1,16 @@
+settings:
+  jsdoc:
+    ignoreInternal: true
+
 rules:
   # Allow formBodyErrors.BASE_TYPE_CHOICES, for example
   new-cap:
   - 1
   - properties: false
+
+  jsdoc/check-tag-names:
+  - 1
+  - definedTags: [internal]
 
   # https://github.com/microsoft/TypeScript/issues/15300
   '@typescript-eslint/ban-types':
@@ -16,10 +24,6 @@ overrides:
 - files: index.ts
   rules:
     import/no-unused-modules: 0
-- files: combinators.ts
-  rules:
-    # Using the Combinator (which is a function) return type
-    '@typescript-eslint/explicit-function-return-type': 0
 - files: '**/*d.ts'
   rules:
     import/no-mutable-exports: 0

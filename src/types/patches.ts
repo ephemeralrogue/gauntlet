@@ -37,6 +37,7 @@ export type APIAuditLogEntry = Override<
 >
 
 // Bots only receive strings for the buttons
+// https://discord.com/developers/docs/topics/gateway#activity-object-activity-buttons
 export interface GatewayActivity extends DAT.GatewayActivity {
   buttons?: string[]
 }
@@ -54,6 +55,6 @@ export interface APIGuildEmoji
   name: string
 }
 
-export interface APiGuild extends DAT.APIGuild {
+export interface APIGuild extends DAT.APIGuild {
   emojis: APIGuildEmoji[]
 }

@@ -1,7 +1,7 @@
 import {removeUndefined} from '../utils'
-import type {D} from '../types'
+import type {PartialDeep} from '../types'
 
-export type Defaults<T> = (partial?: D.PartialDeep<T>) => T
+export type Defaults<T> = (partial?: PartialDeep<T>) => T
 
 export const createDefaults =
   <T>(fn: Defaults<T>): Defaults<T> =>

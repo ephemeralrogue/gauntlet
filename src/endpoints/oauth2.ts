@@ -1,6 +1,7 @@
 import * as convert from '../convert'
 import type {RESTGetAPIOAuth2CurrentApplicationResult} from 'discord-api-types/v9'
-import type {ResolvedClientData, ResolvedData} from '../types'
+import type {Backend} from '../Backend'
+import type {Snowflake} from '../types'
 
 export interface OAuth2 {
   authorize: string
@@ -9,13 +10,10 @@ export interface OAuth2 {
   }
 }
 
-export const oauth2 = (
-  data: ResolvedData,
-  clientData: ResolvedClientData
-): OAuth2 => ({
+export const oauth2 = (backend: Backend, applicationId: Snowflake): OAuth2 => ({
   authorize: '/oauth2/authorize',
   applications: () => ({
     // https://discord.com/developers/docs/topics/oauth2#get-current-application-information
-    get: async () => convert.oauth2Application(data, clientData)
+    get: async () => convert.oauth2Application(backend, applicationId)
   })
 })

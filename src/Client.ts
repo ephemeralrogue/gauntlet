@@ -7,38 +7,23 @@ import * as D from 'discord.js'
 import WebSocketShard from '../node_modules/discord.js/src/client/websocket/WebSocketShard'
 import {Backend, api} from './Backend'
 import * as convert from './convert'
-import * as defaults from './defaults'
-import type {APIUser} from 'discord-api-types/v9'
 import type {ClientOptions} from 'discord.js'
 import type {EmitPacket, HasIntents} from './Backend'
-import type {ClientData, ResolvedClientData} from './types'
+import type {Snowflake} from './types'
 
 const _mockClient = (
-  backend: Backend,
   client: D.Client,
-  {application: app}: ClientData = {}
+  backend: Backend,
+  applicationId?: Snowflake
 ): void => {
-  const data = backend['resolvedData']
-
   // Stop the RESTManager from setting an interval
   client.options.restSweepInterval = 0
 
-  const application = defaults.clientDataApplication(app)
-  const user: APIUser = {
-    ...(data.users.get(application.id) ??
-      data.integration_applications.get(application.id)?.bot ??
-      defaults.user()),
-    bot: true
-  }
-  data.users.set(user.id, user)
-  if (data.integration_applications.has(application.id))
-    data.integration_applications.get(application.id)!.bot = user
-  else {
-    data.integration_applications.set(
-      application.id,
-      defaults.integrationApplication({id: application.id, bot: user})
-    )
-  }
+  const app =
+    (applicationId === undefined
+      ? undefined
+      : backend.applications.get(applicationId)) ??
+    backend.addApplication({id: applicationId})
 
   const hasIntents: HasIntents = intents =>
     // Intents are always resolved
@@ -50,17 +35,16 @@ const _mockClient = (
       client.ws.shards.first()
     )
   }
-  const clientData: ResolvedClientData = {application}
   // Initialise the mocked API. This needs to be done with
   // Object.defineProperty because api is originally a getter
   Object.defineProperty(client, 'api', {
-    value: api(backend, clientData, hasIntents, emitPacket),
+    value: api(backend, app.id, hasIntents, emitPacket),
     configurable: true
   })
 
   // Initialise the client user and application
-  client.user = new D.ClientUser(client, user)
-  client.application = new D.ClientApplication(client, application)
+  client.user = new D.ClientUser(client, app.bot)
+  client.application = new D.ClientApplication(client, app)
 
   // Create a shard
   const shard = new WebSocketShard(client.ws, 0)
@@ -69,11 +53,11 @@ const _mockClient = (
   // Make the websocket manager ready to receive packets
   client.ws['triggerClientReady']()
 
-  if (hasIntents(GatewayIntentBits.Guilds) && data.guilds.size) {
+  if (hasIntents(GatewayIntentBits.Guilds) && backend.guilds.size) {
     // Make each of the guilds available
-    const convertGuild = convert.guildCreateGuild(data, clientData)
-    for (const [, guild] of data.guilds) {
-      if (guild.members.some(({id}) => id === user.id))
+    const convertGuild = convert.guildCreateGuild(backend, app.id)
+    for (const [, guild] of backend.guilds) {
+      if (guild.members.some(({id}) => id === app.bot.id))
         emitPacket(GatewayDispatchEvents.GuildCreate, convertGuild(guild))
     }
   }
@@ -85,19 +69,19 @@ const _mockClient = (
  * `backend` are immediately emitted.
  *
  * @param client The Discord.js client.
- * @param data The data for the client.
  * @param backend The backend. Defaults to `new Backend()`.
+ * @param applicationId The id of the Discord application of the client.
  */
 export const mockClient: (
   client: D.Client,
-  data?: ClientData,
-  backend?: Backend
-) => void = (client, data, backend = new Backend()): void => {
+  backend?: Backend,
+  applicationId?: Snowflake
+) => void = (client, backend = new Backend(), applicationId): void => {
   // Clear RESTManager interval
   client.options.restSweepInterval = 0
   clearInterval(client.sweepMessageInterval)
 
-  _mockClient(backend, client, data)
+  _mockClient(client, backend, applicationId)
 }
 
 export class Client extends D.Client {
@@ -105,12 +89,12 @@ export class Client extends D.Client {
 
   constructor(
     options: Readonly<ClientOptions>,
-    data?: ClientData,
-    backend: Backend = new Backend()
+    backend: Backend = new Backend(),
+    applicationId?: Snowflake
   ) {
     // Stop the RESTManager from setting an interval
     super({...options, restSweepInterval: 0})
 
-    _mockClient(backend, this, data)
+    _mockClient(this, backend, applicationId)
   }
 }

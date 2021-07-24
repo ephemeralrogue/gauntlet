@@ -11,10 +11,10 @@ import type {
   RESTPatchAPIGuildTemplateJSONBody,
   RESTPatchAPIGuildTemplateResult,
   RESTPostAPIGuildTemplatesJSONBody,
-  RESTPostAPIGuildTemplatesResult,
-  Snowflake
+  RESTPostAPIGuildTemplatesResult
 } from 'discord-api-types/v9'
-import type {ResolvedClientData, RD, ResolvedData} from '../../../types'
+import type {Backend} from '../../../Backend'
+import type {Guild, Snowflake} from '../../../types'
 import type {FormBodyErrors, Request} from '../../../errors'
 
 type GuildsIdTemplatesFn = (code: string) => {
@@ -56,15 +56,15 @@ const checkTemplateInput = (
   if (Object.keys(errs).length) error(request, errors.INVALID_FORM_BODY, errs)
 }
 
-export default (data: ResolvedData, clientData: ResolvedClientData) => {
-  const convertTemplate = convert.template(data)
+export default (backend: Backend, applicationId: Snowflake) => {
+  const convertTemplate = convert.template(backend)
   return (id: Snowflake): GuildsIdTemplates => {
     const basePath = `/guilds/${id}/templates`
     const getGuildAndCheckPermissions = (
       request: Request,
-      userId = clientUserId(data, clientData)
-    ): RD.Guild => {
-      const guild = data.guilds.get(id)
+      userId = clientUserId(backend, applicationId)
+    ): Guild => {
+      const guild = backend.guilds.get(id)
       if (!guild) error(request, errors.UNKNOWN_GUILD)
       const member = guild.members.find(m => m.id === userId)
       if (
@@ -90,7 +90,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
               error(request, errors.UNKNOWN_GUILD_TEMPLATE)
             const {template} = guild
             guild.template = undefined
-            return convertTemplate(guild)(template)
+            return convertTemplate(guild, template)
           },
 
           // https://discord.com/developers/docs/resources/template#modify-guild-template
@@ -105,7 +105,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
               error(request, errors.UNKNOWN_GUILD_TEMPLATE)
             if (name !== undefined) guild.template.name = name
             if (description ?? '') guild.template.description = description!
-            return convertTemplate(guild)(guild.template)
+            return convertTemplate(guild, guild.template)
           }
         }
       },
@@ -115,7 +115,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
           const guild = getGuildAndCheckPermissions(
             mkRequest(basePath, Method.GET)
           )
-          return guild.template ? [convertTemplate(guild)(guild.template)] : []
+          return guild.template ? [convertTemplate(guild, guild.template)] : []
         },
 
         // https://discord.com/developers/docs/resources/template#create-guild-template
@@ -126,7 +126,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
           const request = mkRequest(basePath, Method.POST, options)
           checkTemplateInput(request, name, description)
 
-          const userId = clientUserId(data, clientData)
+          const userId = clientUserId(backend, applicationId)
           const guild = getGuildAndCheckPermissions(request, userId)
           if (guild.template) error(request, errors.ALREADY_HAS_TEMPLATE)
 
@@ -150,7 +150,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
           const channelsMap: ReadonlyMap<Snowflake, number> = new Map(
             channels.array().map((channel, i) => [channel.id, i])
           )
-          guild.template = defaults.dataGuildTemplate({
+          guild.template = defaults.guildTemplate({
             name,
             description: description ?? '' ? description : null,
             creator_id: userId,
@@ -206,7 +206,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
             }
           })
           // eslint-disable-next-line unicorn/consistent-destructuring -- just set guild.template above
-          return convertTemplate(guild)(guild.template)
+          return convertTemplate(guild, guild.template)
         }
       }
     )

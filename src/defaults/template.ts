@@ -7,27 +7,27 @@ import {
 import {createDefaults as d} from './utils'
 import {partialOverwrite} from './channel'
 import type {
-  APIGuildCreateOverwrite,
-  APIGuildCreatePartialChannel,
-  APIGuildCreateRole,
-  APITemplateSerializedSourceGuild
-} from 'discord-api-types/v9'
-import type {D} from '../types'
+  GuildCreateOverwrite,
+  GuildCreatePartialChannel,
+  GuildCreateRole,
+  GuildTemplate,
+  TemplateSerializedSourceGuild
+} from '../types'
 
 // These live here instead of in ./guild.ts to avoid dependency cycles
-const guildCreateRole = d<APIGuildCreateRole>(_role => ({
+const guildCreateRole = d<GuildCreateRole>(_role => ({
   id: snowflake(),
   ..._role
 }))
 
-const guildCreateOverwrite = d<APIGuildCreateOverwrite>(overwrite => ({
+const guildCreateOverwrite = d<GuildCreateOverwrite>(overwrite => ({
   ...partialOverwrite(),
   allow: '0',
   deny: '0',
   ...overwrite
 }))
 
-const guildCreatePartialChannel = d<APIGuildCreatePartialChannel>(channel => ({
+const guildCreatePartialChannel = d<GuildCreatePartialChannel>(channel => ({
   name: DEFAULT_CHANNEL_NAME,
   ...channel,
   permission_overwrites: channel?.permission_overwrites
@@ -35,7 +35,7 @@ const guildCreatePartialChannel = d<APIGuildCreatePartialChannel>(channel => ({
     : undefined
 }))
 
-const templateSerializedSourceGuild = d<APITemplateSerializedSourceGuild>(
+const templateSerializedSourceGuild = d<TemplateSerializedSourceGuild>(
   guild => ({
     name: DEFAULT_GUILD_NAME,
     description: null,
@@ -50,7 +50,7 @@ const templateSerializedSourceGuild = d<APITemplateSerializedSourceGuild>(
   })
 )
 
-export const dataGuildTemplate = d<D.GuildTemplate>(_template => ({
+export const guildTemplate = d<GuildTemplate>(_template => ({
   code: randomString(),
   name: 'Friends & Family',
   description: null,

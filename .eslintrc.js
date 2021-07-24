@@ -22,9 +22,7 @@ const config = {
         tsconfigRootDir: __dirname
       },
       settings: {
-        jsdoc: {
-          mode: 'typescript'
-        }
+        jsdoc: {mode: 'typescript'}
       },
       rules: {
         camelcase: 0,

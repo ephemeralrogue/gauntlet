@@ -3,15 +3,16 @@ import {snowflake} from '../utils'
 import {DEFAULT_CUSTOM_EMOJI_NAME, DEFAULT_STANDARD_EMOJI} from './constants'
 import {createDefaults as d} from './utils'
 import type {
-  GatewayActivityEmoji,
-  GatewayActivityParty,
-  GatewayPresenceUpdate
-} from 'discord-api-types/v9'
-import type {GatewayActivity, D} from '../types'
+  Activity,
+  ActivityEmoji,
+  ActivityParty,
+  GuildPresence,
+  PartialDeep,
+  PresenceUpdate
+} from '../types'
 import type {Override} from '../utils'
-import type {Defaults} from './utils'
 
-export const activityEmoji = d<GatewayActivityEmoji>(_emoji =>
+export const activityEmoji = d<ActivityEmoji>(_emoji =>
   !_emoji || _emoji.id == null
     ? // Ordinary emoji
       {name: _emoji?.name ?? DEFAULT_STANDARD_EMOJI}
@@ -23,14 +24,14 @@ export const activityEmoji = d<GatewayActivityEmoji>(_emoji =>
       }
 )
 
-export const party = d<GatewayActivityParty>(_party => {
+export const party = d<ActivityParty>(_party => {
   if (_party?.size) {
     const currentSize = _party.size[0] ?? 1
     return {..._party, size: [currentSize, _party.size[1] ?? currentSize]}
   }
   return {
     ...(_party as Override<
-      D.PartialDeep<GatewayActivityParty>,
+      PartialDeep<ActivityParty>,
       {
         size?: undefined
       }
@@ -38,7 +39,7 @@ export const party = d<GatewayActivityParty>(_party => {
   }
 })
 
-export const activity = d<GatewayActivity>(_activity => {
+export const activity = d<Activity>(_activity => {
   const name = _activity?.name ?? 'Twitch'
   const type = _activity?.type ?? ActivityType.Streaming
   return {
@@ -58,15 +59,12 @@ export const activity = d<GatewayActivity>(_activity => {
   }
 })
 
-// Type annotation required
-export const presenceUser: Defaults<GatewayPresenceUpdate['user']> = d(
-  _user => ({
-    id: snowflake(),
-    ..._user
-  })
-)
+export const presenceUser = d<PresenceUpdate['user']>(_user => ({
+  id: snowflake(),
+  ..._user
+}))
 
-export const dataGuildPresence = d<D.GuildPresence>(_presence => ({
+export const guildPresence = d<GuildPresence>(_presence => ({
   ..._presence,
   user_id: snowflake(),
   activities: _presence?.activities

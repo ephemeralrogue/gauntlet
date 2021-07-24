@@ -1,6 +1,6 @@
 import {Collection, SnowflakeUtil} from 'discord.js'
-import type {Snowflake} from 'discord-api-types/v9'
-import type {ResolvedClientData, ResolvedData} from './types'
+import type {Backend} from './Backend'
+import type {Snowflake} from './types'
 
 declare global {
   interface ArrayConstructor {
@@ -24,7 +24,6 @@ declare module 'discord.js' {
 }
 
 export type NonEmptyArray<T> = [T, ...T[]]
-export type ReadonlyNonEmptyArray<T> = Readonly<NonEmptyArray<T>>
 
 /**
  * An intersection between `T` and `U`, but the properties of `U` override the
@@ -56,10 +55,6 @@ export type CommonProperties<T, U> = Pick<
 export type AnyFunction =
   | ((...args: never[]) => unknown)
   | (new (...args: never[]) => unknown)
-
-export type Fn1<A extends readonly [never] = readonly [never], B = unknown> = (
-  ...args: A
-) => B
 
 export type AttachmentURLs = Record<'proxy_url' | 'url', string>
 
@@ -202,6 +197,6 @@ export const attachmentURLs = (
 })
 
 export const clientUserId = (
-  {integration_applications}: ResolvedData,
-  {application}: ResolvedClientData
-): Snowflake => integration_applications.get(application.id)!.bot!.id
+  {applications}: Backend,
+  applicationId: Snowflake
+): Snowflake => applications.get(applicationId)!.bot.id

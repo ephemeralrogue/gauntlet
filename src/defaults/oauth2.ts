@@ -2,16 +2,12 @@ import {randomString, snowflake} from '../utils'
 import {team} from './teams'
 import {user} from './user'
 import {createDefaults as d} from './utils'
-import type {
-  APIApplication,
-  APIGuildIntegrationApplication
-} from 'discord-api-types/v9'
-import type {ClientDataApplication} from '../types'
+import type {Application, GuildIntegrationApplication} from '../types'
 import type {CommonProperties} from '../utils'
 
 type PartialApplication = CommonProperties<
-  APIApplication,
-  APIGuildIntegrationApplication
+  Application,
+  GuildIntegrationApplication
 >
 
 export const partialApplication = d<PartialApplication>(application => ({
@@ -23,19 +19,13 @@ export const partialApplication = d<PartialApplication>(application => ({
   ...application
 }))
 
-export const clientDataApplication = d<ClientDataApplication>(application => ({
-  id: snowflake(),
+export const application = d<Application>(app => ({
   bot_public: false,
   bot_require_code_grant: false,
   // 64 chars
   verify_key: randomString(),
   flags: 0,
-  ...application,
-  owner: user(application?.owner),
-  team: application?.team ? team(application.team) : null
-}))
-
-export const clientApplication = d<APIApplication>(application => ({
-  ...partialApplication(application),
-  ...clientDataApplication(application)
+  ...partialApplication(app),
+  owner: user(app?.owner),
+  team: app?.team ? team(app.team) : null
 }))

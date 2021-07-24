@@ -4,9 +4,9 @@ import {partialChannel} from './channel'
 import {partialGuild} from './guild'
 import {user} from './user'
 import {createDefaults as d} from './utils'
-import type {APIWebhook} from 'discord-api-types/v9'
+import type {Webhook} from '../types'
 
-export const webhook = d<APIWebhook>(hook => ({
+export const webhook = d<Webhook>(hook => ({
   id: snowflake(),
   type: WebhookType.Incoming,
   channel_id: snowflake(),

@@ -6,35 +6,38 @@ import {
   GuildPremiumTier,
   GuildVerificationLevel
 } from 'discord-api-types/v9'
-import {snowflake, timestamp} from '../utils'
+import {Collection} from 'discord.js'
+import {snowflake, timestamp, toCollection} from '../utils'
 import {auditLogEntry} from './audit-log'
 import {
   DEFAULT_GUILD_NAME,
   DEFAULT_GUILD_PREFERRED_LOCALE,
   DEFAULT_INTEGRATION_NAME
 } from './constants'
-import {dataGuildEmoji} from './emoji'
-import {dataGuildChannel, dataGuildChannels} from './channel'
-import {dataGuildPresence} from './gateway'
+import {guildEmoji} from './emoji'
+import {guildPresence} from './gateway'
+import {guildChannel, guildChannels} from './channel'
 import {partialApplication} from './oauth2'
-import {dataRole} from './permissions'
+import {role} from './permissions'
 import {sticker} from './sticker'
-import {dataGuildTemplate} from './template'
+import {guildTemplate} from './template'
 import {user} from './user'
 import {createDefaults as d} from './utils'
 import type {
-  APIGuildIntegration,
-  APIGuildIntegrationApplication,
-  APIGuildWelcomeScreen,
-  APIGuildWelcomeScreenChannel,
-  APIIntegrationAccount,
-  APIPartialGuild
-} from 'discord-api-types/v9'
-import type {D} from '../types'
+  Guild,
+  GuildIntegration,
+  GuildIntegrationApplication,
+  GuildMember,
+  GuildVoiceState,
+  GuildWelcomeScreen,
+  GuildWelcomeScreenChannel,
+  IntegrationAccount,
+  PartialGuild
+} from '../types'
 // eslint-disable-next-line import/max-dependencies -- type imports
 import type {NonEmptyArray} from '../utils'
 
-const welcomeScreenChannel = d<APIGuildWelcomeScreenChannel>(_channel => ({
+const welcomeScreenChannel = d<GuildWelcomeScreenChannel>(_channel => ({
   channel_id: snowflake(),
   description: 'Follow for official Discord API updates',
   emoji_id: null,
@@ -42,13 +45,13 @@ const welcomeScreenChannel = d<APIGuildWelcomeScreenChannel>(_channel => ({
   ..._channel
 }))
 
-const welcomeScreen = d<APIGuildWelcomeScreen>(screen => ({
+const welcomeScreen = d<GuildWelcomeScreen>(screen => ({
   description: null,
   ...screen,
   welcome_channels: screen?.welcome_channels?.map(welcomeScreenChannel) ?? []
 }))
 
-export const partialGuild = d<APIPartialGuild>(guild => ({
+export const partialGuild = d<PartialGuild>(guild => ({
   id: snowflake(),
   name: DEFAULT_GUILD_NAME,
   icon: null,
@@ -59,20 +62,20 @@ export const partialGuild = d<APIPartialGuild>(guild => ({
     : undefined
 }))
 
-const integrationAccount = d<APIIntegrationAccount>(_account => ({
+const integrationAccount = d<IntegrationAccount>(_account => ({
   id: snowflake(),
   name: 'Integration Account Name',
   ..._account
 }))
 
-export const integrationApplication = d<APIGuildIntegrationApplication>(
+export const integrationApplication = d<GuildIntegrationApplication>(
   application => ({
     ...partialApplication(application),
     bot: application?.bot ? user(application.bot) : undefined
   })
 )
 
-export const integration = d<APIGuildIntegration>(_integration => ({
+export const integration = d<GuildIntegration>(_integration => ({
   id: snowflake(),
   name: DEFAULT_INTEGRATION_NAME,
   type: 'twitch',
@@ -85,7 +88,7 @@ export const integration = d<APIGuildIntegration>(_integration => ({
     : undefined
 }))
 
-const dataGuildMember = d<D.GuildMember>(member => ({
+export const guildMember = d<GuildMember>(member => ({
   id: snowflake(),
   nick: null,
   roles: [],
@@ -95,7 +98,7 @@ const dataGuildMember = d<D.GuildMember>(member => ({
   ...member
 }))
 
-const dataGuildVoiceState = d<D.GuildVoiceState>(voiceState => ({
+const guildVoiceState = d<GuildVoiceState>(voiceState => ({
   channel_id: null,
   user_id: snowflake(),
   // TODO: investigate proper session_id
@@ -113,15 +116,15 @@ const dataGuildVoiceState = d<D.GuildVoiceState>(voiceState => ({
   ...voiceState
 }))
 
-export const dataGuild = d<D.Guild>(guild => {
-  /** Includes extra properties from `Guild` not in `APIPartialGuild`. */
-  const partial = partialGuild(guild)
-  const _members = guild?.members?.map(dataGuildMember)
-  const members: NonEmptyArray<D.GuildMember> =
+export const guild = d<Guild>(_guild => {
+  /** Includes extra properties from `Guild` not in `PartialGuild`. */
+  const partial = partialGuild(_guild)
+  const _members = _guild?.members?.map(guildMember)
+  const members: NonEmptyArray<GuildMember> =
     _members?.length ?? 0
-      ? (_members as NonEmptyArray<D.GuildMember>)
-      : [dataGuildMember()]
-  const roles = guild?.roles?.map(dataRole) ?? []
+      ? (_members as NonEmptyArray<GuildMember>)
+      : [guildMember()]
+  const roles = _guild?.roles?.mapValues(role) ?? new Collection()
   return {
     discovery_splash: null,
     owner_id: members[0].id,
@@ -147,25 +150,33 @@ export const dataGuild = d<D.Guild>(guild => {
     max_video_channel_users: 25,
     public_updates_channel_id: null,
     nsfw_level: GuildNSFWLevel.Default,
+    integration_ids: [],
     ...partial,
-    members,
-    roles: [
-      ...roles,
-      // @everyone role
-      ...(roles.some(({id, name}) => id === partial.id || name === '@everyone')
-        ? []
-        : [dataRole({id: partial.id, name: '@everyone'})]),
-      ...[...new Set(members.flatMap(member => member.roles))]
-        .filter(roleId => !roles.some(({id}) => id === roleId))
-        .map(id => dataRole({id}))
-    ],
-    emojis: guild?.emojis?.map(dataGuildEmoji) ?? [],
-    voice_states: guild?.voice_states?.map(dataGuildVoiceState) ?? [],
-    channels: guild?.channels?.map(dataGuildChannel) ?? dataGuildChannels()[0],
-    presences: guild?.presences?.map(dataGuildPresence) ?? [],
-    audit_log_entries: guild?.audit_log_entries?.map(auditLogEntry) ?? [],
-    integrations: guild?.integrations?.map(integration) ?? [],
-    template: guild?.template ? dataGuildTemplate(guild.template) : undefined,
-    stickers: guild?.stickers?.map(sticker) ?? []
+    members: toCollection(members),
+    // eslint-disable-next-line unicorn/prefer-spread -- not array
+    roles: roles.concat(
+      toCollection([
+        // @everyone role
+        ...(roles.some(
+          ({id, name}) => id === partial.id || name === '@everyone'
+        )
+          ? []
+          : [role({id: partial.id, name: '@everyone'})]),
+        ...[...new Set(members.flatMap(member => member.roles))]
+          .filter(roleId => !roles.some(({id}) => id === roleId))
+          .map(id => role({id}))
+      ])
+    ),
+    emojis: _guild?.emojis?.mapValues(guildEmoji) ?? new Collection(),
+    voice_states:
+      _guild?.voice_states?.mapValues(guildVoiceState) ?? new Collection(),
+    channels:
+      _guild?.channels?.mapValues(guildChannel) ??
+      toCollection(guildChannels()[0]),
+    presences: _guild?.presences?.mapValues(guildPresence) ?? new Collection(),
+    audit_log_entries:
+      _guild?.audit_log_entries?.mapValues(auditLogEntry) ?? new Collection(),
+    template: _guild?.template ? guildTemplate(_guild.template) : undefined,
+    stickers: _guild?.stickers?.mapValues(sticker) ?? new Collection()
   }
 })

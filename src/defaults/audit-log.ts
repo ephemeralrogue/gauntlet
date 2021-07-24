@@ -6,7 +6,7 @@ import {
   PermissionFlagsBits,
   WebhookType
 } from 'discord-api-types/v9'
-import {ChangeOverwriteType} from '../types'
+import {ChangeOverwriteType} from '../types/patches'
 import {snowflake} from '../utils'
 import {
   DEFAULT_CHANNEL_NAME,
@@ -24,17 +24,15 @@ import {
   DEFAULT_WEBHOOK_NAME
 } from './constants'
 import {createDefaults as d} from './utils'
-import type {
-  APIAuditLogChangeKeyId,
-  APIAuditLogOptions,
-  Snowflake
-} from 'discord-api-types/v9'
 import type {RequireKeys} from '../utils'
 import type {
-  APIAuditLogChange,
-  APIAuditLogChangeKeyOverwriteType,
-  APIAuditLogEntry,
-  D
+  AuditLogChange,
+  AuditLogChangeKeyId,
+  AuditLogChangeKeyOverwriteType,
+  AuditLogEntry,
+  AuditLogOptions,
+  PartialDeep,
+  Snowflake
 } from '../types'
 
 const overwriteTypeChangeToOptions: Readonly<
@@ -46,9 +44,9 @@ const overwriteTypeChangeToOptions: Readonly<
 
 // TODO: refactor so it's <= 200 lines
 // eslint-disable-next-line complexity, max-lines-per-function -- mainly due to the switch case
-export const auditLogEntry = d<APIAuditLogEntry>(entry => {
+export const auditLogEntry = d<AuditLogEntry>(entry => {
   const base: RequireKeys<
-    D.PartialDeep<APIAuditLogEntry>,
+    PartialDeep<AuditLogEntry>,
     'action_type' | 'id' | 'user_id'
   > = {
     user_id: snowflake(),
@@ -67,34 +65,34 @@ export const auditLogEntry = d<APIAuditLogEntry>(entry => {
   })
 
   const changes = (
-    ..._changes: APIAuditLogChange[]
-  ): Required<Pick<APIAuditLogEntry, 'changes'>> => ({
+    ..._changes: AuditLogChange[]
+  ): Required<Pick<AuditLogEntry, 'changes'>> => ({
     changes: base.changes?.length ?? 0 ? base.changes! : _changes
   })
 
   const targetAndChanges = (
-    options?: APIAuditLogOptions,
-    ..._changes: readonly APIAuditLogChange[]
-  ): APIAuditLogEntry => ({
+    options?: AuditLogOptions,
+    ..._changes: readonly AuditLogChange[]
+  ): AuditLogEntry => ({
     ...withTarget(),
     ...changes(..._changes),
     options
   })
 
   const targetAndChangesNoOptions = (
-    ..._changes: readonly APIAuditLogChange[]
-  ): APIAuditLogEntry => targetAndChanges(undefined, ..._changes)
+    ..._changes: readonly AuditLogChange[]
+  ): AuditLogEntry => targetAndChanges(undefined, ..._changes)
 
-  const targetNoChanges = (options: APIAuditLogOptions): APIAuditLogEntry => ({
+  const targetNoChanges = (options: AuditLogOptions): AuditLogEntry => ({
     ...withTarget(),
     changes: undefined,
     options
   })
 
   const noTarget = (
-    options?: APIAuditLogOptions,
-    ..._changes: readonly APIAuditLogChange[]
-  ): APIAuditLogEntry => ({
+    options?: AuditLogOptions,
+    ..._changes: readonly AuditLogChange[]
+  ): AuditLogEntry => ({
     ...base,
     target_id: null,
     ...(_changes.length ? changes(..._changes) : {changes: undefined}),
@@ -102,13 +100,13 @@ export const auditLogEntry = d<APIAuditLogEntry>(entry => {
   })
 
   const noTargetOrOptions = (
-    ..._changes: readonly APIAuditLogChange[]
-  ): APIAuditLogEntry => noTarget(undefined, ..._changes)
+    ..._changes: readonly AuditLogChange[]
+  ): AuditLogEntry => noTarget(undefined, ..._changes)
 
   const createOrDelete = (
     createEvent: AuditLogEvent,
-    getEntry: (key: 'new_value' | 'old_value') => APIAuditLogEntry
-  ): APIAuditLogEntry =>
+    getEntry: (key: 'new_value' | 'old_value') => AuditLogEntry
+  ): AuditLogEntry =>
     getEntry(base.action_type === createEvent ? 'new_value' : 'old_value')
 
   switch (base.action_type) {
@@ -145,7 +143,7 @@ export const auditLogEntry = d<APIAuditLogEntry>(entry => {
         base.options?.id ??
         ((): Snowflake | undefined => {
           const foundChange = base.changes?.find(
-            (change): change is APIAuditLogChangeKeyId => change.key === 'id'
+            (change): change is AuditLogChangeKeyId => change.key === 'id'
           )
           return foundChange?.old_value ?? foundChange?.new_value
         })() ??
@@ -154,7 +152,7 @@ export const auditLogEntry = d<APIAuditLogEntry>(entry => {
         base.options?.type ??
         ((): AuditLogOptionsType | undefined => {
           const foundChange = base.changes?.find(
-            (change): change is APIAuditLogChangeKeyOverwriteType =>
+            (change): change is AuditLogChangeKeyOverwriteType =>
               change.key === 'type'
           )
           const foundType = foundChange?.old_value ?? foundChange?.new_value

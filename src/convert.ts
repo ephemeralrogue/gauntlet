@@ -11,32 +11,36 @@ import type {
   APITemplate,
   Snowflake
 } from 'discord-api-types/v9'
+import type {Backend} from './Backend'
 import type {
-  D,
-  GatewayPresenceUpdate,
-  ResolvedClientData,
-  RD,
-  ResolvedData
+  Guild,
+  GuildChannel,
+  GuildEmoji,
+  GuildMember,
+  GuildPresence,
+  GuildTemplate,
+  Message,
+  Overwrite,
+  Role
 } from './types'
+import type {GatewayPresenceUpdate} from './types/patches'
 import type {Override} from './utils'
 
 export const oauth2Application = (
-  {integration_applications}: ResolvedData,
-  {application}: ResolvedClientData
-): APIApplication => ({
-  ...application,
-  ...integration_applications.get(application.id)!
+  {applications}: Backend,
+  applicationId: Snowflake
+): APIApplication => applications.get(applicationId)!
+
+export const addGuildId = <T>(
+  guild: Guild,
+  obj: T
+): Override<T, {guild_id: Snowflake}> => ({
+  ...obj,
+  guild_id: guild.id
 })
 
-export const addGuildId =
-  (dataGuild: RD.Guild) =>
-  <T>(dataChannel: T): Override<T, {guild_id: Snowflake}> => ({
-    ...dataChannel,
-    guild_id: dataGuild.id
-  })
-
 export const guildEmoji =
-  ({users}: ResolvedData) =>
+  ({allUsers}: Backend) =>
   ({
     id,
     name,
@@ -46,11 +50,11 @@ export const guildEmoji =
     managed,
     animated,
     available
-  }: D.GuildEmoji): APIEmoji => ({
+  }: GuildEmoji): APIEmoji => ({
     id,
     name,
     roles,
-    user: users.get(user_id)!,
+    user: allUsers.get(user_id)!,
     require_colons,
     managed,
     animated,
@@ -58,8 +62,7 @@ export const guildEmoji =
   })
 
 export const guildMember =
-  ({users}: ResolvedData) =>
-  (dataGuild: RD.Guild, includePending = false) =>
+  ({allUsers}: Backend, guild: Guild, includePending = false) =>
   ({
     id,
     nick,
@@ -67,12 +70,12 @@ export const guildMember =
     joined_at,
     premium_since,
     pending
-  }: D.GuildMember): APIGuildMember => {
-    const {deaf, mute} = dataGuild.voice_states.find(
+  }: GuildMember): APIGuildMember => {
+    const {deaf, mute} = guild.voice_states.find(
       ({user_id}) => user_id === id
     ) ?? {deaf: false, mute: false}
     return {
-      user: users.get(id)!,
+      user: allUsers.get(id)!,
       nick,
       roles,
       joined_at,
@@ -83,56 +86,42 @@ export const guildMember =
     }
   }
 
-export const role = ({permissions, ...rest}: D.Role): APIRole => ({
+export const role = ({permissions, ...rest}: Role): APIRole => ({
   ...rest,
   permissions: `${permissions}` as const
 })
 
-export const overwrite = ({
-  allow,
-  deny,
-  ...rest
-}: D.Overwrite): APIOverwrite => ({
+export const overwrite = ({allow, deny, ...rest}: Overwrite): APIOverwrite => ({
   allow: `${allow}` as const,
   deny: `${deny}` as const,
   ...rest
 })
 
-export const guildChannel = (
-  dataGuild: RD.Guild
-): ((channel: RD.GuildChannel) => APIChannel) => {
-  const _addGuildId = addGuildId(dataGuild)
-  return ({messages, permission_overwrites, ...rest}): APIChannel =>
-    _addGuildId({
+export const guildChannel =
+  (guild: Guild) =>
+  ({messages, permission_overwrites, ...rest}: GuildChannel): APIChannel =>
+    addGuildId(guild, {
       permission_overwrites: permission_overwrites.map(overwrite),
       ...rest
     })
-}
 
 export const guildPresence =
-  ({users}: ResolvedData) =>
-  (
-    dataGuild: RD.Guild
-  ): ((dataPresence: D.GuildPresence) => GatewayPresenceUpdate) => {
-    const _addGuildId = addGuildId(dataGuild)
-    return ({user_id, ...rest}): GatewayPresenceUpdate =>
-      _addGuildId({user: users.get(user_id)!, ...rest})
-  }
+  ({allUsers}: Backend, guild: Guild) =>
+  ({user_id, ...rest}: GuildPresence): GatewayPresenceUpdate =>
+    addGuildId(guild, {user: allUsers.get(user_id)!, ...rest})
 
 /**
- * Converts a `DataGuild` into an `APIGuild`. This does not include fields only
- * sent in `GUILD_CREATE`, Get Current User Guilds, Get Guild without
- * `with_counts`, and in an `APIInvite`.
+ * Converts a `Guild` into an `APIGuild`. This does not include fields only sent
+ * in `GUILD_CREATE`, Get Current User Guilds, Get Guild without `with_counts`,
+ * and in an `APIInvite`.
  *
- * @param data The backend data.
+ * @param backend The backend.
  * @returns A function for converting a guild object in the backend
  * representation into a guild for returning from the mocked API.
  */
-export const guild = (
-  data: ResolvedData
-): ((dataGuild: RD.Guild) => APIGuild) => {
-  const convertGuildEmoji = guildEmoji(data)
-  return ({
+export const guild =
+  (backend: Backend) =>
+  ({
     id,
     name,
     icon,
@@ -167,7 +156,7 @@ export const guild = (
     max_video_channel_users,
     nsfw_level,
     stickers
-  }): APIGuild => ({
+  }: Guild): APIGuild => ({
     id,
     name,
     icon,
@@ -183,7 +172,7 @@ export const guild = (
     default_message_notifications,
     explicit_content_filter,
     roles: roles.map(role),
-    emojis: emojis.map(convertGuildEmoji),
+    emojis: emojis.map(guildEmoji(backend)),
     features,
     mfa_level,
     application_id,
@@ -201,52 +190,44 @@ export const guild = (
     public_updates_channel_id,
     max_video_channel_users,
     nsfw_level,
-    stickers
+    stickers: stickers.array()
   })
-}
 
 /**
  * {@linkcode guild} but includes fields only sent in `GUILD_CREATE`.
  *
- * @param data The backend data.
- * @param clientData The backend client data.
+ * @param backend The backend.
+ * @param applicationId The id of the application of the bot.
  * @returns A function for converting a guild object in the backend
  * representation into a guild for returning from the mocked API.
  */
-export const guildCreateGuild = (
-  data: ResolvedData,
-  clientData: ResolvedClientData
-): ((dataGuild: RD.Guild, convertedGuild?: APIGuild) => APIGuild) => {
-  const convertGuild = guild(data)
-  const convertGuildMember = guildMember(data)
-  const convertGuildPresence = guildPresence(data)
-  return (dataGuild, convertedGuild): APIGuild => {
-    const {large, unavailable, members, channels, presences} = dataGuild
-    const userId = clientUserId(data, clientData)
+export const guildCreateGuild =
+  (backend: Backend, applicationId: Snowflake) =>
+  (backendGuild: Guild, convertedGuild?: APIGuild): APIGuild => {
+    const {large, unavailable, members, channels, presences} = backendGuild
+    const userId = clientUserId(backend, applicationId)
     return {
-      ...(convertedGuild ?? convertGuild(dataGuild)),
+      ...(convertedGuild ?? guild(backend)(backendGuild)),
       joined_at: members.find(({id}) => id === userId)?.joined_at,
       large,
       unavailable,
       member_count: members.size,
-      members: members.map(convertGuildMember(dataGuild, true)),
-      channels: channels.map(guildChannel(dataGuild)),
-      presences: presences.map(convertGuildPresence(dataGuild))
+      members: members.map(guildMember(backend, backendGuild, true)),
+      channels: channels.map(guildChannel(backendGuild)),
+      presences: presences.map(guildPresence(backend, backendGuild))
     }
   }
-}
 
 export const template =
-  (data: ResolvedData) =>
-  (dataGuild: RD.Guild) =>
-  (dataTemplate: D.GuildTemplate): APITemplate => ({
-    ...dataTemplate,
-    creator: data.users.get(dataTemplate.creator_id)!,
-    source_guild_id: dataGuild.id
+  ({allUsers}: Backend) =>
+  (_guild: Guild, _template: GuildTemplate): APITemplate => ({
+    ..._template,
+    creator: allUsers.get(_template.creator_id)!,
+    source_guild_id: _guild.id
   })
 
 export const message =
-  (data: ResolvedData, channelId: Snowflake, guildId?: Snowflake) =>
+  (backend: Backend, channelId: Snowflake, guildId?: Snowflake) =>
   ({
     application_id,
     author_id,
@@ -257,10 +238,11 @@ export const message =
     thread_id,
     sticker_ids,
     ...rest
-  }: D.Message): APIMessage => {
+  }: Message): APIMessage => {
+    const {allUsers, applications, guilds, standardStickers} = backend
     let thread: APIChannel | undefined
     if (thread_id !== undefined) {
-      const threadGuild = data.guilds.get(guildId!)!
+      const threadGuild = guilds.get(guildId!)!
       thread = guildChannel(threadGuild)(threadGuild.channels.get(thread_id)!)
     }
     return {
@@ -268,12 +250,12 @@ export const message =
       application:
         application_id === undefined
           ? undefined
-          : data.integration_applications.get(application_id)!,
-      author: data.users.get(author_id)!,
+          : applications.get(application_id)!,
+      author: allUsers.get(author_id)!,
       channel_id: channelId,
-      mentions: mentions.map(id => data.users.get(id)!),
+      mentions: mentions.map(id => allUsers.get(id)!),
       mention_channels: mention_channels?.map(({id, guild_id}) => {
-        const {name, type} = data.guilds
+        const {name, type} = guilds
           .get(guild_id)!
           .channels.find(chan => chan.id === id)!
         return {id, guild_id, name, type}
@@ -281,13 +263,13 @@ export const message =
       message_reference,
       referenced_message: referenced_message
         ? message(
-            data,
+            backend,
             message_reference!.channel_id,
             message_reference!.guild_id
           )(referenced_message)
         : undefined,
       // thread property must not be present if undefined https://github.com/discordjs/discord.js/blob/master/src/structures/Message.js#L104
       ...(thread ? {thread} : {}),
-      sticker_items: sticker_ids?.map(id => data.standard_stickers.get(id)!)
+      sticker_items: sticker_ids?.map(id => standardStickers.get(id)!)
     }
   }
