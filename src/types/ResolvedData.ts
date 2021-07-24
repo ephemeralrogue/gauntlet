@@ -5,7 +5,7 @@ import type {
   APIVoiceRegion,
   Snowflake,
   APIGuildIntegration
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type {Collection} from 'discord.js'
 import type {Override} from '../utils'
 import type * as D from './Data'
@@ -50,7 +50,7 @@ export interface ResolvedData {
     Snowflake,
     APIGuildIntegrationApplication
   >
-  stickers: Collection<Snowflake, APISticker>
+  standard_stickers: Collection<Snowflake, APISticker>
   users: Collection<Snowflake, APIUser>
   voice_regions: Collection<string, APIVoiceRegion>
 }

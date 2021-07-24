@@ -1,8 +1,8 @@
-import {OverwriteType, PermissionFlagsBits} from 'discord-api-types/v8'
+import {OverwriteType, PermissionFlagsBits} from 'discord-api-types/v9'
 import * as convert from '../../../convert'
 import * as defaults from '../../../defaults'
 import {Method, error, errors, formBodyErrors, mkRequest} from '../../../errors'
-import {clientUserID} from '../../../utils'
+import {clientUserId} from '../../../utils'
 import {getPermissions, hasPermissions} from '../../utils'
 import type {
   APIGuildCreateOverwrite,
@@ -13,7 +13,7 @@ import type {
   RESTPostAPIGuildTemplatesJSONBody,
   RESTPostAPIGuildTemplatesResult,
   Snowflake
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type {ResolvedClientData, RD, ResolvedData} from '../../../types'
 import type {FormBodyErrors, Request} from '../../../errors'
 
@@ -62,16 +62,16 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
     const basePath = `/guilds/${id}/templates`
     const getGuildAndCheckPermissions = (
       request: Request,
-      userID = clientUserID(data, clientData)
+      userId = clientUserId(data, clientData)
     ): RD.Guild => {
       const guild = data.guilds.get(id)
       if (!guild) error(request, errors.UNKNOWN_GUILD)
-      const member = guild.members.find(m => m.id === userID)
+      const member = guild.members.find(m => m.id === userId)
       if (
         member &&
         hasPermissions(
           getPermissions(guild, member),
-          PermissionFlagsBits.MANAGE_GUILD
+          PermissionFlagsBits.ManageGuild
         )
       )
         error(request, errors.MISSING_PERMISSIONS)
@@ -126,8 +126,8 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
           const request = mkRequest(basePath, Method.POST, options)
           checkTemplateInput(request, name, description)
 
-          const userID = clientUserID(data, clientData)
-          const guild = getGuildAndCheckPermissions(request, userID)
+          const userId = clientUserId(data, clientData)
+          const guild = getGuildAndCheckPermissions(request, userId)
           if (guild.template) error(request, errors.ALREADY_HAS_TEMPLATE)
 
           const {
@@ -153,7 +153,7 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
           guild.template = defaults.dataGuildTemplate({
             name,
             description: description ?? '' ? description : null,
-            creator_id: userID,
+            creator_id: userId,
             serialized_source_guild: {
               name: guild.name,
               description: guild.description,
@@ -185,8 +185,8 @@ export default (data: ResolvedData, clientData: ResolvedClientData) => {
                   permission_overwrites: channel.permission_overwrites
                     .filter(({type}) => type === OverwriteType.Role)
                     .map<APIGuildCreateOverwrite>(
-                      ({id: overwriteID, allow, deny, ...rest}) => ({
-                        id: rolesMap.get(overwriteID)!,
+                      ({id: overwriteId, allow, deny, ...rest}) => ({
+                        id: rolesMap.get(overwriteId)!,
                         allow: `${allow}` as const,
                         deny: `${deny}` as const,
                         ...rest

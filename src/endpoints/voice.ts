@@ -1,5 +1,5 @@
 import {clone} from '../utils'
-import type {RESTGetAPIGuildVoiceRegionsResult} from 'discord-api-types/v8'
+import type {RESTGetAPIGuildVoiceRegionsResult} from 'discord-api-types/v9'
 import type {ResolvedData} from '../types'
 
 export interface Voice {

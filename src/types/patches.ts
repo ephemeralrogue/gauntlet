@@ -1,6 +1,6 @@
 // Various discord-api-types changes
 
-import type * as DAT from 'discord-api-types/v8'
+import type * as DAT from 'discord-api-types/v9'
 import type {Override, RequireKeys} from '../utils'
 
 // TODO: add this stuff in the Discord docs and discord-api-types

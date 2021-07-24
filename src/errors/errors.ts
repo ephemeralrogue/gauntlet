@@ -1,5 +1,5 @@
 import {DiscordAPIError} from 'discord.js'
-import {RESTJSONErrorCodes} from 'discord-api-types/v8'
+import {RESTJSONErrorCodes} from 'discord-api-types/v9'
 import type {HTTPErrorData} from 'discord.js'
 import type {FormBodyErrors} from './form-body-errors'
 

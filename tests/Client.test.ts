@@ -14,19 +14,19 @@ describe('mockClient', () => {
   })
 
   describe('guild create event', () => {
-    const appID = '0'
-    const userID = '1'
+    const appId = '0'
+    const userId = '1'
     const id1 = '2'
     const id2 = '3'
     const backend = new DM.Backend({
-      applications: [{id: appID, bot: {id: userID}}],
+      applications: [{id: appId, bot: {id: userId}}],
       guilds: [
-        {id: id1, members: [{id: userID}]},
-        {id: id2, members: [{id: userID}]},
+        {id: id1, members: [{id: userId}]},
+        {id: id2, members: [{id: userId}]},
         {id: '4'}
       ]
     })
-    const clientData: DM.ClientData = {application: {id: appID}}
+    const clientData: DM.ClientData = {application: {id: appId}}
 
     test('are emitted with GUILDS intent', async () => {
       const client = new D.Client({intents: ['GUILDS']})
@@ -51,7 +51,7 @@ describe('mockClient', () => {
       const promise = new Promise<void>((resolve, reject) => {
         setTimeout(resolve, 500)
         client.on('guildCreate', ({id}) => {
-          reject(new Error(`guild create event fired with guild with ID ${id}`))
+          reject(new Error(`guild create event fired with guild with id ${id}`))
         })
       })
       DM.mockClient(client, clientData, backend)

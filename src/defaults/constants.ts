@@ -1,4 +1,4 @@
-import {PermissionFlagsBits} from 'discord-api-types/v8'
+import {PermissionFlagsBits} from 'discord-api-types/v9'
 
 export const DEFAULT_CHANNEL_NAME = 'general'
 export const DEFAULT_STANDARD_EMOJI = '🔥'
@@ -9,23 +9,26 @@ export const DEFAULT_GUILD_PREFERRED_LOCALE = 'en-US'
 export const DEFAULT_INTEGRATION_NAME = 'Integration Name'
 export const DEFAULT_NEW_INTEGRATION_NAME = 'New Integration Name'
 export const DEFAULT_ROLE_NAME = 'new role'
+export const DEFAULT_STAGE_TOPIC = 'Testing Testing, 123'
+export const DFEAULT_STICKER_DESCRIPTION = 'Wumpus waves hello'
+export const DEFAULT_STICKER_NAME = 'Wave'
 export const DEFAULT_WEBHOOK_NAME = 'Captain Hook'
 export const DEFAULT_NEW_WEBHOOK_NAME = 'Spidey Bot'
 
 export const DEFAULT_PERMISSIONS =
-  PermissionFlagsBits.CREATE_INSTANT_INVITE |
-  PermissionFlagsBits.ADD_REACTIONS |
-  PermissionFlagsBits.STREAM |
-  PermissionFlagsBits.VIEW_CHANNEL |
-  PermissionFlagsBits.SEND_MESSAGES |
-  PermissionFlagsBits.EMBED_LINKS |
-  PermissionFlagsBits.ATTACH_FILES |
-  PermissionFlagsBits.READ_MESSAGE_HISTORY |
-  PermissionFlagsBits.MENTION_EVERYONE |
-  PermissionFlagsBits.USE_EXTERNAL_EMOJIS |
-  PermissionFlagsBits.CONNECT |
-  PermissionFlagsBits.SPEAK |
-  PermissionFlagsBits.USE_VAD |
-  PermissionFlagsBits.CHANGE_NICKNAME
+  PermissionFlagsBits.CreateInstantInvite |
+  PermissionFlagsBits.AddReactions |
+  PermissionFlagsBits.Stream |
+  PermissionFlagsBits.ViewChannel |
+  PermissionFlagsBits.SendMessages |
+  PermissionFlagsBits.EmbedLinks |
+  PermissionFlagsBits.AttachFiles |
+  PermissionFlagsBits.ReadMessageHistory |
+  PermissionFlagsBits.MentionEveryone |
+  PermissionFlagsBits.UseExternalEmojis |
+  PermissionFlagsBits.Connect |
+  PermissionFlagsBits.Speak |
+  PermissionFlagsBits.UseVAD |
+  PermissionFlagsBits.ChangeNickname
 
 export const DEFAULT_PERMISSIONS_STRING = `${DEFAULT_PERMISSIONS}` as const

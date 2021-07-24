@@ -1,10 +1,21 @@
 import {Collection, SnowflakeUtil} from 'discord.js'
-import type {Snowflake} from 'discord-api-types/v8'
+import type {Snowflake} from 'discord-api-types/v9'
 import type {ResolvedClientData, ResolvedData} from './types'
 
 declare global {
   interface ArrayConstructor {
     isArray(arg: unknown | readonly unknown[]): arg is readonly unknown[]
+  }
+}
+
+declare module 'discord.js' {
+  interface Collection<K, V> {
+    // type in @discordjs/collection returns a Collection from that library
+    // however it actually returns an instance of the same class (using Symbol.species)
+    // without this there will be errors like 'Property 'toJSON' does not exist...'
+    mapValues<T>(
+      fn: (value: V, key: K, collection: this) => T
+    ): Collection<K, T>
   }
 }
 
@@ -178,15 +189,15 @@ export const randomString = (): string => Math.random().toString(36).slice(2)
 export const snowflake = SnowflakeUtil.generate as () => Snowflake
 
 export const attachmentURLs = (
-  channelID = snowflake(),
-  messageID = snowflake(),
+  channelId = snowflake(),
+  messageId = snowflake(),
   fileName: string
 ): AttachmentURLs => ({
-  url: `https://cdn.discordapp.com/attachments/${channelID}/${messageID}/${fileName}`,
-  proxy_url: `https://media.discordapp.net/attachments/${channelID}/${messageID}/${fileName}`
+  url: `https://cdn.discordapp.com/attachments/${channelId}/${messageId}/${fileName}`,
+  proxy_url: `https://media.discordapp.net/attachments/${channelId}/${messageId}/${fileName}`
 })
 
-export const clientUserID = (
+export const clientUserId = (
   {integration_applications}: ResolvedData,
   {application}: ResolvedClientData
 ): Snowflake => integration_applications.get(application.id)!.bot!.id

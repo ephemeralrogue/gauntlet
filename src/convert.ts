@@ -1,4 +1,4 @@
-import {clientUserID} from './utils'
+import {clientUserId} from './utils'
 import type {
   APIApplication,
   APIChannel,
@@ -10,7 +10,7 @@ import type {
   APIRole,
   APITemplate,
   Snowflake
-} from 'discord-api-types'
+} from 'discord-api-types/v9'
 import type {
   D,
   GatewayPresenceUpdate,
@@ -28,7 +28,7 @@ export const oauth2Application = (
   ...integration_applications.get(application.id)!
 })
 
-export const addGuildID =
+export const addGuildId =
   (dataGuild: RD.Guild) =>
   <T>(dataChannel: T): Override<T, {guild_id: Snowflake}> => ({
     ...dataChannel,
@@ -101,9 +101,9 @@ export const overwrite = ({
 export const guildChannel = (
   dataGuild: RD.Guild
 ): ((channel: RD.GuildChannel) => APIChannel) => {
-  const _addGuildID = addGuildID(dataGuild)
+  const _addGuildId = addGuildId(dataGuild)
   return ({messages, permission_overwrites, ...rest}): APIChannel =>
-    _addGuildID({
+    _addGuildId({
       permission_overwrites: permission_overwrites.map(overwrite),
       ...rest
     })
@@ -114,9 +114,9 @@ export const guildPresence =
   (
     dataGuild: RD.Guild
   ): ((dataPresence: D.GuildPresence) => GatewayPresenceUpdate) => {
-    const _addGuildID = addGuildID(dataGuild)
+    const _addGuildId = addGuildId(dataGuild)
     return ({user_id, ...rest}): GatewayPresenceUpdate =>
-      _addGuildID({user: users.get(user_id)!, ...rest})
+      _addGuildId({user: users.get(user_id)!, ...rest})
   }
 
 /**
@@ -165,7 +165,8 @@ export const guild = (
     preferred_locale,
     public_updates_channel_id,
     max_video_channel_users,
-    nsfw
+    nsfw_level,
+    stickers
   }): APIGuild => ({
     id,
     name,
@@ -199,7 +200,8 @@ export const guild = (
     preferred_locale,
     public_updates_channel_id,
     max_video_channel_users,
-    nsfw
+    nsfw_level,
+    stickers
   })
 }
 
@@ -220,10 +222,10 @@ export const guildCreateGuild = (
   const convertGuildPresence = guildPresence(data)
   return (dataGuild, convertedGuild): APIGuild => {
     const {large, unavailable, members, channels, presences} = dataGuild
-    const userID = clientUserID(data, clientData)
+    const userId = clientUserId(data, clientData)
     return {
       ...(convertedGuild ?? convertGuild(dataGuild)),
-      joined_at: members.find(({id}) => id === userID)?.joined_at,
+      joined_at: members.find(({id}) => id === userId)?.joined_at,
       large,
       unavailable,
       member_count: members.size,
@@ -244,34 +246,48 @@ export const template =
   })
 
 export const message =
-  (data: ResolvedData, channelID: Snowflake) =>
+  (data: ResolvedData, channelId: Snowflake, guildId?: Snowflake) =>
   ({
     application_id,
     author_id,
     mentions,
     mention_channels,
-    stickers,
     message_reference,
     referenced_message,
+    thread_id,
+    sticker_ids,
     ...rest
-  }: D.Message): APIMessage => ({
-    ...rest,
-    application:
-      application_id === undefined
-        ? undefined
-        : data.integration_applications.get(application_id)!,
-    author: data.users.get(author_id)!,
-    channel_id: channelID,
-    mentions: mentions.map(id => data.users.get(id)!),
-    mention_channels: mention_channels?.map(({id, guild_id}) => {
-      const {name, type} = data.guilds
-        .get(guild_id)!
-        .channels.find(chan => chan.id === id)!
-      return {id, guild_id, name, type}
-    }),
-    stickers: stickers?.map(id => data.stickers.get(id)!),
-    message_reference,
-    referenced_message: referenced_message
-      ? message(data, message_reference!.channel_id)(referenced_message)
-      : undefined
-  })
+  }: D.Message): APIMessage => {
+    let thread: APIChannel | undefined
+    if (thread_id !== undefined) {
+      const threadGuild = data.guilds.get(guildId!)!
+      thread = guildChannel(threadGuild)(threadGuild.channels.get(thread_id)!)
+    }
+    return {
+      ...rest,
+      application:
+        application_id === undefined
+          ? undefined
+          : data.integration_applications.get(application_id)!,
+      author: data.users.get(author_id)!,
+      channel_id: channelId,
+      mentions: mentions.map(id => data.users.get(id)!),
+      mention_channels: mention_channels?.map(({id, guild_id}) => {
+        const {name, type} = data.guilds
+          .get(guild_id)!
+          .channels.find(chan => chan.id === id)!
+        return {id, guild_id, name, type}
+      }),
+      message_reference,
+      referenced_message: referenced_message
+        ? message(
+            data,
+            message_reference!.channel_id,
+            message_reference!.guild_id
+          )(referenced_message)
+        : undefined,
+      // thread property must not be present if undefined https://github.com/discordjs/discord.js/blob/master/src/structures/Message.js#L104
+      ...(thread ? {thread} : {}),
+      sticker_items: sticker_ids?.map(id => data.standard_stickers.get(id)!)
+    }
+  }

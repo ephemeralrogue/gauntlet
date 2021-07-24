@@ -3,10 +3,10 @@
 */
 
 import assert from 'assert'
-import {ChannelType} from 'discord-api-types/v8'
+import {ChannelType} from 'discord-api-types/v9'
 import * as DM from '../../../src'
 import {withClient, withClientF} from '../../utils'
-import type {Snowflake} from 'discord-api-types/v8'
+import type {Snowflake} from 'discord-api-types/v9'
 import type * as D from 'discord.js'
 import type {DeepPartialOmit} from '../../utils'
 import '../../matchers'
@@ -20,11 +20,11 @@ const guildDataExtra = (
   guild: DM.Data.PartialDeep<DM.Data.Guild>
 ): DM.Combinator =>
   DM.guildWithClient({
-    channels: [{type: ChannelType.GUILD_TEXT}],
+    channels: [{type: ChannelType.GuildText}],
     ...guild
   })
 const guildDataC = DM.guildWithClient({
-  channels: [{type: ChannelType.GUILD_TEXT}]
+  channels: [{type: ChannelType.GuildText}]
 })
 const guildData = guildDataC()
 
@@ -36,26 +36,10 @@ const getChannel = (client: D.Client): D.TextChannel => {
   )
   return guild.channels.cache.first()! as D.TextChannel
 }
-type SingleMessageSendArgs =
-  | [
-      content:
-        | D.MessageAdditions
-        | string
-        | (D.MessageOptions & {split?: false})
-    ]
-  | [
-      content: string,
-      options: D.MessageAdditions | (D.MessageOptions & {split?: false})
-    ]
 const send = async (
   client: D.Client,
-  ...args: SingleMessageSendArgs
-): Promise<D.Message> =>
-  (
-    getChannel(client) as {
-      send: (...args_: SingleMessageSendArgs) => Promise<D.Message>
-    }
-  ).send(...args)
+  options: D.MessageOptions | D.MessagePayload | string
+): Promise<D.Message> => getChannel(client).send(options)
 
 describe('successes', () => {
   test('has same content', async () => {
@@ -68,7 +52,7 @@ describe('successes', () => {
     )
   })
 
-  test('has correct author ID', async () => {
+  test('has correct author id', async () => {
     const id = '0'
     await withClient(
       async client => expect((await send(client, 'foo')).author.id).toBe(id),
@@ -81,7 +65,7 @@ describe('successes', () => {
     withClientF(async client => {
       const channel = getChannel(client)
       const message = await channel.send('foo')
-      expect(channel.lastMessageID).toBe(message.id)
+      expect(channel.lastMessageId).toBe(message.id)
       expect(channel.lastMessage).toBe(message)
       expect(channel.messages.cache.last()).toBe(message)
     }, guildData)
@@ -98,7 +82,7 @@ describe('successes', () => {
       async client =>
         expect(
           (
-            await send(client, {embed: {title, description, fields}})
+            await send(client, {embeds: [{title, description, fields}]})
           ).embeds
         ).toMatchObject<DeepPartialOmit<D.MessageEmbed[]>>([
           {title, description, fields}
@@ -123,13 +107,13 @@ describe('successes', () => {
 
   // https://discord.com/developers/docs/resources/channel#allowed-mentions-object-allowed-mentions-reference
   describe('allowed mentions', () => {
-    const userID1 = '10'
-    const userID2 = '11'
-    const userID3 = '12'
-    const roleID1 = '20'
+    const userId1 = '10'
+    const userId2 = '11'
+    const userId3 = '12'
+    const roleId1 = '20'
     const data = guildDataExtra({
-      roles: [{id: roleID1}]
-    })({data: {users: [{id: userID1}, {id: userID2}]}})
+      roles: [{id: roleId1}]
+    })({data: {users: [{id: userId1}, {id: userId2}]}})
 
     const expectMentions = (
       content: string,
@@ -145,7 +129,7 @@ describe('successes', () => {
       }
     ): (() => Promise<void>) =>
       withClientF(async client => {
-        const {mentions} = await send(client, content, {allowedMentions})
+        const {mentions} = await send(client, {allowedMentions, content})
         expect(mentions.everyone).toBe(everyone)
         expect(new Set(mentions.users.keyArray())).toStrictEqual(new Set(users))
         expect(new Set(mentions.roles.keyArray())).toStrictEqual(new Set(roles))
@@ -154,12 +138,12 @@ describe('successes', () => {
     test(
       'no allowed_mentions',
       expectMentions(
-        `@here Hi there from <@${userID1}>, cc <@&${roleID1}>`,
+        `@here Hi there from <@${userId1}>, cc <@&${roleId1}>`,
         undefined,
         {
           everyone: true,
-          users: [userID1],
-          roles: [roleID1]
+          users: [userId1],
+          roles: [roleId1]
         }
       )
     )
@@ -167,7 +151,7 @@ describe('successes', () => {
     test(
       'all mentions suppressed',
       expectMentions(
-        `@everyone hi there, <@${userID1}>`,
+        `@everyone hi there, <@${userId1}>`,
         {parse: []},
         {everyone: false, users: [], roles: []}
       )
@@ -176,27 +160,27 @@ describe('successes', () => {
     test(
       'empty users but with parse: [users]',
       expectMentions(
-        `@everyone <@${userID1}> <@&${roleID1}>`,
+        `@everyone <@${userId1}> <@&${roleId1}>`,
         {parse: ['users', 'roles'], users: []},
-        {everyone: false, users: [userID1], roles: [roleID1]}
+        {everyone: false, users: [userId1], roles: [roleId1]}
       )
     )
 
     test(
       'only some users and no roles',
       expectMentions(
-        `@everyone <@${userID1}> <@${userID2}> <@${userID3}> <@&${roleID1}>`,
-        {parse: ['everyone'], users: [userID1, userID2]},
-        {everyone: true, users: [userID1, userID2], roles: []}
+        `@everyone <@${userId1}> <@${userId2}> <@${userId3}> <@&${roleId1}>`,
+        {parse: ['everyone'], users: [userId1, userId2]},
+        {everyone: true, users: [userId1, userId2], roles: []}
       )
     )
 
     test(
       'extra users',
       expectMentions(
-        `<@${userID1}> Time for some memes.`,
-        {users: [userID1, userID2]},
-        {everyone: false, users: [userID1], roles: []}
+        `<@${userId1}> Time for some memes.`,
+        {users: [userId1, userId2]},
+        {everyone: false, users: [userId1], roles: []}
       )
     )
   })
@@ -209,8 +193,9 @@ describe('errors', () => {
       withClientF(
         async client =>
           expect(
-            send(client, 'foo', {
-              allowedMentions: {parse: ['users'], users: ['0', '1']}
+            send(client, {
+              allowedMentions: {parse: ['users'], users: ['0', '1']},
+              content: 'foo'
             })
           ).toThrowAPIFormError(),
         guildData

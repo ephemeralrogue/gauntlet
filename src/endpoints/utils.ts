@@ -1,42 +1,42 @@
-import {PermissionFlagsBits} from 'discord-api-types/v8'
-import type {Snowflake} from 'discord-api-types/v8'
+import {PermissionFlagsBits} from 'discord-api-types/v9'
+import type {Snowflake} from 'discord-api-types/v9'
 import type {D, RD, ResolvedData} from '../types'
 
 // const ALL_PERMISSIONS =
 //   PermissionFlagsBits.ADD_REACTIONS |
-//   PermissionFlagsBits.ADMINISTRATOR |
-//   PermissionFlagsBits.ATTACH_FILES |
+//   PermissionFlagsBits.Administrator |
+//   PermissionFlagsBits.AttachFiles |
 //   PermissionFlagsBits.BAN_MEMBERS |
 //   PermissionFlagsBits.CHANGE_NICKNAME |
 //   PermissionFlagsBits.CONNECT |
 //   PermissionFlagsBits.CREATE_INSTANT_INVITE |
 //   PermissionFlagsBits.DEAFEN_MEMBERS |
-//   PermissionFlagsBits.EMBED_LINKS |
+//   PermissionFlagsBits.EmbedLinks |
 //   PermissionFlagsBits.KICK_MEMBERS |
 //   PermissionFlagsBits.MANAGE_CHANNELS |
 //   PermissionFlagsBits.MANAGE_EMOJIS |
-//   PermissionFlagsBits.MANAGE_GUILD |
+//   PermissionFlagsBits.ManageGuild |
 //   PermissionFlagsBits.MANAGE_MESSAGES |
 //   PermissionFlagsBits.MANAGE_NICKNAMES |
 //   PermissionFlagsBits.MANAGE_ROLES |
 //   PermissionFlagsBits.MANAGE_WEBHOOKS |
-//   PermissionFlagsBits.MENTION_EVERYONE |
+//   PermissionFlagsBits.MentionEveryone |
 //   PermissionFlagsBits.MOVE_MEMBERS |
 //   PermissionFlagsBits.MUTE_MEMBERS |
 //   PermissionFlagsBits.PRIORITY_SPEAKER |
 //   PermissionFlagsBits.READ_MESSAGE_HISTORY |
-//   PermissionFlagsBits.SEND_MESSAGES |
-//   PermissionFlagsBits.SEND_TTS_MESSAGES |
-//   PermissionFlagsBits.SEND_TTS_MESSAGES |
+//   PermissionFlagsBits.SendMessages |
+//   PermissionFlagsBits.SendTTSMessages |
+//   PermissionFlagsBits.SendTTSMessages |
 //   PermissionFlagsBits.STREAM |
 //   PermissionFlagsBits.USE_EXTERNAL_EMOJIS |
 //   PermissionFlagsBits.USE_VAD |
 //   PermissionFlagsBits.VIEW_AUDIT_LOG |
-//   PermissionFlagsBits.VIEW_CHANNEL |
+//   PermissionFlagsBits.ViewChannel |
 //   PermissionFlagsBits.VIEW_GUILD_INSIGHTS
 
 /**
- * Gets the permissions of a guild member. The `ADMINISTRATOR` permission is not
+ * Gets the permissions of a guild member. The `Administrator` permission is not
  * taken into account.
  *
  * @param guild The guild that the member is in.
@@ -56,7 +56,7 @@ export const getPermissions = (
     (acc, role) => acc | role.permissions,
     everyoneRole.permissions
   )
-  if (basePerms & PermissionFlagsBits.ADMINISTRATOR) return basePerms
+  if (basePerms & PermissionFlagsBits.Administrator) return basePerms
   if (!channel) return basePerms
 
   const everyoneOverwrites = channel.permission_overwrites.find(
@@ -67,7 +67,7 @@ export const getPermissions = (
       memberRoles.has(overwrite.id)
         ? [all, den]
         : [all | overwrite.allow, den | overwrite.deny],
-    [BigInt(0), BigInt(0)]
+    [0n, 0n]
   )
   const overwritePerms =
     ((everyoneOverwrites
@@ -86,14 +86,14 @@ export const getPermissions = (
 
 /**
  * Checks if some permissions have another set of permissions. The
- * `ADMINISTRATOR` permission is taken into account.
+ * `Administrator` permission is taken into account.
  *
  * @param x The permissions to check.
  * @param y The expected permissions.
  * @returns Whether `x` has `y`.
  */
 export const hasPermissions = (x: bigint, y: bigint): boolean =>
-  x & PermissionFlagsBits.ADMINISTRATOR ? true : !!(x & y)
+  x & PermissionFlagsBits.Administrator ? true : !!(x & y)
 
 export const getChannel =
   ({dm_channels, guilds}: ResolvedData) =>

@@ -1,4 +1,4 @@
-import {ActivityType} from 'discord-api-types/v8'
+import {ActivityType} from 'discord-api-types/v9'
 import {snowflake} from '../utils'
 import {DEFAULT_CUSTOM_EMOJI_NAME, DEFAULT_STANDARD_EMOJI} from './constants'
 import {createDefaults as d} from './utils'
@@ -6,7 +6,7 @@ import type {
   GatewayActivityEmoji,
   GatewayActivityParty,
   GatewayPresenceUpdate
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type {GatewayActivity, D} from '../types'
 import type {Override} from '../utils'
 import type {Defaults} from './utils'

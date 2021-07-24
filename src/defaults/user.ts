@@ -1,6 +1,6 @@
 import {snowflake} from '../utils'
 import {createDefaults as d} from './utils'
-import type {APIUser} from 'discord-api-types/v8'
+import type {APIUser} from 'discord-api-types/v9'
 import type {D} from '../types'
 import type {RequireKeys} from '../utils'
 

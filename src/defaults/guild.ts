@@ -2,9 +2,10 @@ import {
   GuildDefaultMessageNotifications,
   GuildExplicitContentFilter,
   GuildMFALevel,
+  GuildNSFWLevel,
   GuildPremiumTier,
   GuildVerificationLevel
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import {snowflake, timestamp} from '../utils'
 import {auditLogEntry} from './audit-log'
 import {
@@ -17,6 +18,7 @@ import {dataGuildChannel, dataGuildChannels} from './channel'
 import {dataGuildPresence} from './gateway'
 import {partialApplication} from './oauth2'
 import {dataRole} from './permissions'
+import {sticker} from './sticker'
 import {dataGuildTemplate} from './template'
 import {user} from './user'
 import {createDefaults as d} from './utils'
@@ -27,7 +29,7 @@ import type {
   APIGuildWelcomeScreenChannel,
   APIIntegrationAccount,
   APIPartialGuild
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type {D} from '../types'
 // eslint-disable-next-line import/max-dependencies -- type imports
 import type {NonEmptyArray} from '../utils'
@@ -127,12 +129,11 @@ export const dataGuild = d<D.Guild>(guild => {
     afk_channel_id: null,
     afk_timeout: 300,
     widget_enabled: false,
-    verification_level: GuildVerificationLevel.NONE,
-    default_message_notifications:
-      GuildDefaultMessageNotifications.ALL_MESSAGES,
-    explicit_content_filter: GuildExplicitContentFilter.DISABLED,
+    verification_level: GuildVerificationLevel.None,
+    default_message_notifications: GuildDefaultMessageNotifications.AllMessages,
+    explicit_content_filter: GuildExplicitContentFilter.Disabled,
     features: [],
-    mfa_level: GuildMFALevel.NONE,
+    mfa_level: GuildMFALevel.None,
     application_id: null,
     system_channel_id: null,
     system_channel_flags: 0,
@@ -141,11 +142,11 @@ export const dataGuild = d<D.Guild>(guild => {
     vanity_url_code: null,
     description: null,
     banner: null,
-    premium_tier: GuildPremiumTier.NONE,
+    premium_tier: GuildPremiumTier.None,
     preferred_locale: DEFAULT_GUILD_PREFERRED_LOCALE,
     max_video_channel_users: 25,
     public_updates_channel_id: null,
-    nsfw: false,
+    nsfw_level: GuildNSFWLevel.Default,
     ...partial,
     members,
     roles: [
@@ -155,7 +156,7 @@ export const dataGuild = d<D.Guild>(guild => {
         ? []
         : [dataRole({id: partial.id, name: '@everyone'})]),
       ...[...new Set(members.flatMap(member => member.roles))]
-        .filter(roleID => !roles.some(({id}) => id === roleID))
+        .filter(roleId => !roles.some(({id}) => id === roleId))
         .map(id => dataRole({id}))
     ],
     emojis: guild?.emojis?.map(dataGuildEmoji) ?? [],
@@ -164,6 +165,7 @@ export const dataGuild = d<D.Guild>(guild => {
     presences: guild?.presences?.map(dataGuildPresence) ?? [],
     audit_log_entries: guild?.audit_log_entries?.map(auditLogEntry) ?? [],
     integrations: guild?.integrations?.map(integration) ?? [],
-    template: guild?.template ? dataGuildTemplate(guild.template) : undefined
+    template: guild?.template ? dataGuildTemplate(guild.template) : undefined,
+    stickers: guild?.stickers?.map(sticker) ?? []
   }
 })

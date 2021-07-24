@@ -41,9 +41,17 @@ interface WithClientOptions {
   clientData?: DM.ClientData
 }
 
+const defaultIntents = new D.Intents([
+  'GUILDS',
+  'GUILD_MESSAGES',
+  'GUILD_MESSAGE_REACTIONS',
+  'DIRECT_MESSAGES',
+  'DIRECT_MESSAGE_REACTIONS'
+])
+
 export const withClient = <T>(
   fn: (client: D.Client) => T,
-  {intents = D.Intents.NON_PRIVILEGED, data, clientData}: WithClientOptions = {}
+  {intents = defaultIntents, data, clientData}: WithClientOptions = {}
 ): T => fn(new DM.Client({intents}, clientData, new DM.Backend(data)))
 
 export const withClientF =

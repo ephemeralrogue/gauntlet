@@ -12,7 +12,7 @@ describe('fetchApplication', () => {
   )
 
   test('custom application', async () => {
-    const applicationID = '0'
+    const applicationId = '0'
     const name = 'Application Name'
     const ownerUsername = 'app owner'
     await withClient(
@@ -25,9 +25,9 @@ describe('fetchApplication', () => {
         expect((application.owner as User).username).toBe(ownerUsername)
       },
       {
-        data: {applications: [{id: applicationID, name}]},
+        data: {applications: [{id: applicationId, name}]},
         clientData: {
-          application: {id: applicationID, owner: {username: ownerUsername}}
+          application: {id: applicationId, owner: {username: ownerUsername}}
         }
       }
     )

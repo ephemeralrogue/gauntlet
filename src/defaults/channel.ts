@@ -1,12 +1,13 @@
 import {
+  ButtonStyle,
   ChannelType,
+  ComponentType,
   InteractionType,
   MessageActivityType,
   MessageType,
-  OverwriteType,
-  StickerFormatType
-} from 'discord-api-types/v8'
-import {attachmentURLs, randomString, snowflake, timestamp} from '../utils'
+  OverwriteType
+} from 'discord-api-types/v9'
+import {attachmentURLs, snowflake, timestamp} from '../utils'
 import {DEFAULT_CHANNEL_NAME} from './constants'
 import {dataPartialEmoji} from './emoji'
 import {user} from './user'
@@ -18,23 +19,19 @@ import type {
   APIMessageInteraction,
   APIMessageReference,
   APIPartialChannel,
-  APISticker,
   Snowflake
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type {D} from '../types'
 import type {RequireKeys} from '../utils'
 import type {Defaults} from './utils'
-
-export const sticker = d<APISticker>(_sticker => ({
-  id: snowflake(),
-  pack_id: snowflake(),
-  name: 'sticker name',
-  description: 'sticker description',
-  asset: randomString(),
-  preview_asset: null,
-  format_type: StickerFormatType.PNG,
-  ..._sticker
-}))
+import type {
+  ActionRowComponent,
+  ButtonComponent,
+  MessageComponent,
+  PartialDeep,
+  SelectMenuComponent,
+  SelectMenuOption
+} from '../types/Data'
 
 export const dataChannelMention = d<D.ChannelMention>(mention => ({
   id: snowflake(),
@@ -43,8 +40,8 @@ export const dataChannelMention = d<D.ChannelMention>(mention => ({
 }))
 
 export const attachment = (
-  channelID = snowflake(),
-  messageID = snowflake()
+  channelId = snowflake(),
+  messageId = snowflake()
 ): Defaults<APIAttachment> =>
   d<APIAttachment>(_attachment => {
     const base: Omit<APIAttachment, 'proxy_url' | 'url'> = {
@@ -54,7 +51,7 @@ export const attachment = (
       ..._attachment
     }
     return {
-      ...attachmentURLs(channelID, messageID, base.filename),
+      ...attachmentURLs(channelId, messageId, base.filename),
       ...base
     }
   })
@@ -85,7 +82,7 @@ export const dataReaction = d<D.Reaction>(reaction => ({
 }))
 
 export const messageActivity = d<APIMessageActivity>(activity => ({
-  type: MessageActivityType.JOIN,
+  type: MessageActivityType.Join,
   ...activity
 }))
 
@@ -102,7 +99,64 @@ export const messageInteraction = d<APIMessageInteraction>(interaction => ({
   user: user(interaction?.user)
 }))
 
-export const dataMessage = (channelID = snowflake()): Defaults<D.Message> =>
+export const buttonComponent = d<ButtonComponent>(component => {
+  const base: Omit<ButtonComponent, 'custom_id' | 'url'> = {
+    type: ComponentType.Button,
+    style: ButtonStyle.Primary,
+    ...component,
+    emoji: component?.emoji ? dataPartialEmoji(component.emoji) : undefined
+  }
+  return base.style === ButtonStyle.Link
+    ? {
+        url: 'https://discord.com',
+        ...(base as typeof base & {style: ButtonStyle.Link})
+      }
+    : {
+        custom_id: 'click_one',
+        ...(base as typeof base & {
+          style: Exclude<ButtonStyle, ButtonStyle.Link>
+        })
+      }
+})
+
+export const selectMenuOption = d<SelectMenuOption>(option => ({
+  label: '',
+  value: '',
+  ...option,
+  emoji: option?.emoji ? dataPartialEmoji(option.emoji) : undefined
+}))
+
+export const selectMenuComponent = d<SelectMenuComponent>(component => ({
+  type: ComponentType.SelectMenu,
+  custom_id: 'select_one',
+  ...component,
+  options: component?.options?.map(selectMenuOption) ?? []
+}))
+
+type NonActionRowComponent = Exclude<MessageComponent, ActionRowComponent>
+const nonActionRowComponent = d<NonActionRowComponent>(component => {
+  switch (component?.type) {
+    case undefined:
+      return buttonComponent({disabled: component?.disabled})
+    case ComponentType.Button:
+      return buttonComponent(component)
+    case ComponentType.SelectMenu:
+      return selectMenuComponent(component)
+  }
+})
+
+export const actionRowComponent = d<ActionRowComponent>(component => ({
+  type: ComponentType.ActionRow,
+  components: component?.components?.map(nonActionRowComponent) ?? []
+}))
+
+export const messageComponent = d<MessageComponent>(component =>
+  component?.type === ComponentType.ActionRow
+    ? actionRowComponent(component)
+    : nonActionRowComponent(component as PartialDeep<NonActionRowComponent>)
+)
+
+export const dataMessage = (channelId = snowflake()): Defaults<D.Message> =>
   d<D.Message>(message => {
     // TODO: do something like dataGuildChannel: do stuff based on message type
     const base: Omit<D.Message, 'attachments'> = {
@@ -116,7 +170,7 @@ export const dataMessage = (channelID = snowflake()): Defaults<D.Message> =>
       mentions: [],
       mention_roles: [],
       pinned: false,
-      type: MessageType.DEFAULT,
+      type: MessageType.Default,
       application_id: snowflake(),
       ...message,
       mention_channels: message?.mention_channels?.map(dataChannelMention),
@@ -133,11 +187,12 @@ export const dataMessage = (channelID = snowflake()): Defaults<D.Message> =>
         : (message?.referenced_message as null | undefined),
       interaction: message?.interaction
         ? messageInteraction(message.interaction)
-        : undefined
+        : undefined,
+      components: message?.components?.map(actionRowComponent)
     }
     return {
       attachments:
-        message?.attachments?.map(attachment(channelID, base.id)) ?? [],
+        message?.attachments?.map(attachment(channelId, base.id)) ?? [],
       ...base
     }
   })
@@ -149,14 +204,14 @@ export const partialOverwrite = (): Pick<D.Overwrite, 'id' | 'type'> => ({
 
 export const overwrite = d<D.Overwrite>(_overwrite => ({
   ...partialOverwrite(),
-  allow: BigInt(0),
-  deny: BigInt(0),
+  allow: 0n,
+  deny: 0n,
   ..._overwrite
 }))
 
 export const partialChannel = d<APIPartialChannel>(channel => ({
   id: channel?.id ?? snowflake(),
-  type: channel?.type ?? ChannelType.GUILD_TEXT,
+  type: channel?.type ?? ChannelType.GuildText,
   name:
     // Every channel except for DMs can have names
     channel?.type === ChannelType.DM ? undefined : channel?.name ?? 'general'
@@ -186,13 +241,13 @@ export const dataDMChannel = d<D.DMChannel>(channel => {
 export const dataGuildChannel = d<D.GuildChannel>(channel => {
   const partial = partialChannel(channel)
   const base: D.GuildChannel = {
-    ...(partial.type === ChannelType.GUILD_CATEGORY
+    ...(partial.type === ChannelType.GuildCategory
       ? {}
       : {parent_id: channel?.parent_id}),
     position: 0,
     name: DEFAULT_CHANNEL_NAME,
-    ...(partial.type === ChannelType.GUILD_VOICE ||
-    partial.type === ChannelType.GUILD_CATEGORY
+    ...(partial.type === ChannelType.GuildVoice ||
+    partial.type === ChannelType.GuildCategory
       ? {}
       : {nsfw: false}),
     ...partial,
@@ -201,21 +256,21 @@ export const dataGuildChannel = d<D.GuildChannel>(channel => {
       : []
   }
   switch (base.type) {
-    case ChannelType.GUILD_TEXT:
-    case ChannelType.GUILD_NEWS:
+    case ChannelType.GuildText:
+    case ChannelType.GuildNews:
       return {
         ...textBasedChannel(base),
-        ...(base.type === ChannelType.GUILD_TEXT
+        ...(base.type === ChannelType.GuildText
           ? {rate_limit_per_user: 0}
           : {}),
         ...base
       }
-    case ChannelType.GUILD_VOICE:
+    case ChannelType.GuildVoice:
       return {bitrate: 64_000, user_limit: 0, ...base}
-    case ChannelType.GUILD_CATEGORY:
-    case ChannelType.GUILD_STORE:
+    case ChannelType.GuildCategory:
+    case ChannelType.GuildStore:
       return base
-    case ChannelType.GUILD_STAGE_VOICE:
+    case ChannelType.GuildStageVoice:
       return {birate: 40_000, user_limit: 2000, ...base}
     default:
       throw new TypeError(`Invalid guild channel type: ${base.type}`)
@@ -224,18 +279,18 @@ export const dataGuildChannel = d<D.GuildChannel>(channel => {
 
 export const dataGuildChannels = (): [
   channels: D.GuildChannel[],
-  generalChannelID: Snowflake
+  generalChannelId: Snowflake
 ] => {
   const textChannels = dataGuildChannel({
-    type: ChannelType.GUILD_CATEGORY,
+    type: ChannelType.GuildCategory,
     name: 'Text Channels'
   })
   const voiceChannels = dataGuildChannel({
-    type: ChannelType.GUILD_CATEGORY,
+    type: ChannelType.GuildCategory,
     name: 'Voice Channels'
   })
   const general = dataGuildChannel({
-    type: ChannelType.GUILD_TEXT,
+    type: ChannelType.GuildText,
     name: 'general',
     parent_id: textChannels.id
   })
@@ -245,7 +300,7 @@ export const dataGuildChannels = (): [
       voiceChannels,
       general,
       dataGuildChannel({
-        type: ChannelType.GUILD_VOICE,
+        type: ChannelType.GuildVoice,
         name: 'General',
         parent_id: voiceChannels.id
       })

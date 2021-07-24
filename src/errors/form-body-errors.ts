@@ -1,4 +1,4 @@
-import type {AllowedMentionsTypes} from 'discord-api-types/v8'
+import type {AllowedMentionsTypes} from 'discord-api-types/v9'
 
 export interface FormBodyError {
   code: string
@@ -23,7 +23,7 @@ export const CHANNEL_PARENT_INVALID_TYPE: FormBodyError = {
 
 export const GUILD_CREATE_AFK_CHANNEL_NOT_GUILD_VOICE: FormBodyError = {
   code: 'GUILD_CREATE_AFK_CHANNEL_NOT_GUILD_VOICE',
-  message: 'AFK channels must be GUILD_VOICE'
+  message: 'AFK channels must be GuildVoice'
 }
 
 export const GUILD_CREATE_CHANNEL_CATEGORY_NOT_FIRST: FormBodyError = {
@@ -33,7 +33,7 @@ export const GUILD_CREATE_CHANNEL_CATEGORY_NOT_FIRST: FormBodyError = {
 
 export const GUILD_CREATE_SYSTEM_CHANNEL_NOT_GUILD_TEXT: FormBodyError = {
   code: 'GUILD_CREATE_SYSTEM_CHANNEL_NOT_GUILD_TEXT',
-  message: 'System channels must be GUILD_TEXT'
+  message: 'System channels must be GuildText'
 }
 
 export const MAX_EMBED_SIZE_EXCEEDED: FormBodyError = {

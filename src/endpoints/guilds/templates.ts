@@ -5,7 +5,7 @@ import type {
   RESTGetAPITemplateResult,
   RESTPostAPITemplateCreateGuildJSONBody,
   RESTPostAPITemplateCreateGuildResult
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type {EmitPacket, HasIntents} from '../../Backend'
 import type {Request} from '../../errors'
 import type {D, ResolvedClientData, RD, ResolvedData} from '../../types'

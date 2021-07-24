@@ -2,7 +2,7 @@ import type {
   APIApplication,
   APIGuildIntegrationApplication,
   Snowflake
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type * as D from './Data'
 
 export interface ClientDataApplication

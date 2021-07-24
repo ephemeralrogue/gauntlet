@@ -76,23 +76,23 @@ declare module 'discord-markdown' {
     type: 'discordHere'
   }
 
-  interface NodeWithID extends BaseNode {
+  interface NodeWithId extends BaseNode {
     id: string
   }
 
-  export interface DiscordChannelNode extends NodeWithID {
+  export interface DiscordChannelNode extends NodeWithId {
     type: 'discordChannel'
   }
 
-  export interface DiscordRoleNode extends NodeWithID {
+  export interface DiscordRoleNode extends NodeWithId {
     type: 'discordRole'
   }
 
-  export interface DiscordUserNode extends NodeWithID {
+  export interface DiscordUserNode extends NodeWithId {
     type: 'discordUser'
   }
 
-  export interface DiscordEmojiNode extends NodeWithID {
+  export interface DiscordEmojiNode extends NodeWithId {
     type: 'discordEmoji'
     animated: boolean
     name: string

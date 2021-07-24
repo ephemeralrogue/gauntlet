@@ -4,10 +4,10 @@ import {
   GatewayDispatchEvents,
   GatewayIntentBits,
   PermissionFlagsBits
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import * as convert from '../../../convert'
 import * as defaults from '../../../defaults'
-import {attachmentURLs, clientUserID, pick, omit} from '../../../utils'
+import {attachmentURLs, clientUserId, pick, omit} from '../../../utils'
 import {getChannel, getPermissions, hasPermissions} from '../../utils'
 import {Method, error, errors, formBodyErrors, mkRequest} from '../../../errors'
 import type {HTTPAttachmentData} from 'discord.js'
@@ -17,7 +17,7 @@ import type {
   RESTPostAPIChannelMessageJSONBody,
   RESTPostAPIChannelMessageResult,
   Snowflake
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type {EmitPacket, HasIntents} from '../../../Backend'
 import type {FormBodyError, FormBodyErrors} from '../../../errors'
 import type {D, ResolvedClientData, RD, ResolvedData} from '../../../types'
@@ -72,25 +72,12 @@ const getEmbedErrors = ({
   provider: {name: providerName} = {},
   author,
   fields
-}: APIEmbed): FormBodyErrors[string] => {
+}: APIEmbed): FormBodyErrors => {
   // TODO: fix discord-api-types: these things can be null (well Discord.js uses null anyway)
   const {text: footerText, icon_url: footerIconURL} = footer ?? {text: ''}
   const {url: imageURL} = image ?? {}
   const {url: thumbnailURL} = thumbnail ?? {}
   const {name: authorName = '', url: authorURL} = author ?? {}
-
-  if (
-    title.length +
-      description.length +
-      (fields?.reduce(
-        (acc, {name, value}) => acc + name.length + value.length,
-        0
-      ) ?? 0) +
-      footerText.length +
-      authorName.length >
-    6000
-  )
-    return {_errors: [formBodyErrors.MAX_EMBED_SIZE_EXCEEDED]}
 
   const colorError =
     color < 0
@@ -118,7 +105,7 @@ const getEmbedErrors = ({
     }, {}) ?? {}
   return {
     ...lengthError(title, 256, 'title'),
-    ...lengthError(description, 2048, 'description'),
+    ...lengthError(description, 4096, 'description'),
     // I'm not bothering to validate URLs
     ...lengthError(url, MAX_URL, 'url'),
     ...(timestamp && new Date(timestamp).toISOString() !== timestamp
@@ -139,6 +126,35 @@ const getEmbedErrors = ({
     ...lengthError(authorURL, MAX_URL, 'author', 'url'),
     ...(Object.keys(fieldsErrors).length ? {fields: fieldsErrors} : {})
   }
+}
+
+const getEmbedsErrors = (
+  embeds: readonly APIEmbed[]
+): FormBodyErrors[string] => {
+  if (
+    embeds.reduce(
+      (acc, {title, description, fields, footer, author}) =>
+        acc +
+        (title?.length ?? 0) +
+        (description?.length ?? 0) +
+        (fields?.reduce(
+          (acc2, {name, value}) => acc2 + name.length + value.length,
+          0
+        ) ?? 0) +
+        (footer?.text.length ?? 0) +
+        (author?.name?.length ?? 0),
+      0
+    ) > 6000
+  )
+    return {_errors: [formBodyErrors.MAX_EMBED_SIZE_EXCEEDED]}
+
+  return embeds.reduce<FormBodyErrors[string]>((errs, embed, i) => {
+    const embedErrors = getEmbedErrors(embed)
+    return {
+      ...errs,
+      ...(Object.keys(embedErrors).length ? {[i]: embedErrors} : {})
+    }
+  }, {})
 }
 
 const getAllowedMentionsErrors = (
@@ -188,11 +204,11 @@ const getFormErrors = ({
   allowed_mentions,
   content,
   nonce,
-  embed
+  embeds
 }: RequireKeys<
   Pick<
     RESTPostAPIChannelMessageJSONBody,
-    'allowed_mentions' | 'content' | 'embed' | 'nonce'
+    'allowed_mentions' | 'content' | 'embeds' | 'nonce'
   >,
   'content'
 >): FormBodyErrors => {
@@ -204,14 +220,14 @@ const getFormErrors = ({
         ? undefined
         : formBodyErrors.NONCE_TYPE_INVALID_TYPE
       : undefined
-  const embedErrs = embed ? getEmbedErrors(embed) : {}
+  const embedsErrs = embeds?.length ?? 0 ? getEmbedsErrors(embeds!) : {}
   const allowedMentionsErrs = allowed_mentions
     ? getAllowedMentionsErrors(allowed_mentions)
     : {}
   const errs: FormBodyErrors = {
     ...lengthError(content, 2000, 'content'),
     ...(nonceError ? {nonce: {_errors: [nonceError]}} : {}),
-    ...(Object.keys(embedErrs).length ? {embed: embedErrs} : {}),
+    ...(Object.keys(embedsErrs).length ? {embed: embedsErrs} : {}),
     ...(Object.keys(allowedMentionsErrs).length
       ? {allowed_mentions: allowedMentionsErrs}
       : {})
@@ -290,14 +306,14 @@ export default (
     hasIntents: HasIntents,
     emitPacket: EmitPacket
   ) =>
-  (channelID: Snowflake): MessagesPost =>
+  (channelId: Snowflake): MessagesPost =>
   async (options): Promise<RESTPostAPIChannelMessageResult> => {
     const {
       data: {
         content = '',
         nonce,
         tts,
-        embed,
+        embeds,
         allowed_mentions,
         message_reference
       },
@@ -305,11 +321,11 @@ export default (
     } = options
     // Errors
     const request = mkRequest(
-      `/channels/${channelID}/messages`,
+      `/channels/${channelId}/messages`,
       Method.POST,
       options
     )
-    const userID = clientUserID(data, clientData)
+    const userId = clientUserId(data, clientData)
 
     const checkPermissions = (
       guild: RD.Guild,
@@ -317,19 +333,17 @@ export default (
     ): bigint => {
       const permissions = getPermissions(
         guild,
-        guild.members.find(member => member.id === userID)!,
+        guild.members.find(member => member.id === userId)!,
         channel
       )
-      if (!hasPermissions(permissions, PermissionFlagsBits.VIEW_CHANNEL))
+      if (!hasPermissions(permissions, PermissionFlagsBits.ViewChannel))
         error(request, errors.MISSING_ACCESS)
       if (
         !hasPermissions(
           permissions,
-          PermissionFlagsBits.SEND_MESSAGES |
-            (files?.length ?? 0
-              ? PermissionFlagsBits.ATTACH_FILES
-              : BigInt(0)) |
-            (embed ? PermissionFlagsBits.EMBED_LINKS : BigInt(0))
+          PermissionFlagsBits.SendMessages |
+            (files?.length ?? 0 ? PermissionFlagsBits.AttachFiles : 0n) |
+            (embeds?.length ?? 0 ? PermissionFlagsBits.EmbedLinks : 0n)
         )
       )
         error(request, errors.MISSING_PERMISSIONS)
@@ -338,12 +352,12 @@ export default (
 
     // if hasn't connected to gateway: 400, {"message": "Unauthorized", "code": 40001}
     // Basic validation
-    const formErrs = getFormErrors({allowed_mentions, content, nonce, embed})
+    const formErrs = getFormErrors({allowed_mentions, content, nonce, embeds})
     if (Object.keys(formErrs).length)
       error(request, errors.INVALID_FORM_BODY, formErrs)
 
     // Unknown channel
-    const [guild, channel] = getChannel(data)(channelID)
+    const [guild, channel] = getChannel(data)(channelId)
     if (!channel) error(request, errors.UNKNOWN_CHANNEL)
 
     // Permissions
@@ -352,13 +366,13 @@ export default (
       : undefined
 
     // Empty message
-    if (!content && !embed && !(files?.length ?? 0))
+    if (!content && !(embeds?.length ?? 0) && !(files?.length ?? 0))
       error(request, errors.EMPTY_MESSAGE)
 
     // Replies
     if (message_reference) {
       let err: FormBodyError | undefined
-      if (message_reference.channel_id !== channelID)
+      if (message_reference.channel_id !== channelId)
         err = formBodyErrors.REPLIES_CANNOT_REFERENCE_OTHER_CHANNEL
       if (message_reference.guild_id !== guild?.id)
         err = formBodyErrors.REPLIES_UNKNOWN_MESSAGE
@@ -375,15 +389,15 @@ export default (
     )
     const canMentionEveryone =
       permissions !== undefined &&
-      hasPermissions(permissions, PermissionFlagsBits.MENTION_EVERYONE)
-    const base = defaults.dataMessage(channelID)({
+      hasPermissions(permissions, PermissionFlagsBits.MentionEveryone)
+    const base = defaults.dataMessage(channelId)({
       content,
       nonce,
       tts:
         (tts ?? false) &&
         permissions !== undefined &&
-        hasPermissions(permissions, PermissionFlagsBits.SEND_TTS_MESSAGES),
-      author_id: userID,
+        hasPermissions(permissions, PermissionFlagsBits.SendTTSMessages),
+      author_id: userId,
       message_reference,
       mention_everyone: mentions.everyone && guild && canMentionEveryone,
       mentions: mentions.users.filter(id => data.users.has(id)),
@@ -405,7 +419,7 @@ export default (
         const file = files?.find(
           ({name}) => name === fileURL!.slice(ATTACHMENT_SCHEME.length)
         )
-        if (file) urls = attachmentURLs(channelID, base.id, file.name)
+        if (file) urls = attachmentURLs(channelId, base.id, file.name)
       }
       return {...object, ...urls}
     }
@@ -442,10 +456,10 @@ export default (
         fields: fields?.slice(0, 25)
       })
 
-    const defaultAttachment = defaults.attachment(channelID, base.id)
+    const defaultAttachment = defaults.attachment(channelId, base.id)
     const message: D.Message = {
       ...base,
-      embeds: embed ? [resolveEmbed(embed)] : [],
+      embeds: embeds?.map(resolveEmbed) ?? [],
       attachments:
         files?.map(({name}) => defaultAttachment({filename: name})) ?? []
     }
@@ -453,12 +467,12 @@ export default (
     channel.messages!.set(message.id, message)
     channel.last_message_id = message.id
 
-    const apiMessage = convert.message(data, channelID)(message)
+    const apiMessage = convert.message(data, channelId)(message)
     if (
       hasIntents(
         guild
-          ? GatewayIntentBits.GUILD_MESSAGES
-          : GatewayIntentBits.DIRECT_MESSAGES
+          ? GatewayIntentBits.GuildMessages
+          : GatewayIntentBits.DirectMessages
       )
     )
       emitPacket(GatewayDispatchEvents.MessageCreate, apiMessage)

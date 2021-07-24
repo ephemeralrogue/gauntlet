@@ -1,11 +1,11 @@
 import * as convert from '../convert'
-import type {RESTGetAPIOauth2CurrentApplicationResult} from 'discord-api-types/v8'
+import type {RESTGetAPIOAuth2CurrentApplicationResult} from 'discord-api-types/v9'
 import type {ResolvedClientData, ResolvedData} from '../types'
 
 export interface OAuth2 {
   authorize: string
   applications: (_: '@me') => {
-    get: () => Promise<RESTGetAPIOauth2CurrentApplicationResult>
+    get: () => Promise<RESTGetAPIOAuth2CurrentApplicationResult>
   }
 }
 

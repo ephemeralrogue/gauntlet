@@ -1,5 +1,5 @@
 import post from './post'
-import type {Snowflake} from 'discord-api-types/v8'
+import type {Snowflake} from 'discord-api-types/v9'
 import type {EmitPacket, HasIntents} from '../../../Backend'
 import type {ResolvedClientData, ResolvedData} from '../../../types'
 import type {MessagesPost} from './post'

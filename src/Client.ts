@@ -1,14 +1,14 @@
 import {
   GatewayDispatchEvents,
   GatewayIntentBits,
-  GatewayOPCodes
-} from 'discord-api-types/v8'
+  GatewayOpcodes
+} from 'discord-api-types/v9'
 import * as D from 'discord.js'
 import WebSocketShard from '../node_modules/discord.js/src/client/websocket/WebSocketShard'
 import {Backend, api} from './Backend'
 import * as convert from './convert'
 import * as defaults from './defaults'
-import type {APIUser} from 'discord-api-types/v8'
+import type {APIUser} from 'discord-api-types/v9'
 import type {ClientOptions} from 'discord.js'
 import type {EmitPacket, HasIntents} from './Backend'
 import type {ClientData, ResolvedClientData} from './types'
@@ -46,7 +46,7 @@ const _mockClient = (
     !!((client.options.intents as number) & intents)
   const emitPacket: EmitPacket = (t, d) => {
     client.ws['handlePacket'](
-      {op: GatewayOPCodes.Dispatch, t, d},
+      {op: GatewayOpcodes.Dispatch, t, d},
       client.ws.shards.first()
     )
   }
@@ -69,7 +69,7 @@ const _mockClient = (
   // Make the websocket manager ready to receive packets
   client.ws['triggerClientReady']()
 
-  if (hasIntents(GatewayIntentBits.GUILDS) && data.guilds.size) {
+  if (hasIntents(GatewayIntentBits.Guilds) && data.guilds.size) {
     // Make each of the guilds available
     const convertGuild = convert.guildCreateGuild(data, clientData)
     for (const [, guild] of data.guilds) {

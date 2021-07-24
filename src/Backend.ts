@@ -9,7 +9,7 @@ import type {
   GatewayDispatchPayload,
   GatewayIntentBits,
   Snowflake
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type {D, Data, ResolvedClientData, RD, ResolvedData} from './types'
 import type {Channels, Guilds, OAuth2, Voice} from './endpoints'
 
@@ -129,7 +129,7 @@ export class Backend {
               ] as const
           )
       ]),
-      stickers: resolveCollection(stickers, 'id', defaults.sticker),
+      standard_stickers: resolveCollection(stickers, 'id', defaults.sticker),
       users: new Collection([
         ...resolvedUsers.entries(),
         // Add message authors

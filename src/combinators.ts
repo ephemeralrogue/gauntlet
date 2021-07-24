@@ -1,5 +1,5 @@
 import {snowflake} from './utils'
-import type {APIGuildIntegrationApplication} from 'discord-api-types/v8'
+import type {APIGuildIntegrationApplication} from 'discord-api-types/v9'
 import type {ClientData, ClientDataApplication, D, Data} from './types'
 import type {Fn1, ReadonlyNonEmptyArray} from './utils'
 

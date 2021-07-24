@@ -1,6 +1,6 @@
 import {resolveCollection} from '../utils'
 import {createDefaults as d} from './utils'
-import type {APIVoiceRegion} from 'discord-api-types/v8'
+import type {APIVoiceRegion} from 'discord-api-types/v9'
 import type {Collection} from 'discord.js'
 import type {D} from '../types'
 

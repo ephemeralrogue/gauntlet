@@ -1,10 +1,10 @@
-import {ChannelType, GatewayDispatchEvents} from 'discord-api-types/v8'
+import {ChannelType, GatewayDispatchEvents} from 'discord-api-types/v9'
 import {Intents} from 'discord.js'
 import {Method, error, errors, formBodyErrors, mkRequest} from '../../errors'
 import * as convert from '../../convert'
 import * as defaults from '../../defaults'
 import * as resolve from '../../resolve'
-import {clientUserID, snowflake, timestamp} from '../../utils'
+import {clientUserId, snowflake, timestamp} from '../../utils'
 import type {
   APIGuild,
   APIGuildCreateOverwrite,
@@ -13,7 +13,7 @@ import type {
   RESTPostAPIGuildsJSONBody,
   RESTPostAPIGuildsResult,
   Snowflake
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type {EmitPacket, HasIntents} from '../../Backend'
 import type {D, ResolvedClientData, ResolvedData} from '../../types'
 import type {FormBodyError, FormBodyErrors, Request} from '../../errors'
@@ -28,21 +28,21 @@ export type GuildsPost = (
 ) => Promise<RESTPostAPIGuildsResult>
 
 const validGuildChannelTypes = new Set([
-  ChannelType.GUILD_TEXT,
-  ChannelType.GUILD_VOICE,
-  ChannelType.GUILD_CATEGORY
+  ChannelType.GuildText,
+  ChannelType.GuildVoice,
+  ChannelType.GuildCategory
 ])
 
 const validAFKTimeouts = new Set([60, 300, 900, 1800, 3600])
 
-type AnyID = Snowflake | number
+type AnyId = Snowflake | number
 
 export const checkClientGuildCount =
   (data: ResolvedData, clientData: ResolvedClientData) =>
   (request: Request): void => {
-    const userID = clientUserID(data, clientData)
+    const userId = clientUserId(data, clientData)
     if (
-      data.guilds.filter(({members}) => members.some(({id}) => id === userID))
+      data.guilds.filter(({members}) => members.some(({id}) => id === userId))
         .size >= 10
     )
       error(request, errors.MAXIMUM_GUILDS)
@@ -134,7 +134,7 @@ const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
               }
             })
           }
-          if (parent.type !== ChannelType.GUILD_CATEGORY) {
+          if (parent.type !== ChannelType.GuildCategory) {
             error(request, errors.INVALID_FORM_BODY, {
               channels: {_errors: [formBodyErrors.CHANNEL_PARENT_INVALID_TYPE]}
             })
@@ -153,23 +153,23 @@ const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
     }
 
     const checkChannel = (
-      key: KeysMatching<RESTPostAPIGuildsJSONBody, AnyID | null | undefined>,
+      key: KeysMatching<RESTPostAPIGuildsJSONBody, AnyId | null | undefined>,
       type: ChannelType,
       invalidTypeError: FormBodyError
     ) => {
-      const channelID = guild[key]
-      if (channelID != null) {
-        const channel = channels?.find(({id}) => id === channelID)
+      const channelId = guild[key]
+      if (channelId != null) {
+        const channel = channels?.find(({id}) => id === channelId)
         if (!channel) {
           error(request, errors.INVALID_FORM_BODY, {
             channels: {
               _errors: [
-                formBodyErrors.GUILD_CREATE_CHANNEL_ID_INVALID(key, channelID)
+                formBodyErrors.GUILD_CREATE_CHANNEL_ID_INVALID(key, channelId)
               ]
             }
           })
         }
-        if ((channel.type ?? ChannelType.GUILD_TEXT) !== type) {
+        if ((channel.type ?? ChannelType.GuildText) !== type) {
           error(request, errors.INVALID_FORM_BODY, {
             channels: {_errors: [invalidTypeError]}
           })
@@ -181,12 +181,12 @@ const checkErrors = (data: ResolvedData, clientData: ResolvedClientData) => {
     if (channels?.length ?? 0) {
       checkChannel(
         'afk_channel_id',
-        ChannelType.GUILD_VOICE,
+        ChannelType.GuildVoice,
         formBodyErrors.GUILD_CREATE_AFK_CHANNEL_NOT_GUILD_VOICE
       )
       checkChannel(
         'system_channel_id',
-        ChannelType.GUILD_TEXT,
+        ChannelType.GuildText,
         formBodyErrors.GUILD_CREATE_SYSTEM_CHANNEL_NOT_GUILD_TEXT
       )
     }
@@ -236,7 +236,7 @@ export const createGuild: (
       system_channel_id,
       system_channel_flags
     } = guild
-    const userID = clientUserID(data, clientData)
+    const userId = clientUserId(data, clientData)
     const base = defaults.dataGuild({
       name,
       icon,
@@ -246,18 +246,18 @@ export const createGuild: (
       default_message_notifications,
       explicit_content_filter,
       system_channel_flags,
-      owner_id: userID,
-      application_id: userID,
-      members: [{id: userID, joined_at: timestamp()}]
+      owner_id: userId,
+      application_id: userId,
+      members: [{id: userId, joined_at: timestamp()}]
     })
 
-    type IDMap = ReadonlyMap<number | string, Snowflake>
+    type IdMap = ReadonlyMap<number | string, Snowflake>
 
-    type ResolveRolesResult = [D.Role[], IDMap]
+    type ResolveRolesResult = [D.Role[], IdMap]
     const [resolvedRoles, roleMap]: ResolveRolesResult =
       roles?.length ?? 0
         ? ((): ResolveRolesResult => {
-            const map: IDMap = new Map([
+            const map: IdMap = new Map([
               [roles![0]!.id, base.id],
               ...roles!.slice(1).map(({id}) => [id, snowflake()] as const)
             ])
@@ -276,15 +276,15 @@ export const createGuild: (
           })()
         : [[defaults.dataRole({id: base.id, name: '@everyone'})], new Map()]
 
-    type ResolveChannelResult = [D.GuildChannel[], Snowflake | null, IDMap]
+    type ResolveChannelResult = [D.GuildChannel[], Snowflake | null, IdMap]
     const [
       resolvedChannels,
-      systemChannelID,
+      systemChannelId,
       channelMap
     ]: ResolveChannelResult =
       channels?.length ?? 0
         ? ((): ResolveChannelResult => {
-            const map: IDMap = new Map(
+            const map: IdMap = new Map(
               channels!
                 .filter(
                   (
@@ -308,7 +308,7 @@ export const createGuild: (
                           .filter(overwrite => roleMap.has(overwrite.id))
                           .map(
                             ({
-                              id: overwriteID,
+                              id: overwriteId,
                               allow,
                               deny,
                               ...overwriteRest
@@ -320,7 +320,7 @@ export const createGuild: (
                               >
                             >) =>
                               defaults.overwrite({
-                                id: roleMap.get(overwriteID)!,
+                                id: roleMap.get(overwriteId)!,
                                 allow: BigInt(allow ?? 0),
                                 deny: BigInt(deny ?? 0),
                                 ...overwriteRest
@@ -342,7 +342,7 @@ export const createGuild: (
       channels: resolvedChannels,
       afk_channel_id:
         afk_channel_id == null ? null : channelMap.get(afk_channel_id)!,
-      system_channel_id: systemChannelID
+      system_channel_id: systemChannelId
     })
     data.guilds.set(guildData.id, guildData)
 

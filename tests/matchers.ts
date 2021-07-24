@@ -1,4 +1,4 @@
-import {RESTJSONErrorCodes} from 'discord-api-types/v8'
+import {RESTJSONErrorCodes} from 'discord-api-types/v9'
 import * as D from 'discord.js'
 import {getMatchers} from 'expect/build/jestMatchersObject'
 import type {SyncExpectationResult} from 'expect/build/types'

@@ -1,4 +1,4 @@
-import guildsID from './:id'
+import guildsId from './:id'
 import templates from './templates'
 import post from './post'
 import type {EmitPacket, HasIntents} from '../../Backend'
@@ -20,7 +20,7 @@ export const guilds = (
   hasIntents: HasIntents,
   emitPacket: EmitPacket
 ): Guilds =>
-  Object.assign(guildsID(data, clientData, hasIntents, emitPacket), {
+  Object.assign(guildsId(data, clientData, hasIntents, emitPacket), {
     templates: templates(data, clientData, hasIntents, emitPacket),
     post: post(data, clientData, hasIntents, emitPacket)
   })

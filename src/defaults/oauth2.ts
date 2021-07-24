@@ -5,7 +5,7 @@ import {createDefaults as d} from './utils'
 import type {
   APIApplication,
   APIGuildIntegrationApplication
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type {ClientDataApplication} from '../types'
 import type {CommonProperties} from '../utils'
 

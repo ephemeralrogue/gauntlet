@@ -6,7 +6,7 @@ import '../matchers'
 
 type MatchObjectTemplate = DeepPartialOmit<D.GuildTemplate, 'valueOf'>
 
-const guildID = '0'
+const guildId = '0'
 
 describe('get template', () => {
   test('success', async () => {
@@ -19,9 +19,9 @@ describe('get template', () => {
       ).toMatchObject<MatchObjectTemplate>({
         name: templateName,
         description: templateDescription,
-        guild: {id: guildID}
+        guild: {id: guildId}
       })
-    }, DM.guildWithClient({id: guildID, template: {code, name: templateName, description: templateDescription}})())
+    }, DM.guildWithClient({id: guildId, template: {code, name: templateName, description: templateDescription}})())
   })
 
   test(
@@ -78,18 +78,18 @@ describe('get guild templates', () => {
     'no templates',
     withClientF(async client => {
       expect(
-        (await client.guilds.cache.get(guildID)!.fetchTemplates()).size
+        (await client.guilds.cache.get(guildId)!.fetchTemplates()).size
       ).toBe(0)
-    }, DM.guildWithClient({id: guildID})())
+    }, DM.guildWithClient({id: guildId})())
   )
 
   test('simple template', async () => {
     const templateName = 'Template name'
     await withClient(async client => {
-      const templates = await client.guilds.cache.get(guildID)!.fetchTemplates()
+      const templates = await client.guilds.cache.get(guildId)!.fetchTemplates()
       expect(templates.size).toBe(1)
       expect(templates.first()!.name).toBe(templateName)
-    }, DM.guildWithClient({id: guildID, template: {name: templateName}})())
+    }, DM.guildWithClient({id: guildId, template: {name: templateName}})())
   })
 })
 
@@ -101,16 +101,16 @@ describe('create guild template', () => {
       async client =>
         expect(
           await client.guilds.cache
-            .get(guildID)!
+            .get(guildId)!
             .createTemplate(name, description)
         ).toMatchObject<MatchObjectTemplate>({name, description}),
-      DM.guildWithClient({id: guildID})()
+      DM.guildWithClient({id: guildId})()
     )
   })
 })
 
 const getTemplate = async (client: D.Client): Promise<D.GuildTemplate> =>
-  (await client.guilds.cache.get(guildID)!.fetchTemplates()).first()!
+  (await client.guilds.cache.get(guildId)!.fetchTemplates()).first()!
 
 describe('modify guild template', () => {
   test('success', async () => {
@@ -123,7 +123,7 @@ describe('modify guild template', () => {
           await (await getTemplate(client)).edit({name: newName})
         ).toMatchObject<MatchObjectTemplate>({name: newName, description}),
       DM.guildWithClient({
-        id: guildID,
+        id: guildId,
         template: {name: oldName, description}
       })()
     )
@@ -135,6 +135,6 @@ describe('delete guild template', () => {
     const name = 'template name'
     await withClient(async client => {
       expect((await (await getTemplate(client)).delete()).name).toBe(name)
-    }, DM.guildWithClient({id: guildID, template: {name}})())
+    }, DM.guildWithClient({id: guildId, template: {name}})())
   })
 })

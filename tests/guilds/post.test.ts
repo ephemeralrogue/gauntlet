@@ -2,13 +2,14 @@
   -- The helper functions _formErr and formErr use expect
 */
 
-import {RESTJSONErrorCodes} from 'discord-api-types/v8'
+import {RESTJSONErrorCodes} from 'discord-api-types/v9'
+import * as D from 'discord.js'
+import type {ChannelTypes} from 'discord.js/typings/enums'
 import * as DM from '../../src'
-import {withClient, withClientF} from '../utils'
-import type * as D from 'discord.js'
 import type {Override} from '../../src/utils'
-import type {MatchObjectGuild} from '../utils'
 import '../matchers'
+import type {MatchObjectGuild} from '../utils'
+import {withClient, withClientF} from '../utils'
 
 // TODO: fix Discord.js types
 type GuildCreateOpts = Override<
@@ -16,7 +17,7 @@ type GuildCreateOpts = Override<
   {
     channels?: Override<
       D.PartialChannelData,
-      {type?: keyof typeof ChannelType}
+      {type?: keyof typeof ChannelTypes}
     >[]
   }
 >
@@ -36,7 +37,7 @@ describe('successes', () => {
       expect(await client.guilds.create(name)).toMatchObject<MatchObjectGuild>({
         name,
         afkTimeout: 300,
-        defaultMessageNotifications: 'ALL',
+        defaultMessageNotifications: 'ALL_MESSAGES',
         explicitContentFilter: 'DISABLED',
         verificationLevel: 'NONE'
       })
@@ -47,8 +48,8 @@ describe('successes', () => {
     'overriding basic defaults',
     withClientF(async client => {
       const afkTimeout = 60
-      const defaultMessageNotifications: D.DefaultMessageNotifications =
-        'MENTIONS'
+      const defaultMessageNotifications: D.DefaultMessageNotificationLevel =
+        'ONLY_MENTIONS'
       const explicitContentFilter: D.ExplicitContentFilterLevel = 'ALL_MEMBERS'
       const verificationLevel: D.VerificationLevel = 'HIGH'
       expect(
@@ -72,17 +73,21 @@ describe('successes', () => {
     test(
       'parent channel',
       withClientF(async client => {
-        const parentID = 0
+        const parentId = 0
         const {
           channels: {cache: channels}
         } = await client.guilds.create(name, {
           channels: [
-            {name, id: parentID, type: 'category'},
-            {name, parentID}
+            {
+              name,
+              id: parentId,
+              type: 'GUILD_CATEGORY'
+            },
+            {name, parentId}
           ]
         })
-        expect(channels.find(({type}) => type === 'text')!.parentID).toBe(
-          channels.find(({type}) => type === 'category')!.id
+        expect(channels.find(({type}) => type === 'GUILD_TEXT')!.parentId).toBe(
+          channels.find(({type}) => type === 'GUILD_CATEGORY')!.id
         )
       })
     )
@@ -93,10 +98,10 @@ describe('successes', () => {
       withClientF(async client => {
         const id = 0
         const guild = await client.guilds.create(name, {
-          channels: [{name, id, type: 'voice'}],
-          afkChannelID: id
+          channels: [{name, id, type: 'GUILD_VOICE'}],
+          afkChannelId: id
         })
-        expect(guild.afkChannelID).toBe(guild.channels.cache.first()!.id)
+        expect(guild.afkChannelId).toBe(guild.channels.cache.first()!.id)
       })
     )
 
@@ -106,9 +111,9 @@ describe('successes', () => {
         const id = 0
         const guild = await client.guilds.create(name, {
           channels: [{name, id}],
-          systemChannelID: id
+          systemChannelId: id
         })
-        expect(guild.systemChannelID).toBe(guild.channels.cache.first()!.id)
+        expect(guild.systemChannelId).toBe(guild.channels.cache.first()!.id)
       })
     )
 
@@ -121,12 +126,12 @@ describe('successes', () => {
           roles: [{}, {id}],
           channels: [{name, permissionOverwrites: [{id, deny}]}]
         })
+        const channel = guild.channels.cache.first()!
+        expect(channel).toBeInstanceOf(D.TextChannel)
         expect(
-          guild.channels.cache
-            .first()!
-            .permissionOverwrites.get(
-              guild.roles.cache.findKey(role => role.id !== guild.id)!
-            )?.deny
+          (channel as D.TextChannel).permissionOverwrites.cache.get(
+            guild.roles.cache.findKey(role => role.id !== guild.id)!
+          )?.deny
         ).toEqualBitfield(deny)
       })
     )
@@ -169,20 +174,20 @@ describe('errors', () => {
       formErr({channels: [{name: 'a'.repeat(101)}]})
     )
 
-    test('invalid channel type', formErr({channels: [{name, type: 'dm'}]}))
+    test('invalid channel type', formErr({channels: [{name, type: 'DM'}]}))
 
-    const parentID = 0
+    const parentId = 0
 
     describe('parent channel', () => {
-      test('missing', formErr({channels: [{name, parentID}]}))
+      test('missing', formErr({channels: [{name, parentId}]}))
 
       describe('invalid type', () => {
         test(
           'using default text type',
           formErr({
             channels: [
-              {name, id: parentID},
-              {name, parentID}
+              {name, id: parentId},
+              {name, parentId}
             ]
           })
         )
@@ -191,8 +196,8 @@ describe('errors', () => {
           'using explicit incorrect type',
           formErr({
             channels: [
-              {name, id: parentID, type: 'text'},
-              {name, parentID}
+              {name, id: parentId, type: 'GUILD_TEXT'},
+              {name, parentId}
             ]
           })
         )
@@ -202,8 +207,8 @@ describe('errors', () => {
         'parent not before child',
         formErr({
           channels: [
-            {name, parentID},
-            {name, id: parentID, type: 'category'}
+            {name, parentId},
+            {name, id: parentId, type: 'GUILD_CATEGORY'}
           ]
         })
       )
@@ -211,8 +216,8 @@ describe('errors', () => {
 
     describe.each([
       // as boolean is required to get correct type
-      ['AFK channel', 'afkChannelID', 'text', true as boolean],
-      ['system channel', 'systemChannelID', 'voice']
+      ['AFK channel', 'afkChannelId', 'GUILD_TEXT', true as boolean],
+      ['system channel', 'systemChannelId', 'GUILD_VOICE']
     ] as const)('%s', (_, key, type, checkDefault = false) => {
       const id = 0
       test('missing', formErr({channels: [{name}], [key]: id}))

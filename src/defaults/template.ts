@@ -11,7 +11,7 @@ import type {
   APIGuildCreatePartialChannel,
   APIGuildCreateRole,
   APITemplateSerializedSourceGuild
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type {D} from '../types'
 
 // These live here instead of in ./guild.ts to avoid dependency cycles

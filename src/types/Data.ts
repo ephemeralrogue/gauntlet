@@ -1,4 +1,8 @@
 import type {
+  APIActionRowComponent,
+  APIButtonComponent,
+  APIButtonComponentWithCustomId,
+  APIButtonComponentWithURL,
   APIChannel,
   APIChannelMention,
   APIEmbed,
@@ -10,13 +14,15 @@ import type {
   APIOverwrite,
   APIReaction,
   APIRole,
+  APISelectMenuComponent,
+  APISelectMenuOption,
   APISticker,
   APITemplate,
   APIUser,
   APIVoiceRegion,
   GatewayVoiceState,
   Snowflake
-} from 'discord-api-types/v8'
+} from 'discord-api-types/v9'
 import type {AnyFunction, Override, RequireKeys} from '../utils'
 import type {
   APIAuditLogChange,
@@ -70,23 +76,64 @@ export interface Embed extends APIEmbed {
   fields?: EmbedField[]
 }
 
+type _ButtonComponent<T extends APIButtonComponent> = Override<
+  T,
+  {emoji?: PartialEmoji}
+>
+export type ButtonComponentWithCustomId =
+  _ButtonComponent<APIButtonComponentWithCustomId>
+export type ButtonComponentWithURL = _ButtonComponent<APIButtonComponentWithURL>
+export type ButtonComponent =
+  | ButtonComponentWithCustomId
+  | ButtonComponentWithURL
+
+export type SelectMenuOption = Override<
+  APISelectMenuOption,
+  {emoji?: PartialEmoji}
+>
+
+export type SelectMenuComponent = Override<
+  APISelectMenuComponent,
+  {options: SelectMenuOption[]}
+>
+
+export type ActionRowComponent = Override<
+  APIActionRowComponent,
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define -- recursive
+  {components: Exclude<MessageComponent, ActionRowComponent>[]}
+>
+
+export type MessageComponent =
+  | ActionRowComponent
+  | ButtonComponent
+  | SelectMenuComponent
+
 export interface Message
   extends Override<
     Omit<
       APIMessage,
-      'application' | 'author' | 'channel_id' | 'guild_id' | 'member'
+      | 'application'
+      | 'author'
+      | 'channel_id'
+      | 'guild_id'
+      | 'member'
+      | 'sticker_items'
+      | 'stickers'
+      | 'thread'
     >,
     {
       mentions: Snowflake[]
       mention_channels?: ChannelMention[]
       referenced_message?: Message | null
-      stickers?: Snowflake[]
+      components?: ActionRowComponent[]
     }
   > {
   application_id?: Snowflake
   author_id: Snowflake
   embeds: Embed[]
   reactions: Reaction[]
+  thread_id?: Snowflake
+  sticker_ids?: Snowflake[]
 }
 
 export type Overwrite = Override<APIOverwrite, Record<'allow' | 'deny', bigint>>
@@ -179,6 +226,7 @@ export interface Guild
   > {
   emojis: GuildEmoji[]
   integrations: APIGuildIntegration[]
+  stickers: APISticker[]
 }
 
 // TODO: better name
