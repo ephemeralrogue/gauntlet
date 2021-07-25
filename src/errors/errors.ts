@@ -32,12 +32,21 @@ export const errors = {
     400,
     RESTJSONErrorCodes.CannotSendAnEmptyMessage
   ],
+  NON_TEXT_CHANNEL: [
+    'Cannot send messages in a non-text channel',
+    400,
+    RESTJSONErrorCodes.CannotSendMessagesInVoiceChannel
+  ],
   MISSING_PERMISSIONS: [
     'Missing Permissions',
     403,
     RESTJSONErrorCodes.MissingPermissions
   ],
-  INVALID_WEBHOOK_TOKEN: ['Invalid Webhook Token', 401, 50_027],
+  INVALID_WEBHOOK_TOKEN: [
+    'Invalid Webhook Token',
+    401,
+    RESTJSONErrorCodes.InvalidWebhookToken
+  ],
   INVALID_FORM_BODY: [
     'Invalid Form Body',
     400,

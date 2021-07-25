@@ -1,7 +1,7 @@
 import {Collection} from 'discord.js'
 import * as defaults from './defaults'
 import * as endpoints from './endpoints'
-import {toCollection} from './utils'
+import {resolveCollection, toCollection} from './utils'
 import type {
   DMChannel,
   FullApplication,
@@ -10,6 +10,7 @@ import type {
   Guild,
   GuildMember,
   IntentBits,
+  Message,
   PartialDeep,
   Snowflake,
   SnowflakeCollection,
@@ -26,6 +27,11 @@ interface API {
   readonly oauth2: OAuth2
   readonly voice: Voice
 }
+
+const userEntry = (id: Snowflake): [Snowflake, User] => [
+  id,
+  defaults.user({id})
+]
 
 export class Backend {
   /** @internal */
@@ -50,11 +56,172 @@ export class Backend {
     )
   }
 
+  constructor({
+    applications,
+    dmChannels,
+    guilds,
+    standardStickers,
+    users,
+    voiceRegions
+  }: {
+    applications?: readonly PartialDeep<FullApplication>[]
+    dmChannels?: readonly PartialDeep<DMChannel>[]
+    guilds?: readonly PartialDeep<Guild>[]
+    standardStickers?: readonly PartialDeep<Sticker>[]
+    users?: readonly PartialDeep<User>[]
+    voiceRegions?: readonly PartialDeep<VoiceRegion>[]
+  } = {}) {
+    this.dmChannels = resolveCollection(dmChannels, 'id', defaults.dmChannel)
+    const resolvedGuilds = resolveCollection(guilds, 'id', defaults.guild)
+    const resolvedApps = resolveCollection(
+      applications,
+      'id',
+      defaults.fullApplication
+    )
+    const resolvedStickers = resolveCollection(
+      standardStickers,
+      'id',
+      defaults.sticker
+    )
+    const resolvedUsers = resolveCollection(users, 'id', defaults.user)
+
+    const messages = this.guilds.flatMap(({channels}) =>
+      channels.flatMap<Message>(
+        channel =>
+          ('messages' in channel ? channel.messages : undefined) ??
+          new Collection()
+      )
+    )
+
+    // eslint-disable-next-line unicorn/prefer-spread -- not array
+    this.guilds = resolvedGuilds.concat(
+      new Collection([
+        // Channels from channel mentions in messages
+        ...messages
+          .array()
+          .flatMap(({mention_channels}) => mention_channels ?? [])
+          .filter(
+            ({id, guild_id}) =>
+              !resolvedGuilds.has(guild_id) ||
+              !resolvedGuilds
+                .get(guild_id)!
+                .channels.some(channel => channel.id === id)
+          )
+          .map<[Snowflake, Guild]>(({id, guild_id}) => {
+            const guild =
+              resolvedGuilds.get(guild_id) ?? defaults.guild({id: guild_id})
+            return [
+              guild_id,
+              {
+                ...guild,
+                channels: guild.channels.some(chan => chan.id === id)
+                  ? guild.channels
+                  : guild.channels.set(id, defaults.guildChannel({id}))
+              }
+            ]
+          })
+      ])
+    )
+
+    // eslint-disable-next-line unicorn/prefer-spread -- not array
+    this.applications = resolvedApps.concat(
+      new Collection([
+        // Applications from application_id in messages
+        ...messages
+          .filter(
+            (
+              message
+              // TODO: add refinement types for Discord.js' Collection
+            ) /* : message is RequireKeys<typeof message, 'application_id'> */ =>
+              message.application_id !== undefined &&
+              !resolvedApps.has(message.application_id)
+          )
+          .map(
+            ({application_id}) =>
+              [
+                application_id!,
+                defaults.fullApplication({id: application_id})
+              ] as const
+          ),
+        // Guild integrations, application_ids, webhooks
+        ...resolvedGuilds
+          .array()
+          .flatMap(({application_id, channels, integration_ids}) => [
+            ...(application_id === null ? [] : [application_id]),
+            ...channels
+              .array()
+              .flatMap(chan =>
+                'webhooks' in chan
+                  ? chan.webhooks.map(hook => hook.application_id)
+                  : []
+              ),
+            ...integration_ids
+          ])
+          .filter((id): id is Snowflake => id !== null && !resolvedApps.has(id))
+          .map(id => [id, defaults.fullApplication({id})] as const)
+      ])
+    )
+
+    // eslint-disable-next-line unicorn/prefer-spread -- not array
+    this.standardStickers = resolvedStickers.concat(
+      new Collection(
+        messages
+          .array()
+          .flatMap(({stickers}) => stickers)
+          .filter(
+            ([id, guildId]) =>
+              guildId === undefined && !resolvedStickers.has(id)
+          )
+          .map(([id]) => [id, defaults.sticker({id})] as const)
+      )
+    )
+
+    // eslint-disable-next-line unicorn/prefer-spread -- not array
+    this.users = resolvedUsers.concat(
+      new Collection([
+        // Message authors
+        ...messages
+          .filter(({author_id}) => !resolvedUsers.has(author_id))
+          .map(({author_id}) => userEntry(author_id)),
+        // Users from guild emojis, members, presences, template creators, voice states
+        ...resolvedGuilds
+          .array()
+          .flatMap(({emojis, members, presences, template}) => [
+            ...emojis
+              .filter(({user_id}) => !resolvedUsers.has(user_id))
+              .map(({user_id}) => userEntry(user_id)),
+            ...members
+              .filter(({id}) => !resolvedUsers.has(id))
+              .map(({id}) => userEntry(id)),
+            ...presences
+              .filter(({user_id}) => !resolvedUsers.has(user_id))
+              .map(({user_id}) => userEntry(user_id)),
+            ...(template && !resolvedUsers.has(template.creator_id)
+              ? [userEntry(template.creator_id)]
+              : [])
+          ]),
+        // DM channel recipients
+        ...this.dmChannels
+          .filter(({recipient_id}) => !resolvedUsers.has(recipient_id))
+          .map(({recipient_id}) => userEntry(recipient_id)),
+        // Application owners
+        ...resolvedApps
+          .filter(
+            ({owner_id}) =>
+              owner_id !== undefined && !resolvedUsers.has(owner_id)
+          )
+          .map(({owner_id}) => userEntry(owner_id!))
+      ])
+    )
+
+    this.voiceRegions = defaults.voiceRegions(voiceRegions)
+  }
+
   addApplication(application?: PartialDeep<FullApplication>): FullApplication {
     const app = defaults.fullApplication(application)
     this.applications.set(app.id, app)
-    if (app.owner && !this.users.has(app.owner.id))
-      this.users.set(app.owner.id, app.owner)
+    if (app.owner_id !== undefined && !this.users.has(app.owner_id))
+      this.users.set(app.owner_id, defaults.user({id: app.owner_id}))
     return app
   }
 

@@ -1,6 +1,7 @@
 import md from 'discord-markdown'
 import {
   AllowedMentionsTypes,
+  ChannelType,
   GatewayDispatchEvents,
   GatewayIntentBits,
   PermissionFlagsBits
@@ -20,7 +21,14 @@ import type {
 } from 'discord-api-types/v9'
 import type {Backend, EmitPacket, HasIntents} from '../../../Backend'
 import type {FormBodyError, FormBodyErrors} from '../../../errors'
-import type {Embed, Guild, GuildChannel, Message} from '../../../types'
+import type {
+  Channel,
+  Embed,
+  Guild,
+  GuildChannel,
+  Message,
+  TextBasedChannel
+} from '../../../types'
 import type {AttachmentURLs, RequireKeys} from '../../../utils'
 
 export type MessagesPost = (options: {
@@ -34,6 +42,18 @@ const MAX_NONCE = 25
 const MAX_EMBED_COLOR = 0xff_ff_ff
 const MAX_URL = 2048
 const ATTACHMENT_SCHEME = 'attachment://'
+
+const textChannelTypes = new Set([
+  ChannelType.DM,
+  ChannelType.GuildText,
+  ChannelType.GuildNews,
+  ChannelType.GuildPublicThread,
+  ChannelType.GuildPrivateThread,
+  ChannelType.GuildNewsThread
+])
+
+const isTextBasedChannel = (channel: Channel): channel is TextBasedChannel =>
+  textChannelTypes.has(channel.type)
 
 const lengthErr = (
   value: string | undefined,
@@ -357,6 +377,9 @@ export default (
     const [guild, channel] = getChannel(backend)(channelId)
     if (!channel) error(request, errors.UNKNOWN_CHANNEL)
 
+    // Non-text channel
+    if (!isTextBasedChannel(channel)) error(request, errors.NON_TEXT_CHANNEL)
+
     // Permissions
     const permissions = guild
       ? checkPermissions(guild, channel as GuildChannel)
@@ -387,7 +410,7 @@ export default (
     const canMentionEveryone =
       permissions !== undefined &&
       hasPermissions(permissions, PermissionFlagsBits.MentionEveryone)
-    const base = defaults.dataMessage(channelId)({
+    const base = defaults.message(channelId)({
       content,
       nonce,
       tts:
@@ -433,7 +456,7 @@ export default (
       author,
       fields
     }: APIEmbed): Embed =>
-      defaults.dataEmbed({
+      defaults.embed({
         title,
         description,
         url,
@@ -461,7 +484,7 @@ export default (
         files?.map(({name}) => defaultAttachment({filename: name})) ?? []
     }
 
-    channel.messages!.set(message.id, message)
+    channel.messages.set(message.id, message)
     channel.last_message_id = message.id
 
     const apiMessage = convert.message(backend, channelId)(message)

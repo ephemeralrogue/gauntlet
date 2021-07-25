@@ -13,7 +13,13 @@ import type {
   RESTPostAPIGuildsResult
 } from 'discord-api-types/v9'
 import type {Backend, EmitPacket, HasIntents} from '../../Backend'
-import type {Guild, GuildChannel, Role, Snowflake} from '../../types'
+import type {
+  Guild,
+  GuildChannel,
+  PartialDeep,
+  Role,
+  Snowflake
+} from '../../types'
 import type {FormBodyError, FormBodyErrors, Request} from '../../errors'
 import type {KeysMatching, Override, RequireKeys} from '../../utils'
 
@@ -25,7 +31,7 @@ export type GuildsPost = (
   options: GuildsPostOptions
 ) => Promise<RESTPostAPIGuildsResult>
 
-const validGuildChannelTypes = new Set([
+const validGuildCreateChannelTypes = new Set([
   ChannelType.GuildText,
   ChannelType.GuildVoice,
   ChannelType.GuildCategory
@@ -69,7 +75,7 @@ const checkErrors = (
       const noName = !channelName
       const nameTooLong = channelName.length > 100
       const invalidType =
-        type !== undefined && !validGuildChannelTypes.has(type)
+        type !== undefined && !validGuildCreateChannelTypes.has(type)
       return noName || nameTooLong || invalidType
         ? {
             ...errs,
@@ -89,7 +95,9 @@ const checkErrors = (
                 ? {
                     type: {
                       _errors: [
-                        formBodyErrors.BASE_TYPE_CHOICES(validGuildChannelTypes)
+                        formBodyErrors.BASE_TYPE_CHOICES(
+                          validGuildCreateChannelTypes
+                        )
                       ]
                     }
                   }
@@ -313,7 +321,7 @@ export const createGuild = (
                 )
               }
             : {})
-        })
+        } as PartialDeep<GuildChannel>)
     )
     systemChannelId =
       system_channel_id == null ? null : map.get(system_channel_id)!

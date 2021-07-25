@@ -14,8 +14,9 @@ import type {
   RESTPostAPIGuildTemplatesResult
 } from 'discord-api-types/v9'
 import type {Backend} from '../../../Backend'
-import type {Guild, Snowflake} from '../../../types'
+import type {Guild, GuildChannel, Snowflake} from '../../../types'
 import type {FormBodyErrors, Request} from '../../../errors'
+import type {UnUnion} from '../../../utils'
 
 type GuildsIdTemplatesFn = (code: string) => {
   delete: () => Promise<RESTDeleteAPIGuildTemplateResult>
@@ -175,15 +176,15 @@ export default (backend: Backend, applicationId: Snowflake) => {
                   last_message_id,
                   last_pin_timestamp,
                   ...channel
-                }) => ({
+                }: UnUnion<GuildChannel>) => ({
                   ...channel,
                   id: channelsMap.get(channel.id)!,
                   parent_id:
                     channel.parent_id == null
-                      ? null
+                      ? channel.parent_id
                       : channelsMap.get(channel.parent_id),
                   permission_overwrites: channel.permission_overwrites
-                    .filter(({type}) => type === OverwriteType.Role)
+                    ?.filter(({type}) => type === OverwriteType.Role)
                     .map<APIGuildCreateOverwrite>(
                       ({id: overwriteId, allow, deny, ...rest}) => ({
                         id: rolesMap.get(overwriteId)!,

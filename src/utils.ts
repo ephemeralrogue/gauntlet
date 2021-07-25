@@ -23,8 +23,6 @@ declare module 'discord.js' {
   }
 }
 
-export type NonEmptyArray<T> = [T, ...T[]]
-
 /**
  * An intersection between `T` and `U`, but the properties of `U` override the
  * properties of `T`.
@@ -32,7 +30,9 @@ export type NonEmptyArray<T> = [T, ...T[]]
 export type Override<T, U> = Omit<T, keyof U> & U
 
 /** Make some keys required. */
-export type RequireKeys<T, K extends keyof T> = Required<Pick<T, K>> & T
+export type RequireKeys<T, K extends keyof T> = T extends unknown
+  ? Required<Pick<T, K>> & T
+  : never
 
 /** Get the keys matching a value in an object. */
 export type KeysMatching<T, V> = {
@@ -51,6 +51,15 @@ export type CommonProperties<T, U> = Pick<
   T,
   ValueOf<{[K in Extract<keyof U, keyof T>]: Equals<T[K], U[K], K, never>}>
 >
+
+export type UnUnion<T> = Pick<T, keyof T> &
+  {
+    [K in T extends unknown ? keyof T : never]?: T extends unknown
+      ? K extends keyof T
+        ? T[K]
+        : undefined
+      : never
+  }
 
 export type AnyFunction =
   | ((...args: never[]) => unknown)
@@ -126,6 +135,7 @@ export const clone = <T extends object>(object: T): T => {
  * @returns The object without the undefined values, or simply `object` if
  * `object` is not an object (e.g. `undefined`).
  */
+// TODO [typescript@>=4.4] Investigate --strictOptionalProperties
 export const removeUndefined = <T>(object: T): T =>
   isObject(object)
     ? (Object.fromEntries(

@@ -5,7 +5,9 @@ import type {
   Guild,
   GuildChannel,
   GuildMember,
-  Snowflake
+  NewsChannel,
+  Snowflake,
+  TextChannel
 } from '../types'
 
 // const ALL_PERMISSIONS =
@@ -65,10 +67,15 @@ export const getPermissions = (
   if (basePerms & PermissionFlagsBits.Administrator) return basePerms
   if (!channel) return basePerms
 
-  const everyoneOverwrites = channel.permission_overwrites.find(
+  const permissionOverwrites = (
+    'permission_overwrites' in channel
+      ? channel
+      : (guild.channels.get(channel.parent_id) as NewsChannel | TextChannel)
+  ).permission_overwrites
+  const everyoneOverwrites = permissionOverwrites.find(
     ({id}) => id === guild.id
   )
-  const [allow, deny] = channel.permission_overwrites.reduce(
+  const [allow, deny] = permissionOverwrites.reduce(
     ([all, den], overwrite) =>
       memberRoles.has(overwrite.id)
         ? [all, den]
@@ -82,9 +89,7 @@ export const getPermissions = (
       ~deny) |
     allow
 
-  const memberOverwrite = channel.permission_overwrites.find(
-    ({id}) => id === member.id
-  )
+  const memberOverwrite = permissionOverwrites.find(({id}) => id === member.id)
   return memberOverwrite
     ? (overwritePerms & ~memberOverwrite.deny) | memberOverwrite.allow
     : overwritePerms

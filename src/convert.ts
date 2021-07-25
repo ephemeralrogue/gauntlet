@@ -13,6 +13,7 @@ import type {
 } from 'discord-api-types/v9'
 import type {Backend} from './Backend'
 import type {
+  Application,
   Guild,
   GuildChannel,
   GuildEmoji,
@@ -24,14 +25,17 @@ import type {
   Role
 } from './types'
 import type {GatewayPresenceUpdate} from './types/patches'
-import type {Override} from './utils'
+import type {Override, UnUnion} from './utils'
 
-export const oauth2Application = (
-  {applications}: Backend,
-  applicationId: Snowflake
-): APIApplication => applications.get(applicationId)!
+export const application = (
+  {users}: Backend,
+  app: Application
+): APIApplication => ({
+  ...app,
+  owner: app.owner_id === undefined ? undefined : users.get(app.owner_id)
+})
 
-export const addGuildId = <T>(
+const addGuildId = <T>(
   guild: Guild,
   obj: T
 ): Override<T, {guild_id: Snowflake}> => ({
@@ -99,9 +103,14 @@ export const overwrite = ({allow, deny, ...rest}: Overwrite): APIOverwrite => ({
 
 export const guildChannel =
   (guild: Guild) =>
-  ({messages, permission_overwrites, ...rest}: GuildChannel): APIChannel =>
+  ({
+    members,
+    messages,
+    permission_overwrites,
+    ...rest
+  }: UnUnion<GuildChannel>): APIChannel =>
     addGuildId(guild, {
-      permission_overwrites: permission_overwrites.map(overwrite),
+      permission_overwrites: permission_overwrites?.map(overwrite),
       ...rest
     })
 
@@ -236,7 +245,7 @@ export const message =
     message_reference,
     referenced_message,
     thread_id,
-    sticker_ids,
+    stickers,
     ...rest
   }: Message): APIMessage => {
     const {allUsers, applications, guilds, standardStickers} = backend
@@ -270,6 +279,12 @@ export const message =
         : undefined,
       // thread property must not be present if undefined https://github.com/discordjs/discord.js/blob/master/src/structures/Message.js#L104
       ...(thread ? {thread} : {}),
-      sticker_items: sticker_ids?.map(id => standardStickers.get(id)!)
+      sticker_items: stickers.map(
+        ([id, stickerGuildId]) =>
+          (stickerGuildId === undefined
+            ? standardStickers
+            : guilds.get(stickerGuildId)!.stickers
+          ).get(id)!
+      )
     }
   }

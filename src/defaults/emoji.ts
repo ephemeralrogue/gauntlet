@@ -3,7 +3,7 @@ import {DEFAULT_CUSTOM_EMOJI_NAME, DEFAULT_STANDARD_EMOJI} from './constants'
 import {createDefaults as d} from './utils'
 import type {GuildEmoji, PartialEmoji} from '../types'
 
-export const dataPartialEmoji = d<PartialEmoji>(emoji =>
+export const partialEmoji = d<PartialEmoji>(emoji =>
   !emoji || emoji.id == null
     ? // Ordinary emoji
       {id: null, name: emoji?.name ?? DEFAULT_STANDARD_EMOJI}

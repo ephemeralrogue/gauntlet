@@ -1,6 +1,5 @@
 import {randomString, snowflake} from '../utils'
 import {team} from './teams'
-import {user} from './user'
 import {createDefaults as d} from './utils'
 import type {Application, GuildIntegrationApplication} from '../types'
 import type {CommonProperties} from '../utils'
@@ -26,6 +25,5 @@ export const application = d<Application>(app => ({
   verify_key: randomString(),
   flags: 0,
   ...partialApplication(app),
-  owner: user(app?.owner),
   team: app?.team ? team(app.team) : null
 }))

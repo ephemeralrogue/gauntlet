@@ -13,7 +13,6 @@ import type {
 
 // #region Type aliases
 
-export type Application = D.APIApplication
 export type AuditLogChangeKeyId = D.APIAuditLogChangeKeyId
 export type AuditLogOptions = D.APIAuditLogOptions
 export type Attachment = D.APIAttachment
@@ -39,7 +38,6 @@ export type TeamMember = D.APITeamMember
 export type TemplateSerializedSourceGuild = D.APITemplateSerializedSourceGuild
 export type User = D.APIUser
 export type VoiceRegion = D.APIVoiceRegion
-export type Webhook = D.APIWebhook
 
 export type ActivityEmoji = D.GatewayActivityEmoji
 export type ActivityParty = D.GatewayActivityParty
@@ -86,6 +84,10 @@ export type PartialDeep<T> = T extends AuditLogChange
 // #endregion
 
 // #region Changed Types
+
+export interface Application extends Omit<D.APIApplication, 'owner'> {
+  owner_id?: Snowflake
+}
 
 export type FullApplication = RequireKeys<
   Application & GuildIntegrationApplication,
@@ -147,79 +149,125 @@ export type MessageComponent =
   | ButtonComponent
   | SelectMenuComponent
 
-export interface Message
-  extends Override<
-    Omit<
-      D.APIMessage,
-      | 'application'
-      | 'author'
-      | 'channel_id'
-      | 'guild_id'
-      | 'member'
-      | 'sticker_items'
-      | 'stickers'
-      | 'thread'
-    >,
-    {
-      mentions: Snowflake[]
-      mention_channels?: ChannelMention[]
-      referenced_message?: Message | null
-      components?: ActionRowComponent[]
-    }
-  > {
-  application_id?: Snowflake
-  author_id: Snowflake
-  embeds: Embed[]
-  reactions: Reaction[]
-  thread_id?: Snowflake
-  sticker_ids?: Snowflake[]
-}
+export type Message = Override<
+  Omit<
+    D.APIMessage,
+    | 'application'
+    | 'author'
+    | 'channel_id'
+    | 'guild_id'
+    | 'member'
+    | 'sticker_items'
+    | 'thread'
+  >,
+  {
+    author_id: Snowflake
+    application_id?: Snowflake
+    components?: ActionRowComponent[]
+    embeds: Embed[]
+    mentions: Snowflake[]
+    mention_channels?: ChannelMention[]
+    referenced_message?: Message | null
+    reactions: Reaction[]
+    stickers: [id: Snowflake, guild_id?: Snowflake][]
+    thread_id?: Snowflake
+  }
+>
 
 export type Overwrite = Override<
   D.APIOverwrite,
   Record<'allow' | 'deny', bigint>
 >
 
-// TODO: better types for each channel
+export type Webhook = Omit<D.APIWebhook, 'channel_id'>
 
-export type DMChannel = Override<
-  RequireKeys<
-    Omit<
-      D.APIChannel,
-      | 'application_id'
-      | 'bitrate'
-      | 'guild_id'
-      | 'nsfw'
-      | 'parent_id'
-      | 'permission_overwrites'
-      | 'position'
-      | 'rate_limit_per_user'
-      | 'recipients'
-      | 'user_limit'
+interface ChannelBase<T extends D.ChannelType>
+  extends Omit<D.APIPartialChannel, 'name'> {
+  type: T
+}
+
+type RequiredPick<T, K extends keyof T> = Required<Pick<T, K>>
+
+interface TextBasedChannelBase<T extends D.ChannelType>
+  extends RequiredPick<D.APIChannel, 'last_message_id' | 'last_pin_timestamp'>,
+    ChannelBase<T> {
+  messages: SnowflakeCollection<Message>
+}
+
+export interface DMChannel extends TextBasedChannelBase<D.ChannelType.DM> {
+  recipient_id: Snowflake
+}
+
+type Name = RequiredPick<D.APIChannel, 'name'>
+
+type NormalGuildChannel<T extends D.ChannelType> = Override<
+  ChannelBase<T> & Name & RequiredPick<D.APIChannel, 'position'>,
+  {permission_overwrites: SnowflakeCollection<Overwrite>}
+>
+
+export type CategoryChannel = NormalGuildChannel<D.ChannelType.GuildCategory>
+
+type ChildGuildChannel<T extends D.ChannelType> = NormalGuildChannel<T> &
+  RequiredPick<D.APIChannel, 'parent_id'>
+
+type NSFW = RequiredPick<D.APIChannel, 'nsfw'>
+
+export type StoreChannel = ChildGuildChannel<D.ChannelType.GuildStore> & NSFW
+
+type VoiceChannelBase = RequiredPick<
+  D.APIChannel,
+  'bitrate' | 'rtc_region' | 'user_limit'
+>
+
+export type VoiceChannel = ChildGuildChannel<D.ChannelType.GuildVoice> &
+  Pick<
+    D.APIChannel,
+    'bitrate' | 'rtc_region' | 'user_limit' | 'video_quality_mode'
+  > &
+  VoiceChannelBase
+
+export type StageChannel = ChildGuildChannel<D.ChannelType.GuildStageVoice> &
+  VoiceChannelBase
+
+interface GuildTextBasedChannelBase<T extends D.ChannelType>
+  extends ChildGuildChannel<T>,
+    RequiredPick<D.APIChannel, 'default_auto_archive_duration' | 'topic'>,
+    TextBasedChannelBase<T> {
+  webhooks: SnowflakeCollection<Webhook>
+}
+
+export type TextChannel = GuildTextBasedChannelBase<D.ChannelType.GuildText> &
+  NSFW &
+  RequiredPick<D.APIChannel, 'rate_limit_per_user'>
+
+export type NewsChannel = GuildTextBasedChannelBase<D.ChannelType.GuildNews> &
+  NSFW
+
+export type ThreadMember = RequireKeys<Omit<D.APIThreadMember, 'id'>, 'user_id'>
+export type ThreadMetadata = RequireKeys<D.APIThreadMetadata, 'locked'>
+
+export interface ThreadChannel
+  extends TextBasedChannelBase<
+      | D.ChannelType.GuildNewsThread
+      | D.ChannelType.GuildPrivateThread
+      | D.ChannelType.GuildPublicThread
     >,
-    'last_message_id'
-  >,
-  {
-    messages: SnowflakeCollection<Message>
-    recipient_id: Snowflake
-  }
->
+    Name {
+  members: SnowflakeCollection<ThreadMember>
+  parent_id: Snowflake
+  thread_metadata: ThreadMetadata
+}
 
-/** An altered `D.APIChannel` for guilds. This is ued in `Data`. */
-export type GuildChannel = Override<
-  Omit<
-    RequireKeys<D.APIChannel, 'name' | 'position'>,
-    'application_id' | 'guild_id' | 'icon' | 'owner_id' | 'recipients'
-  >,
-  {
-    messages?: SnowflakeCollection<Message>
-    permission_overwrites: SnowflakeCollection<Overwrite>
-  }
->
-
+type GuildTextBasedChannel = NewsChannel | TextChannel | ThreadChannel
+export type TextBasedChannel = DMChannel | GuildTextBasedChannel
+export type GuildChannel =
+  | CategoryChannel
+  | GuildTextBasedChannel
+  | StageChannel
+  | StoreChannel
+  | VoiceChannel
 export type Channel = DMChannel | GuildChannel
 
-/** An altered `D.APIGuildMember`. This is ued in `Data`. */
 export interface GuildMember
   extends Omit<
     RequireKeys<D.APIGuildMember, 'nick' | 'pending' | 'premium_since'>,
@@ -242,7 +290,6 @@ export type GuildPresence = Omit<Presence, 'guild_id'>
 export type GuildTemplate = Omit<D.APITemplate, 'creator' | 'source_guild_id'>
 export type Role = Override<D.APIRole, {permissions: bigint}>
 
-/** An altered `D.APIGuild`. This is ued in `Data`. */
 export type Guild = Override<
   Omit<
     RequireKeys<

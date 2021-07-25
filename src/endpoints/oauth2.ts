@@ -14,6 +14,7 @@ export const oauth2 = (backend: Backend, applicationId: Snowflake): OAuth2 => ({
   authorize: '/oauth2/authorize',
   applications: () => ({
     // https://discord.com/developers/docs/topics/oauth2#get-current-application-information
-    get: async () => convert.oauth2Application(backend, applicationId)
+    get: async () =>
+      convert.application(backend, backend.applications.get(applicationId)!)
   })
 })
