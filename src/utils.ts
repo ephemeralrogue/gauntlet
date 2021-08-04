@@ -108,6 +108,8 @@ export const clone = <T extends object>(object: T): T => {
   const _clone = <U>(x: U): U =>
     (Array.isArray(x)
       ? x.map(_clone)
+      : x instanceof Collection
+      ? x.mapValues(_clone)
       : isObject(x)
       ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, _clone(v)]))
       : x) as U

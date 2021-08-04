@@ -2,6 +2,7 @@ import {Collection} from 'discord.js'
 import * as defaults from './defaults'
 import * as endpoints from './endpoints'
 import {
+  clone,
   resolveCollection as arrayResolveCollection,
   toCollection
 } from './utils'
@@ -277,12 +278,12 @@ export class Backend {
 
   clone(): Backend {
     return new Backend({
-      applications: this.applications.clone(),
-      dmChannels: this.dmChannels.clone(),
-      guilds: this.guilds.clone(),
-      standardStickers: this.standardStickers.clone(),
-      users: this.users.clone(),
-      voiceRegions: this.voiceRegions.clone()
+      applications: clone(this.applications),
+      dmChannels: clone(this.dmChannels),
+      guilds: clone(this.guilds),
+      standardStickers: clone(this.standardStickers),
+      users: clone(this.users),
+      voiceRegions: clone(this.voiceRegions)
     })
   }
 }
