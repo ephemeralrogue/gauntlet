@@ -21,12 +21,11 @@ describe('mockClient', () => {
     const backend = new DM.Backend({
       applications: [{id: appId, bot: {id: userId}}],
       guilds: [
-        {id: id1, members: [{id: userId}]},
-        {id: id2, members: [{id: userId}]},
+        {id: id1, members: new D.Collection([[userId, {}]])},
+        {id: id2, members: new D.Collection([[userId, {}]])},
         {id: '4'}
       ]
     })
-    const clientData: DM.ClientData = {application: {id: appId}}
 
     test('are emitted with GUILDS intent', async () => {
       const client = new D.Client({intents: ['GUILDS']})
@@ -37,7 +36,7 @@ describe('mockClient', () => {
           if (guilds.size === 2) resolve(guilds)
         })
       })
-      DM.mockClient(client, clientData, backend)
+      DM.mockClient(client, backend, appId)
       expect(await emittedGuilds).toEqual(
         new Set([
           expect.objectContaining<MatchObjectGuild>({id: id1}),
@@ -54,7 +53,7 @@ describe('mockClient', () => {
           reject(new Error(`guild create event fired with guild with id ${id}`))
         })
       })
-      DM.mockClient(client, clientData, backend)
+      DM.mockClient(client, backend, appId)
       await expect(promise).toResolve()
     })
   })

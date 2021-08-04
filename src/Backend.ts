@@ -37,7 +37,7 @@ const userEntry = (id: Snowflake): [Snowflake, User] => [
 ]
 
 type CollectionResolvable<T extends {id: unknown}> =
-  | Collection<T['id'], T>
+  | Collection<T['id'], PartialDeep<Omit<T, 'id'>>>
   | readonly PartialDeep<T>[]
   | undefined
 
@@ -46,7 +46,10 @@ const resolveCollection = <T extends {id: unknown}>(
   mapper: (value: PartialDeep<T>) => T
 ): Collection<T['id'], T> =>
   obj instanceof Collection
-    ? obj
+    ? // PartialDeep<Omit<T, 'id'>> is assignable to PartialDeep<T>
+      obj.mapValues(
+        mapper as unknown as (value: PartialDeep<Omit<T, 'id'>>) => T
+      )
     : arrayResolveCollection<PartialDeep<T>, Extract<T, PartialDeep<T>>, 'id'>(
         obj,
         'id',
@@ -237,7 +240,7 @@ export class Backend {
 
     this.voiceRegions =
       voiceRegions instanceof Collection
-        ? voiceRegions
+        ? voiceRegions.mapValues(defaults.voiceRegion)
         : defaults.voiceRegions(voiceRegions)
   }
 

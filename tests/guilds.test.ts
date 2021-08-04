@@ -19,12 +19,12 @@ describe('initial guilds', () => {
     })
     DM.mockClient(
       client,
-      {application: {id: appId}},
       new DM.Backend({
         applications: [{id: appId, bot: {id: userId}}],
         users: [{id: userId}],
-        guilds: [{id: guildId, members: [{id: userId}]}]
-      })
+        guilds: [{id: guildId, members: new D.Collection([[userId, {}]])}]
+      }),
+      appId
     )
     await promise
   })
@@ -46,11 +46,11 @@ describe('initial guilds', () => {
     })
     DM.mockClient(
       client,
-      {application: {id: appId}},
       new DM.Backend({
         applications: [{id: appId, bot: {id: userId}}],
-        guilds: [{id: guildId, members: [{id: userId}]}]
-      })
+        guilds: [{id: guildId, members: new D.Collection([[userId, {}]])}]
+      }),
+      appId
     )
     await promise
   })

@@ -4,12 +4,12 @@
 
 import {RESTJSONErrorCodes} from 'discord-api-types/v9'
 import * as D from 'discord.js'
-import type {ChannelTypes} from 'discord.js/typings/enums'
 import * as DM from '../../src'
-import type {Override} from '../../src/utils'
-import '../matchers'
-import type {MatchObjectGuild} from '../utils'
 import {withClient, withClientF} from '../utils'
+import type {ChannelTypes} from 'discord.js/typings/enums'
+import type {Override} from '../../src/utils'
+import type {MatchObjectGuild} from '../utils'
+import '../matchers'
 
 // TODO: fix Discord.js types
 type GuildCreateOpts = Override<
@@ -145,7 +145,12 @@ describe('errors', () => {
         expect(client.guilds.create('name')).toThrowAPIError(
           RESTJSONErrorCodes.MaximumNumberOfGuildsReached
         ),
-      Array.from({length: 10}).reduce(DM.guildWithClient(), {})
+      {
+        backend: Array.from({length: 10}).reduce<DM.Backend>(
+          backend => backend.addGuildWithBot(),
+          new DM.Backend()
+        )
+      }
     )
   })
 

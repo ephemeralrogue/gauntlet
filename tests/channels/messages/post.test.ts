@@ -5,9 +5,10 @@
 import assert from 'assert'
 import {ChannelType} from 'discord-api-types/v9'
 import * as DM from '../../../src'
+import {snowflake} from '../../../src/utils'
 import {withClient, withClientF} from '../../utils'
 import type {Snowflake} from 'discord-api-types/v9'
-import type * as D from 'discord.js'
+import * as D from 'discord.js'
 import type {DeepPartialOmit} from '../../utils'
 import '../../matchers'
 
@@ -16,17 +17,10 @@ const betterAssert: (
   message?: Error | string
 ) => asserts value = assert
 
-const guildDataExtra = (
-  guild: DM.Data.PartialDeep<DM.Data.Guild>
-): DM.Combinator =>
-  DM.guildWithClient({
-    channels: [{type: ChannelType.GuildText}],
-    ...guild
-  })
-const guildDataC = DM.guildWithClient({
-  channels: [{type: ChannelType.GuildText}]
-})
-const guildData = guildDataC()
+const channels: DM.SnowflakeCollection<DM.PartialDeep<DM.GuildChannel>> =
+  new D.Collection([[snowflake(), {type: ChannelType.GuildText}]])
+
+const backend = new DM.Backend().addGuildWithBot({channels})
 
 const getChannel = (client: D.Client): D.TextChannel => {
   const guild = client.guilds.cache.first()
@@ -48,7 +42,7 @@ describe('successes', () => {
       // TODO: improve discord.js Collection types for predicates in find
       async client =>
         expect((await send(client, content)).content).toBe(content),
-      guildData
+      {backend}
     )
   })
 
@@ -56,19 +50,22 @@ describe('successes', () => {
     const id = '0'
     await withClient(
       async client => expect((await send(client, 'foo')).author.id).toBe(id),
-      guildDataC(DM.botData({bot: {id}})())
+      {backend: new DM.Backend().addGuildWithBot({channels}, {}, {bot: {id}})}
     )
   })
 
   test(
     "channel's messages get updated",
-    withClientF(async client => {
-      const channel = getChannel(client)
-      const message = await channel.send('foo')
-      expect(channel.lastMessageId).toBe(message.id)
-      expect(channel.lastMessage).toBe(message)
-      expect(channel.messages.cache.last()).toBe(message)
-    }, guildData)
+    withClientF(
+      async client => {
+        const channel = getChannel(client)
+        const message = await channel.send('foo')
+        expect(channel.lastMessageId).toBe(message.id)
+        expect(channel.lastMessage).toBe(message)
+        expect(channel.messages.cache.last()).toBe(message)
+      },
+      {backend}
+    )
   )
 
   test('basic embed', async () => {
@@ -87,22 +84,25 @@ describe('successes', () => {
         ).toMatchObject<DeepPartialOmit<D.MessageEmbed[]>>([
           {title, description, fields}
         ]),
-      guildData
+      {backend}
     )
   })
 
   test('basic attachment', async () => {
     const name = 'test.png'
-    await withClient(async client => {
-      const message = await send(client, {
-        files: [{attachment: Buffer.of(), name}]
-      })
-      expect(message.attachments.size).toBe(1)
-      expect(message.attachments.first()!).toMatchObject<
-        DeepPartialOmit<D.MessageAttachment>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- asymmetric matcher
-      >({name, attachment: expect.stringContaining(message.id)})
-    }, guildData)
+    await withClient(
+      async client => {
+        const message = await send(client, {
+          files: [{attachment: Buffer.of(), name}]
+        })
+        expect(message.attachments.size).toBe(1)
+        expect(message.attachments.first()!).toMatchObject<
+          DeepPartialOmit<D.MessageAttachment>
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- asymmetric matcher
+        >({name, attachment: expect.stringContaining(message.id)})
+      },
+      {backend}
+    )
   })
 
   // https://discord.com/developers/docs/resources/channel#allowed-mentions-object-allowed-mentions-reference
@@ -111,10 +111,6 @@ describe('successes', () => {
     const userId2 = '11'
     const userId3 = '12'
     const roleId1 = '20'
-    const data = guildDataExtra({
-      roles: [{id: roleId1}]
-    })({data: {users: [{id: userId1}, {id: userId2}]}})
-
     const expectMentions = (
       content: string,
       allowedMentions: D.MessageMentionOptions | undefined,
@@ -128,12 +124,28 @@ describe('successes', () => {
         roles: readonly Snowflake[]
       }
     ): (() => Promise<void>) =>
-      withClientF(async client => {
-        const {mentions} = await send(client, {allowedMentions, content})
-        expect(mentions.everyone).toBe(everyone)
-        expect(new Set(mentions.users.keyArray())).toStrictEqual(new Set(users))
-        expect(new Set(mentions.roles.keyArray())).toStrictEqual(new Set(roles))
-      }, data)
+      withClientF(
+        async client => {
+          const {mentions} = await send(client, {allowedMentions, content})
+          expect(mentions.everyone).toBe(everyone)
+          expect(new Set(mentions.users.keyArray())).toStrictEqual(
+            new Set(users)
+          )
+          expect(new Set(mentions.roles.keyArray())).toStrictEqual(
+            new Set(roles)
+          )
+        },
+        {
+          backend: new DM.Backend({
+            users: new D.Collection([
+              [userId1, {}],
+              [userId2, {}]
+            ])
+          }).addGuildWithBot({
+            roles: new D.Collection([[snowflake(), {id: roleId1}]])
+          })
+        }
+      )
 
     test(
       'no allowed_mentions',
@@ -198,7 +210,7 @@ describe('errors', () => {
               content: 'foo'
             })
           ).toThrowAPIFormError(),
-        guildData
+        {backend}
       )
     )
   })
