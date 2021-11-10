@@ -8,7 +8,12 @@ import {
   GuildVerificationLevel
 } from 'discord-api-types/v9'
 import {Collection} from 'discord.js'
-import {snowflake, timestamp, toCollection} from '../../utils'
+import {
+  resolveCollection,
+  snowflake,
+  timestamp,
+  toCollection
+} from '../../utils'
 import {auditLogEntry} from '../audit-log'
 import {
   DEFAULT_GUILD_PREFERRED_LOCALE,
@@ -100,6 +105,7 @@ export const guild = d<Guild>(_guild => {
     _members?.length ?? 0 ? _members! : [guildMember()]
   )
   const owner_id = _guild?.owner_id ?? members.first()!.id
+  // TODO: use resolveCollection instead of mapValues to get proper ID in values of map
   const emojis = _guild?.emojis?.mapValues(guildEmoji) ?? new Collection()
   const roles = _guild?.roles?.mapValues(role) ?? new Collection()
   const voice_states =

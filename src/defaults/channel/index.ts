@@ -305,7 +305,8 @@ export const guildChannel = d<GuildChannel>(channel => {
 
   const base = {
     name: DEFAULT_CHANNEL_NAME,
-    ...partial
+    ...partial,
+    ...channel
   } as RequireKeys<PartialDeep<GuildChannel>, 'id' | 'name' | 'type'>
   switch (base.type) {
     case ChannelType.GuildText: {

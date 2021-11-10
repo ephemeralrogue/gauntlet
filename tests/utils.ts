@@ -35,10 +35,27 @@ export type DeepPartialOmit<
 // (guild as D.Guild).valueOf() is string
 export type MatchObjectGuild = DeepPartialOmit<D.Guild, 'valueOf'>
 
-interface WithClientOptions {
+export interface WithClientOptions {
   intents?: D.ClientOptions['intents']
   backend?: DM.Backend
   applicationId?: DM.Snowflake
+}
+
+// Type annotation required
+export const guildWithBot: (
+  guild?: DM.PartialDeep<DM.Guild>,
+  options?: {
+    backendOpts?: ConstructorParameters<typeof DM.Backend>[0]
+    application?: DM.PartialDeep<DM.FullApplication>
+  }
+) => Required<Pick<WithClientOptions, 'applicationId' | 'backend'>> = (
+  guild,
+  {backendOpts, application} = {}
+) => {
+  const backend = new DM.Backend(backendOpts)
+  const app = backend.addApplication(application)
+  backend.addGuildWithBot(guild, {}, app)
+  return {backend, applicationId: app.id}
 }
 
 const defaultIntents = new D.Intents([

@@ -1,5 +1,5 @@
 import * as DM from '../../src'
-import {withClient, withClientF} from '../utils'
+import {guildWithBot, withClient, withClientF} from '../utils'
 import type * as D from 'discord.js'
 import type {DeepPartialOmit, MatchObjectGuild} from '../utils'
 import '../matchers'
@@ -19,14 +19,20 @@ describe('get template', () => {
           await client.fetchGuildTemplate(code)
         ).toMatchObject<MatchObjectTemplate>({
           name: templateName,
-          description: templateDescription,
-          guild: {id: guildId}
+          description: templateDescription
         })
       },
       {
-        backend: new DM.Backend().addGuildWithBot({
-          id: guildId,
-          template: {code, name: templateName, description: templateDescription}
+        backend: new DM.Backend({
+          guilds: [
+            {
+              template: {
+                code,
+                name: templateName,
+                description: templateDescription
+              }
+            }
+          ]
         })
       }
     )
@@ -45,6 +51,13 @@ describe('create guild from template', () => {
     const code = 'abc'
     const name = 'Guild name'
     const afkTimeout = 60
+    const {backend, applicationId} = guildWithBot({
+      template: {
+        code,
+        serialized_source_guild: {afk_timeout: afkTimeout}
+      }
+    })
+    backend.addApplication()
     await withClient(
       async client => {
         const guild = await (
@@ -55,14 +68,7 @@ describe('create guild from template', () => {
           afkTimeout
         })
       },
-      {
-        backend: new DM.Backend().addGuildWithBot().addGuildWithBot({
-          template: {
-            code,
-            serialized_source_guild: {afk_timeout: afkTimeout}
-          }
-        })
-      }
+      {backend, applicationId}
     )
   })
 
@@ -73,7 +79,7 @@ describe('create guild from template', () => {
         expect(
           (await client.fetchGuildTemplate(code)).createGuild('')
         ).toThrowAPIFormError(),
-      {backend: new DM.Backend().addGuildWithBot({template: {code}})}
+      guildWithBot({template: {code}})
     )
   })
 })
@@ -81,33 +87,20 @@ describe('create guild from template', () => {
 describe('get guild templates', () => {
   test(
     'no templates',
-    withClientF(
-      async client => {
-        expect(
-          (await client.guilds.cache.get(guildId)!.fetchTemplates()).size
-        ).toBe(0)
-      },
-      {backend: new DM.Backend().addGuildWithBot({id: guildId})}
-    )
+    withClientF(async client => {
+      expect(
+        (await client.guilds.cache.get(guildId)!.fetchTemplates()).size
+      ).toBe(0)
+    }, guildWithBot({id: guildId}))
   )
 
   test('simple template', async () => {
     const templateName = 'Template name'
-    await withClient(
-      async client => {
-        const templates = await client.guilds.cache
-          .get(guildId)!
-          .fetchTemplates()
-        expect(templates.size).toBe(1)
-        expect(templates.first()!.name).toBe(templateName)
-      },
-      {
-        backend: new DM.Backend().addGuildWithBot({
-          id: guildId,
-          template: {name: templateName}
-        })
-      }
-    )
+    await withClient(async client => {
+      const templates = await client.guilds.cache.get(guildId)!.fetchTemplates()
+      expect(templates.size).toBe(1)
+      expect(templates.first()!.name).toBe(templateName)
+    }, guildWithBot({id: guildId, template: {name: templateName}}))
   })
 })
 
@@ -122,7 +115,7 @@ describe('create guild template', () => {
             .get(guildId)!
             .createTemplate(name, description)
         ).toMatchObject<MatchObjectTemplate>({name, description}),
-      {backend: new DM.Backend().addGuildWithBot({id: guildId})}
+      guildWithBot({id: guildId})
     )
   })
 })
@@ -140,12 +133,7 @@ describe('modify guild template', () => {
         expect(
           await (await getTemplate(client)).edit({name: newName})
         ).toMatchObject<MatchObjectTemplate>({name: newName, description}),
-      {
-        backend: new DM.Backend().addGuildWithBot({
-          id: guildId,
-          template: {name: oldName, description}
-        })
-      }
+      guildWithBot({id: guildId, template: {name: oldName, description}})
     )
   })
 })
@@ -153,16 +141,8 @@ describe('modify guild template', () => {
 describe('delete guild template', () => {
   test('success', async () => {
     const name = 'template name'
-    await withClient(
-      async client => {
-        expect((await (await getTemplate(client)).delete()).name).toBe(name)
-      },
-      {
-        backend: new DM.Backend().addGuildWithBot({
-          id: guildId,
-          template: {name}
-        })
-      }
-    )
+    await withClient(async client => {
+      expect((await (await getTemplate(client)).delete()).name).toBe(name)
+    }, guildWithBot({id: guildId, template: {name}}))
   })
 })

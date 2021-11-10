@@ -420,10 +420,10 @@ export default (
       author_id: userId,
       message_reference,
       mention_everyone: mentions.everyone && guild && canMentionEveryone,
-      mentions: mentions.users.filter(id => backend.users.has(id)),
+      mentions: mentions.users.filter(id => backend.allUsers.has(id)),
       mention_roles: guild
         ? mentions.roles.filter(id => {
-            const role = guild.roles.find(r => r.id === id)
+            const role = guild.roles.get(id)
             return role && (role.mentionable || canMentionEveryone)
           })
         : []

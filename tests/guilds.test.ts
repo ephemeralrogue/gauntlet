@@ -3,9 +3,11 @@ import * as DM from '../src'
 
 describe('initial guilds', () => {
   test('basic guild', async () => {
+    const userId = '0'
     const guildId = '1'
-    const appId = '2'
-    const userId = '3'
+    const backend = new DM.Backend()
+    const app = backend.addApplication({bot: {id: userId}})
+    backend.addGuildWithBot({id: guildId}, {}, app)
     const client = new D.Client({intents: ['GUILDS']})
     const promise = new Promise<void>(resolve => {
       client.on('guildCreate', async guild => {
@@ -17,41 +19,7 @@ describe('initial guilds', () => {
         resolve()
       })
     })
-    DM.mockClient(
-      client,
-      new DM.Backend({
-        applications: [{id: appId, bot: {id: userId}}],
-        users: [{id: userId}],
-        guilds: [{id: guildId, members: new D.Collection([[userId, {}]])}]
-      }),
-      appId
-    )
-    await promise
-  })
-
-  test('guild member without user in data', async () => {
-    const guildId = '1'
-    const appId = '2'
-    const userId = '3'
-    const client = new D.Client({intents: ['GUILDS']})
-    const promise = new Promise<void>(resolve => {
-      client.on('guildCreate', async guild => {
-        expect(guild.id).toBe(guildId)
-        expect(guild.members.cache.size).toBe(1)
-        expect(guild.members.cache.get(userId)).toBeDefined()
-        expect(guild.ownerId).toBe(userId)
-        expect((await guild.fetchOwner()).id).toBe(userId)
-        resolve()
-      })
-    })
-    DM.mockClient(
-      client,
-      new DM.Backend({
-        applications: [{id: appId, bot: {id: userId}}],
-        guilds: [{id: guildId, members: new D.Collection([[userId, {}]])}]
-      }),
-      appId
-    )
+    DM.mockClient(client, backend, app.id)
     await promise
   })
 })

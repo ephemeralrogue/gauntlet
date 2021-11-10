@@ -14,18 +14,14 @@ describe('mockClient', () => {
   })
 
   describe('guild create event', () => {
-    const appId = '0'
-    const userId = '1'
-    const id1 = '2'
-    const id2 = '3'
-    const backend = new DM.Backend({
-      applications: [{id: appId, bot: {id: userId}}],
-      guilds: [
-        {id: id1, members: new D.Collection([[userId, {}]])},
-        {id: id2, members: new D.Collection([[userId, {}]])},
-        {id: '4'}
-      ]
-    })
+    const userId = '0'
+    const id1 = '1'
+    const id2 = '2'
+    const backend = new DM.Backend({guilds: [{}]}) // guild without bot
+    const app = backend.addApplication({bot: {id: userId}})
+    backend
+      .addGuildWithBot({id: id1}, {}, app)
+      .addGuildWithBot({id: id2}, {}, app)
 
     test('are emitted with GUILDS intent', async () => {
       const client = new D.Client({intents: ['GUILDS']})
@@ -36,7 +32,7 @@ describe('mockClient', () => {
           if (guilds.size === 2) resolve(guilds)
         })
       })
-      DM.mockClient(client, backend, appId)
+      DM.mockClient(client, backend, app.id)
       expect(await emittedGuilds).toEqual(
         new Set([
           expect.objectContaining<MatchObjectGuild>({id: id1}),
@@ -53,7 +49,7 @@ describe('mockClient', () => {
           reject(new Error(`guild create event fired with guild with id ${id}`))
         })
       })
-      DM.mockClient(client, backend, appId)
+      DM.mockClient(client, backend, app.id)
       await expect(promise).toResolve()
     })
   })

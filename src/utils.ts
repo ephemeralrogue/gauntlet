@@ -116,6 +116,19 @@ export const clone = <T extends object>(object: T): T => {
   return _clone(object)
 }
 
+interface Reducable<T> {
+  reduce<U>(fn: (accumulator: U, value: T) => U, iniitalValue: U): U
+}
+
+export const filterMap = <T, U>(
+  xs: Reducable<T>,
+  fn: (x: T) => U | undefined
+): U[] =>
+  xs.reduce<U[]>((acc, x) => {
+    const result = fn(x)
+    return result === undefined ? acc : [...acc, result]
+  }, [])
+
 /**
  * Removes `undefined` values from an object.
  *

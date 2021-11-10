@@ -4,12 +4,12 @@
 
 import assert from 'assert'
 import {ChannelType} from 'discord-api-types/v9'
-import * as DM from '../../../src'
-import {snowflake} from '../../../src/utils'
-import {withClient, withClientF} from '../../utils'
-import type {Snowflake} from 'discord-api-types/v9'
 import * as D from 'discord.js'
-import type {DeepPartialOmit} from '../../utils'
+import {snowflake} from '../../../src/utils'
+import {guildWithBot, withClient, withClientF} from '../../utils'
+import type {Snowflake} from 'discord-api-types/v9'
+import type * as DM from '../../../src'
+import type {DeepPartialOmit, WithClientOptions} from '../../utils'
 import '../../matchers'
 
 const betterAssert: (
@@ -20,15 +20,20 @@ const betterAssert: (
 const channels: DM.SnowflakeCollection<DM.PartialDeep<DM.GuildChannel>> =
   new D.Collection([[snowflake(), {type: ChannelType.GuildText}]])
 
-const backend = new DM.Backend().addGuildWithBot({channels})
+const defaultOpts = (): WithClientOptions => guildWithBot({channels})
 
-const getChannel = (client: D.Client): D.TextChannel => {
+const getChannel = (client: D.Client): D.NewsChannel | D.TextChannel => {
   const guild = client.guilds.cache.first()
   betterAssert(
     guild,
-    'There are no cached guilds. Perhaps you forgot to include guildData?'
+    'There are no cached guilds. Perhaps you forgot to include backend?'
   )
-  return guild.channels.cache.first()! as D.TextChannel
+  const channel = guild.channels.cache.find(chan => chan.isText()) as
+    | D.NewsChannel
+    | D.TextChannel
+    | undefined
+  betterAssert(channel, 'There are no text channels!')
+  return channel
 }
 const send = async (
   client: D.Client,
@@ -42,7 +47,7 @@ describe('successes', () => {
       // TODO: improve discord.js Collection types for predicates in find
       async client =>
         expect((await send(client, content)).content).toBe(content),
-      {backend}
+      defaultOpts()
     )
   })
 
@@ -50,22 +55,19 @@ describe('successes', () => {
     const id = '0'
     await withClient(
       async client => expect((await send(client, 'foo')).author.id).toBe(id),
-      {backend: new DM.Backend().addGuildWithBot({channels}, {}, {bot: {id}})}
+      guildWithBot({channels}, {application: {bot: {id}}})
     )
   })
 
   test(
     "channel's messages get updated",
-    withClientF(
-      async client => {
-        const channel = getChannel(client)
-        const message = await channel.send('foo')
-        expect(channel.lastMessageId).toBe(message.id)
-        expect(channel.lastMessage).toBe(message)
-        expect(channel.messages.cache.last()).toBe(message)
-      },
-      {backend}
-    )
+    withClientF(async client => {
+      const channel = getChannel(client)
+      const message = await channel.send('foo')
+      expect(channel.lastMessageId).toBe(message.id)
+      expect(channel.lastMessage).toBe(message)
+      expect(channel.messages.cache.last()).toBe(message)
+    }, defaultOpts())
   )
 
   test('basic embed', async () => {
@@ -84,25 +86,22 @@ describe('successes', () => {
         ).toMatchObject<DeepPartialOmit<D.MessageEmbed[]>>([
           {title, description, fields}
         ]),
-      {backend}
+      defaultOpts()
     )
   })
 
   test('basic attachment', async () => {
     const name = 'test.png'
-    await withClient(
-      async client => {
-        const message = await send(client, {
-          files: [{attachment: Buffer.of(), name}]
-        })
-        expect(message.attachments.size).toBe(1)
-        expect(message.attachments.first()!).toMatchObject<
-          DeepPartialOmit<D.MessageAttachment>
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- asymmetric matcher
-        >({name, attachment: expect.stringContaining(message.id)})
-      },
-      {backend}
-    )
+    await withClient(async client => {
+      const message = await send(client, {
+        files: [{attachment: Buffer.of(), name}]
+      })
+      expect(message.attachments.size).toBe(1)
+      expect(message.attachments.first()!).toMatchObject<
+        DeepPartialOmit<D.MessageAttachment>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- asymmetric matcher
+      >({name, attachment: expect.stringContaining(message.id)})
+    }, defaultOpts())
   })
 
   // https://discord.com/developers/docs/resources/channel#allowed-mentions-object-allowed-mentions-reference
@@ -135,16 +134,17 @@ describe('successes', () => {
             new Set(roles)
           )
         },
-        {
-          backend: new DM.Backend({
-            users: new D.Collection([
-              [userId1, {}],
-              [userId2, {}]
-            ])
-          }).addGuildWithBot({
-            roles: new D.Collection([[snowflake(), {id: roleId1}]])
-          })
-        }
+        guildWithBot(
+          {roles: new D.Collection([[roleId1, {}]])},
+          {
+            backendOpts: {
+              users: new D.Collection([
+                [userId1, {}],
+                [userId2, {}]
+              ])
+            }
+          }
+        )
       )
 
     test(
@@ -195,6 +195,8 @@ describe('successes', () => {
         {everyone: false, users: [userId1], roles: []}
       )
     )
+
+    test.todo('replied_user')
   })
 })
 
@@ -210,7 +212,7 @@ describe('errors', () => {
               content: 'foo'
             })
           ).toThrowAPIFormError(),
-        {backend}
+        defaultOpts()
       )
     )
   })

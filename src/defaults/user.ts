@@ -14,8 +14,8 @@ export const user = d<User>(_user => {
   }
   if (base.discriminator !== undefined) return base as User
   const discriminator = discriminatorMap.has(base.username)
-    ? 0
-    : discriminatorMap.get(base.username)! + 1
+    ? discriminatorMap.get(base.username)! + 1
+    : 0
   discriminatorMap.set(base.username, discriminator)
   return {
     ...base,

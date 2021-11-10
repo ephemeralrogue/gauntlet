@@ -140,17 +140,15 @@ describe('successes', () => {
 
 describe('errors', () => {
   test('too many guilds', async () => {
+    const backend = new DM.Backend()
+    const app = backend.addApplication()
+    for (let i = 0; i < 10; i++) backend.addGuildWithBot({}, {}, app)
     await withClient(
       async client =>
         expect(client.guilds.create('name')).toThrowAPIError(
           RESTJSONErrorCodes.MaximumNumberOfGuildsReached
         ),
-      {
-        backend: Array.from({length: 10}).reduce<DM.Backend>(
-          backend => backend.addGuildWithBot(),
-          new DM.Backend()
-        )
-      }
+      {backend, applicationId: app.id}
     )
   })
 

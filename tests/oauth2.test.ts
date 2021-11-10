@@ -30,7 +30,8 @@ describe('fetchApplication', () => {
         backend: new DM.Backend({
           applications: [{id: applicationId, name, owner_id: ownerId}],
           users: [{id: ownerId, username: ownerUsername}]
-        })
+        }),
+        applicationId
       }
     )
   })

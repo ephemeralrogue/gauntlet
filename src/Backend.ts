@@ -3,6 +3,7 @@ import * as defaults from './defaults'
 import * as endpoints from './endpoints'
 import {
   clone,
+  filterMap,
   resolveCollection as arrayResolveCollection,
   toCollection
 } from './utils'
@@ -23,7 +24,6 @@ import type {
   VoiceRegion
 } from './types'
 import type {Channels, Guilds, OAuth2, Voice} from './endpoints'
-import {defaultVoiceRegions} from './defaults'
 
 interface API {
   readonly channels: Channels
@@ -47,10 +47,7 @@ const resolveCollection = <T extends {id: unknown}>(
   mapper: (value: PartialDeep<T>) => T
 ): Collection<T['id'], T> =>
   obj instanceof Collection
-    ? // PartialDeep<Omit<T, 'id'>> is assignable to PartialDeep<T>
-      obj.mapValues(
-        mapper as unknown as (value: PartialDeep<Omit<T, 'id'>>) => T
-      )
+    ? obj.mapValues((x, id) => mapper({...x, id} as unknown as PartialDeep<T>))
     : arrayResolveCollection<PartialDeep<T>, Extract<T, PartialDeep<T>>, 'id'>(
         obj,
         'id',
@@ -70,7 +67,7 @@ export class Backend {
   readonly users: SnowflakeCollection<User> = new Collection()
   /** @internal */
   readonly voiceRegions: Collection<string, VoiceRegion> =
-    defaultVoiceRegions.clone()
+    defaults.defaultVoiceRegions.clone()
 
   /** @internal */
   get allUsers(): SnowflakeCollection<User> {
@@ -99,132 +96,26 @@ export class Backend {
       dmChannels,
       defaults.dmChannel
     )
-    const resolvedGuilds = resolveCollection<Guild>(guilds, defaults.guild)
+    this.guilds = resolveCollection<Guild>(guilds, defaults.guild)
+    this.standardStickers = resolveCollection<Sticker>(
+      standardStickers,
+      defaults.sticker
+    )
+    this.voiceRegions =
+      voiceRegions instanceof Collection
+        ? voiceRegions.mapValues(defaults.voiceRegion)
+        : defaults.voiceRegions(voiceRegions)
+
     const resolvedApps = resolveCollection<FullApplication>(
       applications,
       defaults.fullApplication
     )
-    const resolvedStickers = resolveCollection<Sticker>(
-      standardStickers,
-      defaults.sticker
-    )
+    this.applications = resolvedApps
+
     const resolvedUsers = resolveCollection<User>(users, defaults.user)
-
-    const messages = this.guilds.flatMap(({channels}) =>
-      channels.flatMap<Message>(
-        channel =>
-          ('messages' in channel ? channel.messages : undefined) ??
-          new Collection()
-      )
-    )
-
-    // eslint-disable-next-line unicorn/prefer-spread -- not array
-    this.guilds = resolvedGuilds.concat(
-      new Collection([
-        // Channels from channel mentions in messages
-        ...messages
-          .array()
-          .flatMap(({mention_channels}) => mention_channels ?? [])
-          .filter(
-            ({id, guild_id}) =>
-              !resolvedGuilds.has(guild_id) ||
-              !resolvedGuilds
-                .get(guild_id)!
-                .channels.some(channel => channel.id === id)
-          )
-          .map<[Snowflake, Guild]>(({id, guild_id}) => {
-            const guild =
-              resolvedGuilds.get(guild_id) ?? defaults.guild({id: guild_id})
-            return [
-              guild_id,
-              {
-                ...guild,
-                channels: guild.channels.some(chan => chan.id === id)
-                  ? guild.channels
-                  : guild.channels.set(id, defaults.guildChannel({id}))
-              }
-            ]
-          })
-      ])
-    )
-
-    // eslint-disable-next-line unicorn/prefer-spread -- not array
-    this.applications = resolvedApps.concat(
-      new Collection([
-        // Applications from application_id in messages
-        ...messages
-          .filter(
-            (
-              message
-              // TODO: add refinement types for Discord.js' Collection
-            ) /* : message is RequireKeys<typeof message, 'application_id'> */ =>
-              message.application_id !== undefined &&
-              !resolvedApps.has(message.application_id)
-          )
-          .map(
-            ({application_id}) =>
-              [
-                application_id!,
-                defaults.fullApplication({id: application_id})
-              ] as const
-          ),
-        // Guild integrations, application_ids, webhooks
-        ...resolvedGuilds
-          .array()
-          .flatMap(({application_id, channels, integration_ids}) => [
-            ...(application_id === null ? [] : [application_id]),
-            ...channels
-              .array()
-              .flatMap(chan =>
-                'webhooks' in chan
-                  ? chan.webhooks.map(hook => hook.application_id)
-                  : []
-              ),
-            ...integration_ids
-          ])
-          .filter((id): id is Snowflake => id !== null && !resolvedApps.has(id))
-          .map(id => [id, defaults.fullApplication({id})] as const)
-      ])
-    )
-
-    // eslint-disable-next-line unicorn/prefer-spread -- not array
-    this.standardStickers = resolvedStickers.concat(
-      new Collection(
-        messages
-          .array()
-          .flatMap(({stickers}) => stickers)
-          .filter(
-            ([id, guildId]) =>
-              guildId === undefined && !resolvedStickers.has(id)
-          )
-          .map(([id]) => [id, defaults.sticker({id})] as const)
-      )
-    )
-
     // eslint-disable-next-line unicorn/prefer-spread -- not array
     this.users = resolvedUsers.concat(
       new Collection([
-        // Message authors
-        ...messages
-          .filter(({author_id}) => !resolvedUsers.has(author_id))
-          .map(({author_id}) => userEntry(author_id)),
-        // Users from guild emojis, members, presences, template creators, voice states
-        ...resolvedGuilds
-          .array()
-          .flatMap(({emojis, members, presences, template}) => [
-            ...emojis
-              .filter(({user_id}) => !resolvedUsers.has(user_id))
-              .map(({user_id}) => userEntry(user_id)),
-            ...members
-              .filter(({id}) => !resolvedUsers.has(id))
-              .map(({id}) => userEntry(id)),
-            ...presences
-              .filter(({user_id}) => !resolvedUsers.has(user_id))
-              .map(({user_id}) => userEntry(user_id)),
-            ...(template && !resolvedUsers.has(template.creator_id)
-              ? [userEntry(template.creator_id)]
-              : [])
-          ]),
         // DM channel recipients
         ...this.dmChannels
           .filter(({recipient_id}) => !resolvedUsers.has(recipient_id))
@@ -239,10 +130,9 @@ export class Backend {
       ])
     )
 
-    this.voiceRegions =
-      voiceRegions instanceof Collection
-        ? voiceRegions.mapValues(defaults.voiceRegion)
-        : defaults.voiceRegions(voiceRegions)
+    for (const [, message] of this.dmChannels.flatMap(({messages}) => messages))
+      this.#addMissingFromMessage(message)
+    for (const [, guild] of this.guilds) this.#addMissingFromGuild(guild)
   }
 
   addApplication(application?: PartialDeep<FullApplication>): FullApplication {
@@ -264,7 +154,7 @@ export class Backend {
       this.applications.set(app.id, app)
     } else app = this.addApplication(application)
 
-    const g = defaults.guild(guild)
+    const g = defaults.guild({...guild, owner_id: app.bot.id})
     if (!g.members.has(app.bot.id)) {
       g.members.set(
         app.bot.id,
@@ -272,6 +162,7 @@ export class Backend {
       )
     }
     this.guilds.set(g.id, g)
+    this.#addMissingFromGuild(g)
 
     return this
   }
@@ -285,6 +176,90 @@ export class Backend {
       users: clone(this.users),
       voiceRegions: clone(this.voiceRegions)
     })
+  }
+
+  #addMissingFromMessage({
+    author_id,
+    application_id,
+    mention_channels = [],
+    stickers
+  }: Message): void {
+    if (!this.allUsers.has(author_id))
+      this.users.set(author_id, defaults.user({id: author_id}))
+
+    if (
+      application_id !== undefined &&
+      !this.applications.has(application_id)
+    ) {
+      this.applications.set(
+        application_id,
+        defaults.fullApplication({id: application_id})
+      )
+    }
+
+    for (const {id, guild_id} of mention_channels) {
+      const existing = this.guilds.get(guild_id)
+      if (!existing || !existing.channels.has(id)) {
+        const guild = existing ?? defaults.guild({id: guild_id})
+        this.guilds.set(guild_id, {
+          ...guild,
+          channels: guild.channels.has(id)
+            ? guild.channels
+            : guild.channels.set(id, defaults.guildChannel({id}))
+        })
+      }
+    }
+
+    // Stickers from messages
+    for (const [id, guildId] of stickers) {
+      if (guildId === undefined && !this.standardStickers.has(id))
+        this.standardStickers.set(id, defaults.sticker({id}))
+    }
+  }
+
+  #addMissingFromGuild({
+    application_id,
+    channels,
+    emojis,
+    integration_ids,
+    members,
+    owner_id,
+    presences,
+    template
+  }: Guild): void {
+    for (const [, message] of channels.flatMap<Message>(channel =>
+      'messages' in channel ? channel.messages : new Collection()
+    ))
+      this.#addMissingFromMessage(message)
+
+    // Users from guild owner, emojis, members, presences, template creators, voice states
+    for (const id of [
+      owner_id,
+      ...emojis.map(({user_id}) => user_id),
+      ...members.map(m => m.id),
+      ...presences.map(({user_id}) => user_id),
+      ...(template ? [template.creator_id] : [])
+    ])
+      if (!this.users.has(id)) this.users.set(id, defaults.user({id}))
+
+    // Applications from application_ids, integrations, webhooks
+    for (const id of [
+      ...(application_id === null ? [] : [application_id]),
+      ...channels
+        .array()
+        .flatMap(channel =>
+          'webhooks' in channel
+            ? filterMap(
+                channel.webhooks,
+                hook => hook.application_id ?? undefined
+              )
+            : []
+        ),
+      ...integration_ids
+    ]) {
+      if (!this.applications.has(id))
+        this.applications.set(id, defaults.fullApplication({id}))
+    }
   }
 }
 
