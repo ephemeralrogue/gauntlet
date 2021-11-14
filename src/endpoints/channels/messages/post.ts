@@ -8,7 +8,13 @@ import {
 } from 'discord-api-types/v9'
 import * as convert from '../../../convert'
 import * as defaults from '../../../defaults'
-import {attachmentURLs, clientUserId, pick, omit} from '../../../utils'
+import {
+  attachmentURLs,
+  clientUserId,
+  pick,
+  omit,
+  filterMap
+} from '../../../utils'
 import {getChannel, getPermissions, hasPermissions} from '../../utils'
 import {Method, error, errors, formBodyErrors, mkRequest} from '../../../errors'
 import type {HTTPAttachmentData} from 'discord.js'
@@ -168,12 +174,11 @@ const getEmbedsErrors = (
   )
     return {_errors: [formBodyErrors.MAX_EMBED_SIZE_EXCEEDED]}
 
-  // TODO: filter map util
   return Object.fromEntries(
-    embeds.reduce<[number, FormBodyErrors][]>((acc, embed, i) => {
+    filterMap(embeds, (embed, i) => {
       const embedErrors = getEmbedErrors(embed)
-      return Object.keys(embedErrors).length ? [...acc, [i, embedErrors]] : acc
-    }, [])
+      return Object.keys(embedErrors).length ? [i, embedErrors] : undefined
+    })
   )
 }
 
@@ -189,15 +194,10 @@ const getAllowedMentionsErrors = (
     if (checkLength && value.length > 100)
       return {[key]: {_errors: [formBodyErrors.BASE_TYPE_MAX_LENGTH(100)]}}
     const errs = Object.fromEntries(
-      value.reduce<[number, FormBodyErrors[string]][]>(
-        (acc, id, i) =>
-          value.indexOf(id) < i
-            ? [
-                ...acc,
-                [i, {_errors: [formBodyErrors.SET_TYPE_ALREADY_CONTAINS_VALUE]}]
-              ]
-            : acc,
-        []
+      filterMap(value, (id, i) =>
+        value.indexOf(id) < i
+          ? [i, {_errors: [formBodyErrors.SET_TYPE_ALREADY_CONTAINS_VALUE]}]
+          : undefined
       )
     )
     return Object.keys(errs).length ? {[key]: errs} : undefined

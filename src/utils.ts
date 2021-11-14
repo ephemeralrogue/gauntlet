@@ -153,16 +153,12 @@ export const removeUndefined: <T extends object>(
   object: T
 ) => RemoveUndefined<T> = removeUndefinedImpl
 
-interface Reducable<T> {
-  reduce<U>(fn: (accumulator: U, value: T) => U, iniitalValue: U): U
-}
-
-export const filterMap = <T, U>(
-  xs: Reducable<T>,
-  fn: (x: T) => U | undefined
-): U[] =>
-  xs.reduce<U[]>((acc, x) => {
-    const result = fn(x)
+export const filterMap = <A extends readonly unknown[], T>(
+  xs: {reduce<U>(fn: (accumulator: U, ...args: A) => U, initialValue: U): U},
+  fn: (...args: A) => T | undefined
+): T[] =>
+  xs.reduce<T[]>((acc, ...args) => {
+    const result = fn(...args)
     return result === undefined ? acc : [...acc, result]
   }, [])
 
