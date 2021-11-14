@@ -46,7 +46,7 @@
     "docs": "typedoc src/index.ts"
   },
   "peerDependencies": {
-    "discord.js": "13.0.0-dev.d6c43a5.1625875428"
+    "discord.js": "^13.0.0"
   },
   "dependencies": {
     "discord-markdown": "^2.5.1"
