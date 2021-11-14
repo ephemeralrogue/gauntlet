@@ -12,6 +12,9 @@ rules:
   - 1
   - definedTags: [internal]
 
+  # Too many false positives with Collection
+  unicorn/prefer-spread: 0
+
   # https://github.com/microsoft/TypeScript/issues/15300
   '@typescript-eslint/ban-types':
   - 2

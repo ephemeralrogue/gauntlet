@@ -123,7 +123,6 @@ export const guild = d<Guild>(_guild => {
       id != null && !chans.has(id)
         ? [[id, guildChannel({id, type} as PartialDeep<GuildChannel>)]]
         : []
-    // eslint-disable-next-line unicorn/prefer-spread -- not array
     channels = chans.concat(
       new Collection([
         ...newChannel(_guild.afk_channel_id, ChannelType.GuildVoice),
@@ -207,7 +206,6 @@ export const guild = d<Guild>(_guild => {
     ...partial,
     owner_id,
     system_channel_id,
-    // eslint-disable-next-line unicorn/prefer-spread -- not array
     members: members.concat(
       new Collection([
         // Owner
@@ -220,7 +218,6 @@ export const guild = d<Guild>(_guild => {
           .map(({user_id}) => [user_id, guildMember({id: user_id})] as const)
       ])
     ),
-    // eslint-disable-next-line unicorn/prefer-spread -- not array
     roles: roles.concat(
       toCollection([
         // @everyone role
@@ -234,7 +231,6 @@ export const guild = d<Guild>(_guild => {
           .map(id => role({id}))
       ])
     ),
-    // eslint-disable-next-line unicorn/prefer-spread -- not array
     emojis: emojis.concat(
       new Collection(
         partial.welcome_screen?.welcome_channels
@@ -245,7 +241,6 @@ export const guild = d<Guild>(_guild => {
       )
     ),
     voice_states,
-    // eslint-disable-next-line unicorn/prefer-spread -- not array
     channels: channels.concat(
       new Collection([
         ...(partial.welcome_screen?.welcome_channels

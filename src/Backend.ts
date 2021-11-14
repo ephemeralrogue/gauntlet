@@ -1,6 +1,3 @@
-// eslint-disable-next-line eslint-comments/disable-enable-pair -- whole file
-/* eslint-disable unicorn/prefer-spread -- too noisy for Collections */
-
 import {Collection} from 'discord.js'
 import * as defaults from './defaults'
 import * as endpoints from './endpoints'
