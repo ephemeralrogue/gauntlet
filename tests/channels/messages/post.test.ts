@@ -134,7 +134,7 @@ describe('successes', () => {
           expect(new Set(mentions.roles.keys())).toStrictEqual(new Set(roles))
         },
         guildWithBot(
-          {roles: new D.Collection([[roleId1, {}]])},
+          {roles: new D.Collection([[roleId1, {id: roleId1}]])},
           {
             backendOpts: {
               users: new D.Collection([
