@@ -101,10 +101,8 @@ export const guild = d<Guild>(_guild => {
   /** Includes extra properties from `Guild` not in `PartialGuild`. */
   const partial = partialGuild(_guild)
   const _members = _guild.members?.map(guildMember)
-  const members = toCollection(
-    _members?.length ?? 0 ? _members! : [guildMember()]
-  )
-  const owner_id = _guild.owner_id ?? members.first()!.id
+  const owner_id = _guild.owner_id ?? snowflake()
+  const members = toCollection(_members ?? [])
   // TODO: use resolveCollection instead of mapValues to get proper ID in values of map
   const emojis = _guild.emojis?.mapValues(guildEmoji) ?? new Collection()
   const roles = _guild.roles?.mapValues(role) ?? new Collection()
