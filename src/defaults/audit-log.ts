@@ -7,7 +7,7 @@ import {
   WebhookType
 } from 'discord-api-types/v9'
 import {ChangeOverwriteType} from '../types/patches'
-import {snowflake} from '../utils'
+import {RemoveUndefined, removeUndefined, snowflake} from '../utils'
 import {
   DEFAULT_CHANNEL_NAME,
   DEFAULT_CUSTOM_EMOJI_NAME,
@@ -44,9 +44,10 @@ const overwriteTypeChangeToOptions: Readonly<
 
 // TODO: refactor so it's <= 200 lines
 // eslint-disable-next-line complexity, max-lines-per-function -- mainly due to the switch case
+// @ts-ignore
 export const auditLogEntry = d<AuditLogEntry>(entry => {
   const base: RequireKeys<
-    PartialDeep<AuditLogEntry>,
+    RemoveUndefined<PartialDeep<AuditLogEntry>>,
     'action_type' | 'id' | 'user_id'
   > = {
     user_id: snowflake(),
@@ -56,7 +57,7 @@ export const auditLogEntry = d<AuditLogEntry>(entry => {
     // doesn't narrow the type of base even when it knows base.action_type
     // isn't undefined for e.g. case AuditLogEvent.CHANNEL_CREATE
     action_type: AuditLogEvent.GuildUpdate,
-    ...entry
+    ...removeUndefined(entry)
   }
 
   const withTarget = (): RequireKeys<typeof base, 'target_id'> => ({
@@ -76,7 +77,7 @@ export const auditLogEntry = d<AuditLogEntry>(entry => {
   ): AuditLogEntry => ({
     ...withTarget(),
     ...changes(..._changes),
-    options
+    ...(options ? {options} : {})
   })
 
   const targetAndChangesNoOptions = (
@@ -85,7 +86,6 @@ export const auditLogEntry = d<AuditLogEntry>(entry => {
 
   const targetNoChanges = (options: AuditLogOptions): AuditLogEntry => ({
     ...withTarget(),
-    changes: undefined,
     options
   })
 
@@ -95,8 +95,8 @@ export const auditLogEntry = d<AuditLogEntry>(entry => {
   ): AuditLogEntry => ({
     ...base,
     target_id: null,
-    ...(_changes.length ? changes(..._changes) : {changes: undefined}),
-    options
+    ...(_changes.length ? changes(..._changes) : {undefined}),
+    ...(options ? {options} : {})
   })
 
   const noTargetOrOptions = (
@@ -165,21 +165,18 @@ export const auditLogEntry = d<AuditLogEntry>(entry => {
         {
           id,
           type,
-          role_name:
-            type === AuditLogOptionsType.Role
-              ? base.options?.role_name ?? DEFAULT_ROLE_NAME
-              : undefined
+          ...(type === AuditLogOptionsType.Role
+            ? {role_name: base.options?.role_name ?? DEFAULT_ROLE_NAME}
+            : {})
         },
         {
           key: 'allow',
-          old_value:
-            base.action_type === AuditLogEvent.ChannelOverwriteCreate
-              ? undefined
-              : '0',
-          new_value:
-            base.action_type === AuditLogEvent.ChannelOverwriteDelete
-              ? undefined
-              : PermissionFlagsBits.ViewChannel.toString()
+          ...(base.action_type === AuditLogEvent.ChannelOverwriteCreate
+            ? {}
+            : {old_value: '0'}),
+          ...(base.action_type === AuditLogEvent.ChannelOverwriteDelete
+            ? {}
+            : {new_value: PermissionFlagsBits.ViewChannel.toString()})
         }
       )
     }
@@ -282,23 +279,20 @@ export const auditLogEntry = d<AuditLogEntry>(entry => {
     case AuditLogEvent.EmojiDelete:
       return targetAndChangesNoOptions({
         key: 'name',
-        old_value:
-          base.action_type === AuditLogEvent.EmojiCreate
-            ? undefined
-            : 'emoji_1',
-        new_value:
-          base.action_type === AuditLogEvent.EmojiDelete
-            ? undefined
-            : DEFAULT_CUSTOM_EMOJI_NAME
+        ...(base.action_type === AuditLogEvent.EmojiCreate
+          ? {}
+          : {old_value: 'emoji_1'}),
+        ...(base.action_type === AuditLogEvent.EmojiDelete
+          ? {}
+          : {new_value: DEFAULT_CUSTOM_EMOJI_NAME})
       })
 
     case AuditLogEvent.MessageDelete:
     case AuditLogEvent.MessageBulkDelete:
       return targetNoChanges({
-        channel_id:
-          base.action_type === AuditLogEvent.MessageDelete
-            ? snowflake()
-            : undefined,
+        ...(base.action_type === AuditLogEvent.MessageDelete
+          ? {channel_id: snowflake()}
+          : {}),
         count: '2',
         ...base.options
       })

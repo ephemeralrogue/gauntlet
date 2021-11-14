@@ -90,7 +90,7 @@ export default (backend: Backend, applicationId: Snowflake) => {
             if (guild.template?.code !== code)
               error(request, errors.UNKNOWN_GUILD_TEMPLATE)
             const {template} = guild
-            guild.template = undefined
+            delete guild.template
             return convertTemplate(guild, template)
           },
 
@@ -146,10 +146,10 @@ export default (backend: Backend, applicationId: Snowflake) => {
             system_channel_flags
           } = guild
           const rolesMap: ReadonlyMap<Snowflake, number> = new Map(
-            roles.array().map((role, i) => [role.id, i])
+            [...roles.values()].map((role, i) => [role.id, i])
           )
           const channelsMap: ReadonlyMap<Snowflake, number> = new Map(
-            channels.array().map((channel, i) => [channel.id, i])
+            [...channels.values()].map((channel, i) => [channel.id, i])
           )
           guild.template = defaults.guildTemplate({
             name,

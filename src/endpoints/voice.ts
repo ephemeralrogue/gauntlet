@@ -9,6 +9,6 @@ export interface Voice {
 export const voice = (backend: Backend): Voice => ({
   regions: {
     // https://discord.com/developers/docs/topics/oauth2#get-current-application-information
-    get: async () => clone(backend.voiceRegions.array())
+    get: async () => backend.voiceRegions.map(clone)
   }
 })

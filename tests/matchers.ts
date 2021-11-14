@@ -47,7 +47,7 @@ const toThrowAPIError = async (
   received: Promise<unknown>,
   code: RESTJSONErrorCodes
 ): Promise<jest.CustomMatcherResult> => {
-  const {toBeInstanceOf, toMatchObject} = getMatchers() as Record<
+  const {toBeInstanceOf, toMatchObject} = getMatchers() as unknown as Record<
     'toBeInstanceOf' | 'toMatchObject',
     (
       this: jest.MatcherContext,

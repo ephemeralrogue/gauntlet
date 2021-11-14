@@ -27,26 +27,28 @@ const guildCreateOverwrite = d<GuildCreateOverwrite>(overwrite => ({
   ...overwrite
 }))
 
-const guildCreatePartialChannel = d<GuildCreatePartialChannel>(channel => ({
-  name: DEFAULT_CHANNEL_NAME,
-  ...channel,
-  permission_overwrites: channel?.permission_overwrites
-    ? channel.permission_overwrites.map(guildCreateOverwrite)
-    : undefined
-}))
+const guildCreatePartialChannel = d<GuildCreatePartialChannel>(
+  ({permission_overwrites, ...rest}) => ({
+    name: DEFAULT_CHANNEL_NAME,
+    ...rest,
+    ...(permission_overwrites
+      ? {
+          permission_overwrites: permission_overwrites.map(guildCreateOverwrite)
+        }
+      : {})
+  })
+)
 
 const templateSerializedSourceGuild = d<TemplateSerializedSourceGuild>(
-  guild => ({
+  ({channels, roles, ...rest}) => ({
     name: DEFAULT_GUILD_NAME,
     description: null,
     preferred_locale: DEFAULT_GUILD_PREFERRED_LOCALE,
     icon_hash: null,
-    ...guild,
+    ...rest,
     // TODO: @everyone role
-    roles: guild?.roles ? guild.roles.map(guildCreateRole) : undefined,
-    channels: guild?.channels
-      ? guild.channels.map(guildCreatePartialChannel)
-      : undefined
+    ...(roles ? {roles: roles.map(guildCreateRole)} : {}),
+    ...(channels ? {channels: channels.map(guildCreatePartialChannel)} : {})
   })
 )
 
@@ -61,6 +63,6 @@ export const guildTemplate = d<GuildTemplate>(_template => ({
   is_dirty: null,
   ..._template,
   serialized_source_guild: templateSerializedSourceGuild(
-    _template?.serialized_source_guild
+    _template.serialized_source_guild
   )
 }))

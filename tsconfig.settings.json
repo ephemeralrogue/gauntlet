@@ -8,13 +8,14 @@
     "module": "commonjs",
 
     "allowUnreachableCode": false,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
     "importsNotUsedAsValues": "error",
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "strict": true,
-    "useDefineForClassFields": true,
-    "noErrorTruncation": true
+    "useDefineForClassFields": true
   }
 }

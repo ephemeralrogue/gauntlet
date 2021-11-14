@@ -57,7 +57,7 @@ export default (
         return createGuild(backend, applicationId, hasIntents, emitPacket, {
           ...template.serialized_source_guild,
           name,
-          icon
+          ...(icon === undefined ? {} : {icon})
         })
       }
     }

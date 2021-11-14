@@ -125,14 +125,13 @@ describe('successes', () => {
     ): (() => Promise<void>) =>
       withClientF(
         async client => {
-          const {mentions} = await send(client, {allowedMentions, content})
+          const {mentions} = await send(client, {
+            ...(allowedMentions ? {allowedMentions} : {}),
+            content
+          })
           expect(mentions.everyone).toBe(everyone)
-          expect(new Set(mentions.users.keyArray())).toStrictEqual(
-            new Set(users)
-          )
-          expect(new Set(mentions.roles.keyArray())).toStrictEqual(
-            new Set(roles)
-          )
+          expect(new Set(mentions.users.keys())).toStrictEqual(new Set(users))
+          expect(new Set(mentions.roles.keys())).toStrictEqual(new Set(roles))
         },
         guildWithBot(
           {roles: new D.Collection([[roleId1, {}]])},

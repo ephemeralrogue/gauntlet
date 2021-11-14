@@ -8,9 +8,8 @@ import type {PartialChannel, PartialDeep} from '../../types'
 export const partialChannel: <T extends PartialChannel>(
   channel?: PartialDeep<T>
 ) => PartialChannel & {type: T['type']} = d<PartialChannel>(channel => ({
-  id: channel?.id ?? snowflake(),
-  type: channel?.type ?? ChannelType.GuildText,
-  name:
-    // Every channel except for DMs can have names
-    channel?.type === ChannelType.DM ? undefined : channel?.name ?? 'general'
+  id: channel.id ?? snowflake(),
+  type: channel.type ?? ChannelType.GuildText,
+  ...// Every channel except for DMs can have names
+  (channel.type === ChannelType.DM ? {} : {name: channel.name ?? 'general'})
 }))

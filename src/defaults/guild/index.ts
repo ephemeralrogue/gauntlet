@@ -9,7 +9,7 @@ import {
 } from 'discord-api-types/v9'
 import {Collection} from 'discord.js'
 import {
-  resolveCollection,
+  // resolveCollection,
   snowflake,
   timestamp,
   toCollection
@@ -52,22 +52,22 @@ const integrationAccount = d<IntegrationAccount>(_account => ({
 export const integrationApplication = d<GuildIntegrationApplication>(
   application => ({
     ...partialApplication(application),
-    bot: application?.bot ? user(application.bot) : undefined
+    ...(application.bot ? {bot: user(application.bot)} : {})
   })
 )
 
-export const integration = d<GuildIntegration>(_integration => ({
-  id: snowflake(),
-  name: DEFAULT_INTEGRATION_NAME,
-  type: 'twitch',
-  enabled: false,
-  ..._integration,
-  user: _integration?.user ? user(_integration.user) : undefined,
-  account: integrationAccount(_integration?.account),
-  application: _integration?.application
-    ? integrationApplication(_integration.application)
-    : undefined
-}))
+export const integration = d<GuildIntegration>(
+  ({application, user: iUser, ...rest}) => ({
+    id: snowflake(),
+    name: DEFAULT_INTEGRATION_NAME,
+    type: 'twitch',
+    enabled: false,
+    ...rest,
+    ...(iUser ? {user: user(iUser)} : {}),
+    account: integrationAccount(rest.account),
+    ...(application ? {application: integrationApplication(application)} : {})
+  })
+)
 
 export const guildMember = d<GuildMember>(member => ({
   id: snowflake(),
@@ -100,20 +100,20 @@ const guildVoiceState = d<GuildVoiceState>(voiceState => ({
 export const guild = d<Guild>(_guild => {
   /** Includes extra properties from `Guild` not in `PartialGuild`. */
   const partial = partialGuild(_guild)
-  const _members = _guild?.members?.map(guildMember)
+  const _members = _guild.members?.map(guildMember)
   const members = toCollection(
     _members?.length ?? 0 ? _members! : [guildMember()]
   )
-  const owner_id = _guild?.owner_id ?? members.first()!.id
+  const owner_id = _guild.owner_id ?? members.first()!.id
   // TODO: use resolveCollection instead of mapValues to get proper ID in values of map
-  const emojis = _guild?.emojis?.mapValues(guildEmoji) ?? new Collection()
-  const roles = _guild?.roles?.mapValues(role) ?? new Collection()
+  const emojis = _guild.emojis?.mapValues(guildEmoji) ?? new Collection()
+  const roles = _guild.roles?.mapValues(role) ?? new Collection()
   const voice_states =
-    _guild?.voice_states?.mapValues(guildVoiceState) ?? new Collection()
+    _guild.voice_states?.mapValues(guildVoiceState) ?? new Collection()
 
   let channels: Guild['channels']
   let system_channel_id: Guild['system_channel_id']
-  if (_guild?.channels) {
+  if (_guild.channels) {
     system_channel_id = _guild.system_channel_id ?? null
     const chans = _guild.channels.mapValues(guildChannel)
     const newChannel = (
@@ -131,7 +131,7 @@ export const guild = d<Guild>(_guild => {
         ...newChannel(_guild.rules_channel_id, ChannelType.GuildText),
         ...newChannel(system_channel_id, ChannelType.GuildText),
         ...newChannel(_guild.widget_channel_id),
-        ...chans.array().flatMap(chan => [
+        ...[...chans.values()].flatMap(chan => [
           ...('messages' in chan
             ? chan.messages
                 .filter(
@@ -229,7 +229,7 @@ export const guild = d<Guild>(_guild => {
         )
           ? []
           : [role({id: partial.id, name: '@everyone'})]),
-        ...[...new Set(members.array().flatMap(member => member.roles))]
+        ...[...new Set([...members.values()].flatMap(member => member.roles))]
           .filter(roleId => !roles.some(({id}) => id === roleId))
           .map(id => role({id}))
       ])
@@ -267,10 +267,10 @@ export const guild = d<Guild>(_guild => {
           )
       ])
     ),
-    presences: _guild?.presences?.mapValues(guildPresence) ?? new Collection(),
+    presences: _guild.presences?.mapValues(guildPresence) ?? new Collection(),
     audit_log_entries:
-      _guild?.audit_log_entries?.mapValues(auditLogEntry) ?? new Collection(),
-    template: _guild?.template ? guildTemplate(_guild.template) : undefined,
-    stickers: _guild?.stickers?.mapValues(sticker) ?? new Collection()
+      _guild.audit_log_entries?.mapValues(auditLogEntry) ?? new Collection(),
+    ...(_guild.template ? {template: guildTemplate(_guild.template)} : {}),
+    stickers: _guild.stickers?.mapValues(sticker) ?? new Collection()
   }
 })

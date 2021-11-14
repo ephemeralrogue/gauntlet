@@ -8,6 +8,10 @@ import WebSocketShard from '../node_modules/discord.js/src/client/websocket/WebS
 import {Backend, api} from './Backend'
 import * as convert from './convert'
 import type {ClientOptions} from 'discord.js'
+import type {
+  RawClientApplicationData,
+  RawUserData
+} from 'discord.js/typings/rawDataTypes'
 import type {EmitPacket, HasIntents} from './Backend'
 import type {Snowflake} from './types'
 
@@ -23,17 +27,20 @@ const _mockClient = (
     (applicationId === undefined
       ? undefined
       : backend.applications.get(applicationId)) ??
-    backend.addApplication({id: applicationId})
+    backend.addApplication(
+      applicationId === undefined ? {} : {id: applicationId}
+    )
+
+  // Create a shard
+  const shard = new WebSocketShard(client.ws, 0)
+  client.ws.shards.set(0, shard)
 
   const hasIntents: HasIntents = intents =>
     // Intents are always resolved
     // https://github.com/discordjs/discord.js/blob/0e40f9b86826ba50aa3840807fb86e1bce6b1c3d/src/client/Client.js#L463
     !!((client.options.intents as number) & intents)
   const emitPacket: EmitPacket = (t, d) => {
-    client.ws['handlePacket'](
-      {op: GatewayOpcodes.Dispatch, t, d},
-      client.ws.shards.first()
-    )
+    client.ws['handlePacket']({op: GatewayOpcodes.Dispatch, t, d}, shard)
   }
   // Initialise the mocked API. This needs to be done with
   // Object.defineProperty because api is originally a getter
@@ -43,21 +50,25 @@ const _mockClient = (
   })
 
   // Initialise the client user and application
-  client.user = new D.ClientUser(client, app.bot)
-  client.application = new D.ClientApplication(client, app)
-
-  // Create a shard
-  const shard = new WebSocketShard(client.ws, 0)
-  client.ws.shards.set(0, shard)
+  // type casts needed because constructors are private
+  client.user = new (D.ClientUser as new (
+    client: D.Client,
+    data: RawUserData
+  ) => D.ClientUser)(client, app.bot)
+  client.application = new (D.ClientApplication as new (
+    client: D.Client,
+    data: RawClientApplicationData
+  ) => D.ClientApplication)(client, app)
 
   // Make the websocket manager ready to receive packets
   client.ws['triggerClientReady']()
 
+  // Make each of the guilds available
   if (hasIntents(GatewayIntentBits.Guilds) && backend.guilds.size) {
     // Make each of the guilds available
     const convertGuild = convert.guildCreateGuild(backend, app.id)
     for (const [, guild] of backend.guilds) {
-      if (guild.members.some(({id}) => id === app.bot.id))
+      if (guild.members.has(app.bot.id))
         emitPacket(GatewayDispatchEvents.GuildCreate, convertGuild(guild))
     }
   }

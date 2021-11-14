@@ -1,4 +1,4 @@
-import {clientUserId} from './utils'
+import {clientUserId, removeUndefined} from './utils'
 import type {
   APIApplication,
   APIChannel,
@@ -32,7 +32,7 @@ export const application = (
   app: Application
 ): APIApplication => ({
   ...app,
-  owner: app.owner_id === undefined ? undefined : users.get(app.owner_id)
+  ...(app.owner_id === undefined ? {} : {owner: users.get(app.owner_id)!})
 })
 
 const addGuildId = <T>(
@@ -110,8 +110,10 @@ export const guildChannel =
     ...rest
   }: UnUnion<GuildChannel>): APIChannel =>
     addGuildId(guild, {
-      permission_overwrites: permission_overwrites?.map(overwrite),
-      ...rest
+      ...(permission_overwrites
+        ? {permission_overwrites: permission_overwrites.map(overwrite)}
+        : []),
+      ...removeUndefined(rest)
     })
 
 export const guildPresence =
@@ -176,7 +178,7 @@ export const guild =
     afk_channel_id,
     afk_timeout,
     widget_enabled,
-    widget_channel_id,
+    ...(widget_channel_id === undefined ? {} : {widget_channel_id}),
     verification_level,
     default_message_notifications,
     explicit_content_filter,
@@ -188,18 +190,20 @@ export const guild =
     system_channel_id,
     system_channel_flags,
     rules_channel_id,
-    max_presences,
-    max_members,
+    ...(max_presences === undefined ? {} : {max_presences}),
+    ...(max_members === undefined ? {} : {max_members}),
     vanity_url_code,
     description,
     banner,
     premium_tier,
-    premium_subscription_count,
+    ...(premium_subscription_count === undefined
+      ? {}
+      : {premium_subscription_count}),
     preferred_locale,
     public_updates_channel_id,
-    max_video_channel_users,
+    ...(max_video_channel_users === undefined ? {} : {max_video_channel_users}),
     nsfw_level,
-    stickers: stickers.array()
+    stickers: [...stickers.values()]
   })
 
 /**
@@ -217,9 +221,11 @@ export const guildCreateGuild =
     const userId = clientUserId(backend, applicationId)
     return {
       ...(convertedGuild ?? guild(backend)(backendGuild)),
-      joined_at: members.find(({id}) => id === userId)?.joined_at,
-      large,
-      unavailable,
+      ...(members.has(userId)
+        ? {joined_at: members.get(userId)!.joined_at}
+        : {}),
+      ...(large === undefined ? {} : {large}),
+      ...(unavailable === undefined ? {} : {unavailable}),
       member_count: members.size,
       members: members.map(guildMember(backend, backendGuild, true)),
       channels: channels.map(guildChannel(backendGuild)),
@@ -256,27 +262,32 @@ export const message =
     }
     return {
       ...rest,
-      application:
-        application_id === undefined
-          ? undefined
-          : applications.get(application_id)!,
+      ...(application_id === undefined
+        ? undefined
+        : {application: applications.get(application_id)!}),
       author: allUsers.get(author_id)!,
       channel_id: channelId,
       mentions: mentions.map(id => allUsers.get(id)!),
-      mention_channels: mention_channels?.map(({id, guild_id}) => {
-        const {name, type} = guilds
-          .get(guild_id)!
-          .channels.find(chan => chan.id === id)!
-        return {id, guild_id, name, type}
-      }),
-      message_reference,
-      referenced_message: referenced_message
-        ? message(
-            backend,
-            message_reference!.channel_id,
-            message_reference!.guild_id
-          )(referenced_message)
-        : undefined,
+      ...(mention_channels
+        ? {
+            mention_channels: mention_channels.map(({id, guild_id}) => {
+              const {name, type} = guilds
+                .get(guild_id)!
+                .channels.find(chan => chan.id === id)!
+              return {id, guild_id, name, type}
+            })
+          }
+        : {}),
+      ...(message_reference ? {} : {message_reference}),
+      ...(referenced_message
+        ? {
+            referenced_message: message(
+              backend,
+              message_reference!.channel_id,
+              message_reference!.guild_id
+            )(referenced_message)
+          }
+        : {}),
       // thread property must not be present if undefined https://github.com/discordjs/discord.js/blob/master/src/structures/Message.js#L104
       ...(thread ? {thread} : {}),
       sticker_items: stickers.map(

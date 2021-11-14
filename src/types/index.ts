@@ -13,10 +13,15 @@ import type {
 
 // #region Type aliases
 
+export type ActionRowComponent = D.APIActionRowComponent
 export type AuditLogChangeKeyId = D.APIAuditLogChangeKeyId
 export type AuditLogOptions = D.APIAuditLogOptions
 export type Attachment = D.APIAttachment
+export type ButtonComponent = D.APIButtonComponent
+export type EmbedAuthor = D.APIEmbedAuthor
+export type EmbedImage = D.APIEmbedImage
 export type EmbedFooter = D.APIEmbedFooter
+export type EmbedThumbnail = D.APIEmbedThumbnail
 export type GuildCreateOverwrite = D.APIGuildCreateOverwrite
 export type GuildCreatePartialChannel = D.APIGuildCreatePartialChannel
 export type GuildCreateRole = D.APIGuildCreateRole
@@ -26,10 +31,13 @@ export type GuildWelcomeScreen = D.APIGuildWelcomeScreen
 export type GuildWelcomeScreenChannel = D.APIGuildWelcomeScreenChannel
 export type IntegrationAccount = D.APIIntegrationAccount
 export type MessageActivity = D.APIMessageActivity
+export type MessageComponent = D.APIMessageComponent
 export type MessageInteraction = D.APIMessageInteraction
 export type MessageReference = D.APIMessageReference
 export type PartialChannel = D.APIPartialChannel
 export type PartialGuild = D.APIPartialGuild
+export type SelectMenuOption = D.APISelectMenuOption
+export type SelectMenuComponent = D.APISelectMenuComponent
 export type Sticker = D.APISticker
 export type StickerItem = D.APIStickerItem
 export type Snowflake = D.Snowflake
@@ -60,7 +68,7 @@ export type SnowflakeCollection<T> = Collection<Snowflake, T>
 
 type ObjectPartialDeep<T extends object> = {
   // eslint-disable-next-line @typescript-eslint/no-use-before-define -- recursive
-  [K in keyof T]?: PartialDeep<T[K]>
+  [K in keyof T]?: PartialDeep<T[K]> | undefined
 }
 
 /** Deep `Partial`, but `AuditLogChange` isn't partialised. */
@@ -116,39 +124,6 @@ export interface Embed extends D.APIEmbed {
   fields?: EmbedField[]
 }
 
-type _ButtonComponent<T extends D.APIButtonComponent> = Override<
-  T,
-  {emoji?: PartialEmoji}
->
-export type ButtonComponentWithCustomId =
-  _ButtonComponent<D.APIButtonComponentWithCustomId>
-export type ButtonComponentWithURL =
-  _ButtonComponent<D.APIButtonComponentWithURL>
-export type ButtonComponent =
-  | ButtonComponentWithCustomId
-  | ButtonComponentWithURL
-
-export type SelectMenuOption = Override<
-  D.APISelectMenuOption,
-  {emoji?: PartialEmoji}
->
-
-export type SelectMenuComponent = Override<
-  D.APISelectMenuComponent,
-  {options: SelectMenuOption[]}
->
-
-export type ActionRowComponent = Override<
-  D.APIActionRowComponent,
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define -- recursive
-  {components: Exclude<MessageComponent, ActionRowComponent>[]}
->
-
-export type MessageComponent =
-  | ActionRowComponent
-  | ButtonComponent
-  | SelectMenuComponent
-
 export type Message = Override<
   Omit<
     D.APIMessage,
@@ -163,13 +138,12 @@ export type Message = Override<
   {
     author_id: Snowflake
     application_id?: Snowflake
-    components?: ActionRowComponent[]
     embeds: Embed[]
     mentions: Snowflake[]
     mention_channels?: ChannelMention[]
     referenced_message?: Message | null
     reactions: Reaction[]
-    stickers: [id: Snowflake, guild_id?: Snowflake][]
+    stickers: [id: Snowflake, guild_id?: Snowflake | undefined][]
     thread_id?: Snowflake
   }
 >

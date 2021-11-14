@@ -7,15 +7,13 @@ import type {
   ActivityEmoji,
   ActivityParty,
   GuildPresence,
-  PartialDeep,
   PresenceUpdate
 } from '../types'
-import type {Override} from '../utils'
 
 export const activityEmoji = d<ActivityEmoji>(_emoji =>
-  !_emoji || _emoji.id == null
+  _emoji.id == null
     ? // Ordinary emoji
-      {name: _emoji?.name ?? DEFAULT_STANDARD_EMOJI}
+      {name: _emoji.name ?? DEFAULT_STANDARD_EMOJI}
     : // Custom emoji
       {
         id: snowflake(),
@@ -25,49 +23,42 @@ export const activityEmoji = d<ActivityEmoji>(_emoji =>
 )
 
 export const party = d<ActivityParty>(_party => {
-  if (_party?.size) {
+  if (_party.size) {
     const currentSize = _party.size[0] ?? 1
     return {..._party, size: [currentSize, _party.size[1] ?? currentSize]}
   }
-  return {
-    ...(_party as Override<
-      PartialDeep<ActivityParty>,
-      {
-        size?: undefined
-      }
-    >)
-  }
+  return _party as Omit<typeof _party, 'size'>
 })
 
-export const activity = d<Activity>(_activity => {
-  const name = _activity?.name ?? 'Twitch'
-  const type = _activity?.type ?? ActivityType.Streaming
-  return {
-    id:
-      type === ActivityType.Custom
-        ? 'custom'
-        : name === 'Spotify'
-        ? 'spotify:1'
-        : 'activity-id', // ec0b28a579ecb4bd, d593101b9c8b5f61
-    name,
-    type,
-    url: null,
-    created_at: Date.now(),
-    ..._activity,
-    emoji: _activity?.emoji ? activityEmoji(_activity.emoji) : undefined,
-    party: _activity?.party ? party(_activity.party) : undefined
+export const activity = d<Activity>(
+  ({emoji, party: aParty, ...rest}): Activity => {
+    const name = rest.name ?? 'Twitch'
+    const type = rest.type ?? ActivityType.Streaming
+    return {
+      id:
+        type === ActivityType.Custom
+          ? 'custom'
+          : name === 'Spotify'
+          ? 'spotify:1'
+          : 'activity-id', // ec0b28a579ecb4bd, d593101b9c8b5f61
+      name,
+      type,
+      url: null,
+      created_at: Date.now(),
+      ...rest,
+      ...(emoji ? {emoji: activityEmoji(emoji)} : {}),
+      ...(aParty ? {party: party(aParty)} : {})
+    }
   }
-})
+)
 
 export const presenceUser = d<PresenceUpdate['user']>(_user => ({
   id: snowflake(),
   ..._user
 }))
 
-export const guildPresence = d<GuildPresence>(_presence => ({
-  ..._presence,
+export const guildPresence = d<GuildPresence>(({activities, ...rest}) => ({
+  ...rest,
   user_id: snowflake(),
-  activities: _presence?.activities
-    ? _presence.activities.map(activity)
-    : undefined
+  ...(activities ? {activities: activities.map(activity)} : {})
 }))

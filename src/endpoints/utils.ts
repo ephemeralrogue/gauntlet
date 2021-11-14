@@ -108,7 +108,7 @@ export const hasPermissions = (x: bigint, y: bigint): boolean =>
 
 export const getChannel =
   ({dmChannels, guilds}: Backend) =>
-  (id: Snowflake): [guild?: Guild, channel?: Channel] => {
+  (id: Snowflake): [guild: Guild | undefined, channel: Channel | undefined] => {
     const dmChannel = dmChannels.get(id)
     if (dmChannel) return [undefined, dmChannel]
     for (const [, guild] of guilds) {

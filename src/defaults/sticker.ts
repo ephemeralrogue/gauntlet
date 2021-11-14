@@ -18,5 +18,5 @@ export const sticker = d<Sticker>(_sticker => ({
   asset: '',
   type: StickerType.Guild,
   ...stickerItem(_sticker),
-  user: _sticker?.user ? user(_sticker.user) : undefined
+  ...(_sticker.user ? {user: user(_sticker.user)} : {})
 }))

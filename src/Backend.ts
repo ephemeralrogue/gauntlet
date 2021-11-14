@@ -245,8 +245,7 @@ export class Backend {
     // Applications from application_ids, integrations, webhooks
     for (const id of [
       ...(application_id === null ? [] : [application_id]),
-      ...channels
-        .array()
+      ...[...channels.values()]
         .flatMap(channel =>
           'webhooks' in channel
             ? filterMap(

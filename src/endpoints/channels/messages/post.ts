@@ -162,7 +162,7 @@ const getEmbedsErrors = (
           0
         ) ?? 0) +
         (footer?.text.length ?? 0) +
-        (author?.name?.length ?? 0),
+        (author?.name.length ?? 0),
       0
     ) > 6000
   )
@@ -286,9 +286,9 @@ const getMentions = (node: md.ASTNode): Mentions => {
     case 'discordHere':
       return {...emptyMentions, everyone: true}
     case 'discordUser':
-      return {...emptyMentions, users: new Set([node.id as Snowflake])}
+      return {...emptyMentions, users: new Set([node.id])}
     case 'discordRole':
-      return {...emptyMentions, roles: new Set([node.id as Snowflake])}
+      return {...emptyMentions, roles: new Set([node.id])}
     default:
       return 'content' in node && typeof node.content != 'string'
         ? foldMapMentions(node.content)
@@ -369,7 +369,12 @@ export default (
 
     // if hasn't connected to gateway: 400, {"message": "Unauthorized", "code": 40001}
     // Basic validation
-    const formErrs = getFormErrors({allowed_mentions, content, nonce, embeds})
+    const formErrs = getFormErrors({
+      ...(allowed_mentions ? {allowed_mentions} : {}),
+      content,
+      ...(nonce === undefined ? {} : {nonce}),
+      ...(embeds ? {embeds} : {})
+    })
     if (Object.keys(formErrs).length)
       error(request, errors.INVALID_FORM_BODY, formErrs)
 

@@ -9,14 +9,19 @@ import {
   ThreadAutoArchiveDuration
 } from 'discord-api-types/v9'
 import {Collection} from 'discord.js'
-import {attachmentURLs, snowflake, timestamp} from '../../utils'
+import {
+  attachmentURLs,
+  removeUndefined,
+  snowflake,
+  timestamp
+} from '../../utils'
 import {DEFAULT_CHANNEL_NAME} from '../constants'
 import {partialEmoji} from '../emoji'
 import {user} from '../user'
 import {createDefaults as d} from '../utils'
 import {webhook} from '../webhook'
 import {partialChannel} from './partial'
-import type {CommonProperties, RequireKeys} from '../../utils'
+import type {CommonProperties, RemoveUndefined, RequireKeys} from '../../utils'
 import type {Defaults} from '../utils'
 import type {
   ActionRowComponent,
@@ -26,8 +31,11 @@ import type {
   ChannelMention,
   DMChannel,
   Embed,
+  EmbedAuthor,
   EmbedField,
   EmbedFooter,
+  EmbedImage,
+  EmbedThumbnail,
   GuildChannel,
   Message,
   MessageActivity,
@@ -36,10 +44,10 @@ import type {
   MessageReference,
   NewsChannel,
   Overwrite,
-  PartialDeep,
-  Reaction,
   SelectMenuComponent,
   SelectMenuOption,
+  PartialDeep,
+  Reaction,
   Snowflake,
   SnowflakeCollection,
   StageChannel,
@@ -90,17 +98,24 @@ export const embedFooter = d<EmbedFooter>(footer => ({
   ...footer
 }))
 
-export const embed = d<Embed>(_embed => ({
-  ..._embed,
-  footer: _embed?.footer ? embedFooter(_embed.footer) : undefined,
-  fields: _embed?.fields?.map(embedField)
-}))
+export const embed = d<Embed>(
+  ({author, fields, footer, image, provider, thumbnail, video, ...rest}) => ({
+    ...rest,
+    ...(footer ? {footer: embedFooter(footer)} : {}),
+    ...(fields ? {fields: fields.map(embedField)} : {}),
+    ...(image?.url === undefined ? {} : {image: image as EmbedImage}),
+    ...(thumbnail?.url === undefined
+      ? {}
+      : {thumbnail: thumbnail as EmbedThumbnail}),
+    ...(author?.name === undefined ? {} : {author: author as EmbedAuthor})
+  })
+)
 
 export const reaction = d<Reaction>(_reaction => ({
   count: 1,
   me: false,
   ..._reaction,
-  emoji: partialEmoji(_reaction?.emoji)
+  emoji: partialEmoji(_reaction.emoji)
 }))
 
 export const messageActivity = d<MessageActivity>(activity => ({
@@ -118,15 +133,14 @@ export const messageInteraction = d<MessageInteraction>(interaction => ({
   type: InteractionType.ApplicationCommand,
   name: 'blep',
   ...interaction,
-  user: user(interaction?.user)
+  user: user(interaction.user)
 }))
 
 export const buttonComponent = d<ButtonComponent>(component => {
   const base: Omit<ButtonComponent, 'custom_id' | 'url'> = {
     type: ComponentType.Button,
     style: ButtonStyle.Primary,
-    ...component,
-    emoji: component?.emoji ? partialEmoji(component.emoji) : undefined
+    ...component
   }
   return base.style === ButtonStyle.Link
     ? {
@@ -144,85 +158,96 @@ export const buttonComponent = d<ButtonComponent>(component => {
 export const selectMenuOption = d<SelectMenuOption>(option => ({
   label: '',
   value: '',
-  ...option,
-  emoji: option?.emoji ? partialEmoji(option.emoji) : undefined
+  ...option
 }))
 
 export const selectMenuComponent = d<SelectMenuComponent>(component => ({
   type: ComponentType.SelectMenu,
   custom_id: 'select_one',
   ...component,
-  options: component?.options?.map(selectMenuOption) ?? []
+  options: component.options?.map(selectMenuOption) ?? []
 }))
 
 type NonActionRowComponent = Exclude<MessageComponent, ActionRowComponent>
 const nonActionRowComponent = d<NonActionRowComponent>(component => {
-  switch (component?.type) {
+  switch (component.type) {
     case undefined:
-      return buttonComponent({disabled: component?.disabled})
+      return buttonComponent()
     case ComponentType.Button:
       return buttonComponent(component)
     case ComponentType.SelectMenu:
       return selectMenuComponent(component)
+    default:
+      throw new Error('unreachable')
   }
 })
 
 export const actionRowComponent = d<ActionRowComponent>(component => ({
   type: ComponentType.ActionRow,
-  components: component?.components?.map(nonActionRowComponent) ?? []
+  components: component.components?.map(nonActionRowComponent) ?? []
 }))
 
 export const messageComponent = d<MessageComponent>(component =>
-  component?.type === ComponentType.ActionRow
+  component.type === ComponentType.ActionRow
     ? actionRowComponent(component)
-    : nonActionRowComponent(component as PartialDeep<NonActionRowComponent>)
+    : nonActionRowComponent(
+        component as RemoveUndefined<PartialDeep<NonActionRowComponent>>
+      )
 )
 
 export const message = (channelId = snowflake()): Defaults<Message> =>
-  d<Message>(_message => {
-    // TODO: do something like guildChannel: do stuff based on message type
-    const base: Omit<Message, 'attachments'> = {
-      id: snowflake(),
-      author_id: snowflake(),
-      content: '',
-      timestamp: timestamp(),
-      edited_timestamp: null,
-      tts: false,
-      mention_everyone: false,
-      mentions: [],
-      mention_roles: [],
-      pinned: false,
-      type: MessageType.Default,
-      application_id: snowflake(),
-      ..._message,
-      mention_channels: _message?.mention_channels?.map(channelMention),
-      embeds: _message?.embeds?.map(embed) ?? [],
-      reactions: _message?.reactions?.map(reaction) ?? [],
-      activity: _message?.activity
-        ? messageActivity(_message.activity)
-        : undefined,
-      message_reference: _message?.message_reference
-        ? messageReference(_message.message_reference)
-        : undefined,
-      referenced_message: _message?.referenced_message
-        ? message()(_message.referenced_message)
-        : (_message?.referenced_message as null | undefined),
-      interaction: _message?.interaction
-        ? messageInteraction(_message.interaction)
-        : undefined,
-      components: _message?.components?.map(actionRowComponent),
-      stickers:
-        _message?.stickers?.map(([id, guildId]) => [
-          id ?? snowflake(),
-          guildId
-        ]) ?? []
+  d<Message>(
+    ({
+      activity,
+      components,
+      interaction,
+      mention_channels,
+      message_reference,
+      referenced_message,
+      ...rest
+    }) => {
+      // TODO: do something like guildChannel: do stuff based on message type
+      const base: Omit<Message, 'attachments'> = {
+        id: snowflake(),
+        author_id: snowflake(),
+        content: '',
+        timestamp: timestamp(),
+        edited_timestamp: null,
+        tts: false,
+        mention_everyone: false,
+        mentions: [],
+        mention_roles: [],
+        pinned: false,
+        type: MessageType.Default,
+        application_id: snowflake(),
+        ...rest,
+        ...(mention_channels
+          ? {mention_channels: mention_channels.map(channelMention)}
+          : {}),
+        embeds: rest.embeds?.map(embed) ?? [],
+        reactions: rest.reactions?.map(reaction) ?? [],
+        ...(activity ? {activity: messageActivity(activity)} : {}),
+        ...(message_reference
+          ? {message_reference: messageReference(message_reference)}
+          : {}),
+        ...(referenced_message
+          ? {referenced_message: message()(referenced_message)}
+          : referenced_message === null
+          ? {referenced_message: null}
+          : {}),
+        ...(interaction ? {interaction: messageInteraction(interaction)} : {}),
+        ...(components ? {components: components.map(actionRowComponent)} : {}),
+        stickers:
+          rest.stickers?.map(([id, guildId]) => [id ?? snowflake(), guildId]) ??
+          []
+      }
+      return {
+        attachments:
+          rest.attachments?.map(attachment(channelId, base.id)) ?? [],
+        ...base
+      }
     }
-    return {
-      attachments:
-        _message?.attachments?.map(attachment(channelId, base.id)) ?? [],
-      ...base
-    }
-  })
+  )
 
 export const partialOverwrite = (): Pick<Overwrite, 'id' | 'type'> => ({
   id: snowflake(),
@@ -274,7 +299,7 @@ const threadMetadata = d<ThreadMetadata>(metadata => ({
   ...metadata
 }))
 
-export const guildChannel = d<GuildChannel>(channel => {
+export const guildChannel = d<GuildChannel>((channel): GuildChannel => {
   const partial = partialChannel(channel)
 
   const parentId = {parent_id: null}
@@ -306,8 +331,11 @@ export const guildChannel = d<GuildChannel>(channel => {
   const base = {
     name: DEFAULT_CHANNEL_NAME,
     ...partial,
-    ...channel
-  } as RequireKeys<PartialDeep<GuildChannel>, 'id' | 'name' | 'type'>
+    ...removeUndefined(channel)
+  } as RequireKeys<
+    RemoveUndefined<PartialDeep<GuildChannel>>,
+    'id' | 'name' | 'type'
+  >
   switch (base.type) {
     case ChannelType.GuildText: {
       const chan = channel as PartialDeep<TextChannel> | undefined

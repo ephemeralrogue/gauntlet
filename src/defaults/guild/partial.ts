@@ -20,16 +20,14 @@ const welcomeScreenChannel = d<GuildWelcomeScreenChannel>(_channel => ({
 const welcomeScreen = d<GuildWelcomeScreen>(screen => ({
   description: null,
   ...screen,
-  welcome_channels: screen?.welcome_channels?.map(welcomeScreenChannel) ?? []
+  welcome_channels: screen.welcome_channels?.map(welcomeScreenChannel) ?? []
 }))
 
-export const partialGuild = d<PartialGuild>(guild => ({
+export const partialGuild = d<PartialGuild>(({welcome_screen, ...rest}) => ({
   id: snowflake(),
   name: DEFAULT_GUILD_NAME,
   icon: null,
   splash: null,
-  ...guild,
-  welcome_screen: guild?.welcome_screen
-    ? welcomeScreen(guild.welcome_screen)
-    : undefined
+  ...rest,
+  ...(welcome_screen ? {welcome_screen: welcomeScreen(welcome_screen)} : {})
 }))
