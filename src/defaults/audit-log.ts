@@ -7,7 +7,7 @@ import {
   WebhookType
 } from 'discord-api-types/v9'
 import {ChangeOverwriteType} from '../types/patches'
-import {RemoveUndefined, removeUndefined, snowflake} from '../utils'
+import {omit, removeUndefined, snowflake} from '../utils'
 import {
   DEFAULT_CHANNEL_NAME,
   DEFAULT_CUSTOM_EMOJI_NAME,
@@ -19,12 +19,13 @@ import {
   DEFAULT_PERMISSIONS_STRING,
   DEFAULT_ROLE_NAME,
   DEFAULT_STAGE_TOPIC,
-  DFEAULT_STICKER_DESCRIPTION,
+  DEFAULT_STICKER_DESCRIPTION,
   DEFAULT_STICKER_NAME,
+  DEFAULT_THREAD_AUTO_ARCHIVE_DURATION,
   DEFAULT_WEBHOOK_NAME
 } from './constants'
 import {createDefaults as d} from './utils'
-import type {RequireKeys} from '../utils'
+import type {RemoveUndefined, RequireKeys} from '../utils'
 import type {
   AuditLogChange,
   AuditLogChangeKeyId,
@@ -44,8 +45,7 @@ const overwriteTypeChangeToOptions: Readonly<
 
 // TODO: refactor so it's <= 200 lines
 // eslint-disable-next-line complexity, max-lines-per-function -- mainly due to the switch case
-// @ts-ignore
-export const auditLogEntry = d<AuditLogEntry>(entry => {
+export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
   const base: RequireKeys<
     RemoveUndefined<PartialDeep<AuditLogEntry>>,
     'action_type' | 'id' | 'user_id'
@@ -185,11 +185,7 @@ export const auditLogEntry = d<AuditLogEntry>(entry => {
     case AuditLogEvent.MemberBanAdd:
     case AuditLogEvent.MemberBanRemove:
     case AuditLogEvent.BotAdd:
-      return {
-        ...withTarget(),
-        changes: undefined,
-        options: undefined
-      }
+      return omit(withTarget(), ['changes', 'options'])
 
     case AuditLogEvent.MemberPrune:
       return noTarget({
@@ -350,14 +346,36 @@ export const auditLogEntry = d<AuditLogEntry>(entry => {
       return createOrDelete(base.action_type, key =>
         targetAndChangesNoOptions(
           {key: 'name', [key]: DEFAULT_STICKER_NAME},
-          {key: 'description', [key]: DFEAULT_STICKER_DESCRIPTION}
+          {key: 'description', [key]: DEFAULT_STICKER_DESCRIPTION}
         )
       )
     case AuditLogEvent.StickerUpdate:
       return targetAndChangesNoOptions({
         key: 'description',
-        old_value: DFEAULT_STICKER_DESCRIPTION,
+        old_value: DEFAULT_STICKER_DESCRIPTION,
         new_value: 'new sticker description'
+      })
+
+    case AuditLogEvent.ThreadCreate:
+    case AuditLogEvent.ThreadDelete:
+      return createOrDelete(base.action_type, key =>
+        targetAndChangesNoOptions(
+          {key: 'name', [key]: DEFAULT_CHANNEL_NAME},
+          {key: 'type', [key]: ChannelType.GuildPublicThread},
+          {key: 'archived', [key]: false},
+          {key: 'locked', [key]: false},
+          {
+            key: 'auto_archive_duration',
+            [key]: DEFAULT_THREAD_AUTO_ARCHIVE_DURATION
+          },
+          {key: 'rate_limit_per_user', [key]: false}
+        )
+      )
+    case AuditLogEvent.ThreadUpdate:
+      return targetAndChangesNoOptions({
+        key: 'archived',
+        old_value: false,
+        new_value: true
       })
   }
 })

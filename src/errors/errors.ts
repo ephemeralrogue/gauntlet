@@ -98,6 +98,10 @@ export const error: {
     code,
     ...(formBodyErrors ? {errors: formBodyErrors} : {})
   }
-  // @ts-ignore
-  throw new DiscordAPIError(errorObject, status, request)
+  // private ctor
+  throw new (DiscordAPIError as unknown as new (
+    error: unknown,
+    status: number,
+    request: unknown
+  ) => DiscordAPIError)(errorObject, status, request)
 }
