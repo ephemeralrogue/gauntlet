@@ -1,3 +1,6 @@
+// eslint-disable-next-line eslint-comments/disable-enable-pair -- whole file
+/* eslint-disable unicorn/prefer-spread -- too noisy for Collections */
+
 import {Collection} from 'discord.js'
 import * as defaults from './defaults'
 import * as endpoints from './endpoints'
@@ -69,14 +72,6 @@ export class Backend {
   readonly voiceRegions: Collection<string, VoiceRegion> =
     defaults.defaultVoiceRegions.clone()
 
-  /** @internal */
-  get allUsers(): SnowflakeCollection<User> {
-    // eslint-disable-next-line unicorn/prefer-spread -- not array
-    return this.users.concat(
-      toCollection(this.applications.map(({bot}) => bot))
-    )
-  }
-
   constructor({
     applications,
     dmChannels,
@@ -113,7 +108,6 @@ export class Backend {
     this.applications = resolvedApps
 
     const resolvedUsers = resolveCollection<User>(users, defaults.user)
-    // eslint-disable-next-line unicorn/prefer-spread -- not array
     this.users = resolvedUsers.concat(
       new Collection([
         // DM channel recipients
@@ -133,6 +127,13 @@ export class Backend {
     for (const [, message] of this.dmChannels.flatMap(({messages}) => messages))
       this.#addMissingFromMessage(message)
     for (const [, guild] of this.guilds) this.#addMissingFromGuild(guild)
+  }
+
+  /** @internal */
+  get allUsers(): SnowflakeCollection<User> {
+    return this.users.concat(
+      toCollection(this.applications.map(({bot}) => bot))
+    )
   }
 
   addApplication(application?: PartialDeep<FullApplication>): FullApplication {
@@ -187,6 +188,7 @@ export class Backend {
     if (!this.allUsers.has(author_id))
       this.users.set(author_id, defaults.user({id: author_id}))
 
+    // Applications
     if (
       application_id !== undefined &&
       !this.applications.has(application_id)
@@ -197,6 +199,7 @@ export class Backend {
       )
     }
 
+    // Channels in channel mentions
     for (const {id, guild_id} of mention_channels) {
       const existing = this.guilds.get(guild_id)
       if (!existing || !existing.channels.has(id)) {
@@ -245,15 +248,14 @@ export class Backend {
     // Applications from application_ids, integrations, webhooks
     for (const id of [
       ...(application_id === null ? [] : [application_id]),
-      ...[...channels.values()]
-        .flatMap(channel =>
-          'webhooks' in channel
-            ? filterMap(
-                channel.webhooks,
-                hook => hook.application_id ?? undefined
-              )
-            : []
-        ),
+      ...[...channels.values()].flatMap(channel =>
+        'webhooks' in channel
+          ? filterMap(
+              channel.webhooks,
+              hook => hook.application_id ?? undefined
+            )
+          : []
+      ),
       ...integration_ids
     ]) {
       if (!this.applications.has(id))

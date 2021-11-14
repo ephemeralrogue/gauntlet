@@ -219,7 +219,6 @@ export const message = (channelId = snowflake()): Defaults<Message> =>
         mention_roles: [],
         pinned: false,
         type: MessageType.Default,
-        application_id: snowflake(),
         ...rest,
         ...(mention_channels
           ? {mention_channels: mention_channels.map(channelMention)}
