@@ -34,7 +34,9 @@ describe('successes', () => {
   test(
     'only name supplied',
     withClientF(async client => {
-      expect(await client.guilds.create(name)).toMatchObject<MatchObjectGuild>({
+      await expect(
+        client.guilds.create(name)
+      ).resolves.toMatchObject<MatchObjectGuild>({
         name,
         afkTimeout: 300,
         defaultMessageNotifications: 'ALL_MESSAGES',
@@ -52,14 +54,14 @@ describe('successes', () => {
         'ONLY_MENTIONS'
       const explicitContentFilter: D.ExplicitContentFilterLevel = 'ALL_MEMBERS'
       const verificationLevel: D.VerificationLevel = 'HIGH'
-      expect(
-        await client.guilds.create(name, {
+      await expect(
+        client.guilds.create(name, {
           afkTimeout,
           defaultMessageNotifications,
           explicitContentFilter,
           verificationLevel
         })
-      ).toMatchObject<MatchObjectGuild>({
+      ).resolves.toMatchObject<MatchObjectGuild>({
         name,
         afkTimeout,
         defaultMessageNotifications,
@@ -93,7 +95,7 @@ describe('successes', () => {
     )
 
     test(
-      // eslint-disable-next-line jest/lowercase-name -- acronym
+      // eslint-disable-next-line jest/prefer-lowercase-title -- acronym
       'AFK channel',
       withClientF(async client => {
         const id = 0

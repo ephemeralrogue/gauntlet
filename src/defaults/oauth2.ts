@@ -25,5 +25,5 @@ export const application = d<Application>(app => ({
   verify_key: randomString(),
   flags: 0,
   ...partialApplication(app),
-  team: app?.team ? team(app.team) : null
+  team: app.team ? team(app.team) : null
 }))

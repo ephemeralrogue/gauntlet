@@ -5,5 +5,5 @@ import type {FullApplication} from '../types'
 
 export const fullApplication = d<FullApplication>(app => ({
   ...application(app),
-  bot: user(app?.bot)
+  bot: user(app.bot)
 }))

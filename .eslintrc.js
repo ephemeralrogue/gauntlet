@@ -69,6 +69,12 @@ const config = {
           }
         ]
       }
+    },
+    {
+      files: ['**/*.d.ts'],
+      rules: {
+        '@typescript-eslint/naming-convention': 0
+      }
     }
   ],
   rules: {

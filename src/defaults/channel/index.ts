@@ -15,7 +15,10 @@ import {
   snowflake,
   timestamp
 } from '../../utils'
-import {DEFAULT_CHANNEL_NAME} from '../constants'
+import {
+  DEFAULT_CHANNEL_NAME,
+  DEFAULT_THREAD_AUTO_ARCHIVE_DURATION
+} from '../constants'
 import {partialEmoji} from '../emoji'
 import {user} from '../user'
 import {createDefaults as d} from '../utils'
@@ -314,7 +317,7 @@ export const guildChannel = d<GuildChannel>((channel): GuildChannel => {
     ...parentId,
     ...nsfw,
     topic: null,
-    default_auto_archive_duration: ThreadAutoArchiveDuration.OneDay
+    default_auto_archive_duration: DEFAULT_THREAD_AUTO_ARCHIVE_DURATION
   }
   const permissionOverwrites = (
     chan?: PartialDeep<Exclude<GuildChannel, ThreadChannel>>

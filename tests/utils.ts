@@ -7,7 +7,6 @@ export const expectNotToBeNull: <T>(
 ) => asserts actual is Exclude<T, null> = actual =>
   expect(actual).not.toBeNull()
 
-/* eslint-disable @typescript-eslint/ban-types -- any object */
 type ObjectDeepPartialOmit<T extends object, O extends PropertyKey> = {
   // eslint-disable-next-line @typescript-eslint/no-use-before-define -- recursive
   [K in keyof T as Exclude<K, O>]?: DeepPartialOmit<T[K], O>
@@ -29,7 +28,6 @@ export type DeepPartialOmit<
   : T extends object
   ? ObjectDeepPartialOmit<T, O>
   : T
-/* eslint-enable @typescript-eslint/ban-types */
 
 // Omitting valueOf because ({...}).valueOf() is Object, whereas
 // (guild as D.Guild).valueOf() is string

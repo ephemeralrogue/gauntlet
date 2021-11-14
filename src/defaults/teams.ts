@@ -9,7 +9,7 @@ export const teamMember = d<TeamMember>(member => ({
   team_id: snowflake(),
   ...member,
   permissions: ['*'],
-  user: user(member?.user)
+  user: user(member.user)
 }))
 
 export const team = d<Team>(_team => {
@@ -20,7 +20,7 @@ export const team = d<Team>(_team => {
     icon: null,
     name: 'Team name',
     owner_user_id: ownerId,
-    members: _team?.members?.map(member => ({
+    members: _team.members?.map(member => ({
       ...teamMember(member),
       team_id: id
     })) ?? [

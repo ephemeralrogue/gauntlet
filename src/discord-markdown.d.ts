@@ -1,4 +1,6 @@
 // TODO: add to DT
+// update: well I tried :( https://github.com/DefinitelyTyped/DefinitelyTyped/pull/53501
+
 declare module 'discord-markdown' {
   import type md from 'simple-markdown'
 

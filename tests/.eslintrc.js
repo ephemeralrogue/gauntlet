@@ -16,7 +16,8 @@ const config = {
         'import/no-unassigned-import': [
           1,
           {allow: [path.join(__dirname, 'matchers')]}
-        ]
+        ],
+        'jest/require-hook': 0
       }
     },
     {

@@ -15,9 +15,9 @@ describe('get template', () => {
     const templateDescription = 'Template description'
     await withClient(
       async client => {
-        expect(
-          await client.fetchGuildTemplate(code)
-        ).toMatchObject<MatchObjectTemplate>({
+        await expect(
+          client.fetchGuildTemplate(code)
+        ).resolves.toMatchObject<MatchObjectTemplate>({
           name: templateName,
           description: templateDescription
         })
@@ -111,10 +111,8 @@ describe('create guild template', () => {
     await withClient(
       async client =>
         expect(
-          await client.guilds.cache
-            .get(guildId)!
-            .createTemplate(name, description)
-        ).toMatchObject<MatchObjectTemplate>({name, description}),
+          client.guilds.cache.get(guildId)!.createTemplate(name, description)
+        ).resolves.toMatchObject<MatchObjectTemplate>({name, description}),
       guildWithBot({id: guildId})
     )
   })
@@ -131,8 +129,13 @@ describe('modify guild template', () => {
     await withClient(
       async client =>
         expect(
-          await (await getTemplate(client)).edit({name: newName})
-        ).toMatchObject<MatchObjectTemplate>({name: newName, description}),
+          getTemplate(client).then(async template =>
+            template.edit({name: newName})
+          )
+        ).resolves.toMatchObject<MatchObjectTemplate>({
+          name: newName,
+          description
+        }),
       guildWithBot({id: guildId, template: {name: oldName, description}})
     )
   })

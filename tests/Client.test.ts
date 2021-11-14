@@ -33,7 +33,7 @@ describe('mockClient', () => {
         })
       })
       DM.mockClient(client, backend, app.id)
-      expect(await emittedGuilds).toEqual(
+      await expect(emittedGuilds).resolves.toEqual(
         new Set([
           expect.objectContaining<MatchObjectGuild>({id: id1}),
           expect.objectContaining<MatchObjectGuild>({id: id2})

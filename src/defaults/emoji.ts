@@ -4,9 +4,9 @@ import {createDefaults as d} from './utils'
 import type {GuildEmoji, PartialEmoji} from '../types'
 
 export const partialEmoji = d<PartialEmoji>(emoji =>
-  !emoji || emoji.id == null
+  emoji.id == null
     ? // Ordinary emoji
-      {id: null, name: emoji?.name ?? DEFAULT_STANDARD_EMOJI}
+      {id: null, name: emoji.name ?? DEFAULT_STANDARD_EMOJI}
     : // Custom emoji
       {
         id: emoji.id,

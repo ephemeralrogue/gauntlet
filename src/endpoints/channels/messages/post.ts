@@ -168,13 +168,13 @@ const getEmbedsErrors = (
   )
     return {_errors: [formBodyErrors.MAX_EMBED_SIZE_EXCEEDED]}
 
-  return embeds.reduce<FormBodyErrors[string]>((errs, embed, i) => {
-    const embedErrors = getEmbedErrors(embed)
-    return {
-      ...errs,
-      ...(Object.keys(embedErrors).length ? {[i]: embedErrors} : {})
-    }
-  }, {})
+  // TODO: filter map util
+  return Object.fromEntries(
+    embeds.reduce<[number, FormBodyErrors][]>((acc, embed, i) => {
+      const embedErrors = getEmbedErrors(embed)
+      return Object.keys(embedErrors).length ? [...acc, [i, embedErrors]] : acc
+    }, [])
+  )
 }
 
 const getAllowedMentionsErrors = (
@@ -188,15 +188,17 @@ const getAllowedMentionsErrors = (
     if (!value) return
     if (checkLength && value.length > 100)
       return {[key]: {_errors: [formBodyErrors.BASE_TYPE_MAX_LENGTH(100)]}}
-    const errs = value.reduce<FormBodyErrors>(
-      (es, id, i) =>
-        value.indexOf(id) < i
-          ? {
-              ...es,
-              [i]: {_errors: [formBodyErrors.SET_TYPE_ALREADY_CONTAINS_VALUE]}
-            }
-          : es,
-      {}
+    const errs = Object.fromEntries(
+      value.reduce<[number, FormBodyErrors[string]][]>(
+        (acc, id, i) =>
+          value.indexOf(id) < i
+            ? [
+                ...acc,
+                [i, {_errors: [formBodyErrors.SET_TYPE_ALREADY_CONTAINS_VALUE]}]
+              ]
+            : acc,
+        []
+      )
     )
     return Object.keys(errs).length ? {[key]: errs} : undefined
   }

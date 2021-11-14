@@ -23,9 +23,9 @@ declare module 'discord.js' {
   }
 }
 
-export type AnyFunction = (
-  ...args: never[]
-) => unknown | (new (...args: never[]) => unknown)
+export type AnyFunction =
+  | ((...args: never[]) => unknown)
+  | (new (...args: never[]) => unknown)
 
 /**
  * An intersection between `T` and `U`, but the properties of `U` override the
@@ -34,11 +34,9 @@ export type AnyFunction = (
 export type Override<T, U> = Omit<T, keyof U> & U
 
 /** Make some keys required. */
-export type RequireKeys<T, K extends keyof T> = {
+export type RequireKeys<T, K extends keyof T> = T & {
   [P in keyof Pick<T, K>]-?: Exclude<T[P], undefined>
-} & T
-
-export type RequiredPick<T, K extends keyof T> = Required<Pick<T, K>>
+}
 
 /** Get the keys matching a value in an object. */
 export type KeysMatching<T extends object, V> = {
