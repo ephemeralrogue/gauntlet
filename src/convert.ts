@@ -278,7 +278,7 @@ export const message =
             })
           }
         : {}),
-      ...(message_reference ? {} : {message_reference}),
+      ...(message_reference ? {message_reference} : {}),
       ...(referenced_message
         ? {
             referenced_message: message(
