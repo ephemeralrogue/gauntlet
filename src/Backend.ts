@@ -15,7 +15,7 @@ import type {
   PartialDeep,
   Snowflake,
   SnowflakeCollection,
-  Sticker,
+  StandardSticker,
   User,
   VoiceRegion
 } from './types'
@@ -41,7 +41,9 @@ export class Backend {
   /** @internal */
   readonly guilds: SnowflakeCollection<Guild> = new Collection()
   /** @internal */
-  readonly standardStickers: SnowflakeCollection<Sticker> = new Collection()
+  readonly standardStickers: SnowflakeCollection<StandardSticker> =
+    new Collection()
+
   /** @internal */
   readonly users: SnowflakeCollection<User> = new Collection()
   /** @internal */
@@ -59,7 +61,7 @@ export class Backend {
     applications?: CollectionResolvableId<FullApplication>
     dmChannels?: CollectionResolvableId<DMChannel>
     guilds?: CollectionResolvableId<Guild>
-    standardStickers?: CollectionResolvableId<Sticker>
+    standardStickers?: CollectionResolvableId<StandardSticker>
     users?: CollectionResolvableId<User>
     voiceRegions?: CollectionResolvableId<VoiceRegion>
   } = {}) {
@@ -68,9 +70,9 @@ export class Backend {
       defaults.dmChannel
     )
     this.guilds = resolveCollectionId<Guild>(guilds, defaults.guild)
-    this.standardStickers = resolveCollectionId<Sticker>(
+    this.standardStickers = resolveCollectionId<StandardSticker>(
       standardStickers,
-      defaults.sticker
+      defaults.standardSticker
     )
     this.voiceRegions =
       voiceRegions instanceof Collection
@@ -192,7 +194,7 @@ export class Backend {
     // Stickers from messages
     for (const [id, guildId] of stickers) {
       if (guildId === undefined && !this.standardStickers.has(id))
-        this.standardStickers.set(id, defaults.sticker({id}))
+        this.standardStickers.set(id, defaults.standardSticker({id}))
     }
   }
 

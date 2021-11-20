@@ -9,7 +9,8 @@ import {
 } from 'discord-api-types/v9'
 import {Collection} from 'discord.js'
 import {
-  // resolveCollection,
+  resolveCollectionId,
+  resolveCollectionUserId,
   snowflake,
   timestamp,
   toCollection
@@ -24,20 +25,25 @@ import {guildPresence} from '../gateway'
 import {guildChannel, guildChannels} from '../channel'
 import {partialApplication} from '../oauth2'
 import {role} from '../permissions'
-import {sticker} from '../sticker'
+import {guildSticker} from '../sticker'
 import {guildTemplate} from '../template'
 import {user} from '../user'
 import {createDefaults as d} from '../utils'
 import {partialGuild} from './partial'
 import type {
+  AuditLogEntry,
   Guild,
+  GuildEmoji,
   GuildChannel,
   GuildIntegration,
   GuildIntegrationApplication,
   GuildMember,
+  GuildPresence,
+  GuildSticker,
   GuildVoiceState,
   IntegrationAccount,
   PartialDeep,
+  Role,
   Snowflake
 } from '../../types'
 
@@ -100,20 +106,24 @@ const guildVoiceState = d<GuildVoiceState>(voiceState => ({
 export const guild = d<Guild>(_guild => {
   /** Includes extra properties from `Guild` not in `PartialGuild`. */
   const partial = partialGuild(_guild)
-  const _members = _guild.members?.map(guildMember)
+  const members = resolveCollectionId<GuildMember>(_guild.members, guildMember)
   const owner_id = _guild.owner_id ?? snowflake()
-  const members = toCollection(_members ?? [])
   // TODO: use resolveCollection instead of mapValues to get proper ID in values of map
-  const emojis = _guild.emojis?.mapValues(guildEmoji) ?? new Collection()
-  const roles = _guild.roles?.mapValues(role) ?? new Collection()
-  const voice_states =
-    _guild.voice_states?.mapValues(guildVoiceState) ?? new Collection()
+  const emojis = resolveCollectionId<GuildEmoji>(_guild.emojis, guildEmoji)
+  const roles = resolveCollectionId<Role>(_guild.roles, role)
+  const voice_states = resolveCollectionUserId<GuildVoiceState>(
+    _guild.voice_states,
+    guildVoiceState
+  )
 
   let channels: Guild['channels']
   let system_channel_id: Guild['system_channel_id']
   if (_guild.channels) {
     system_channel_id = _guild.system_channel_id ?? null
-    const chans = _guild.channels.mapValues(guildChannel)
+    const chans = resolveCollectionId<GuildChannel>(
+      _guild.channels,
+      guildChannel
+    )
     const newChannel = (
       id: Snowflake | null | undefined,
       type?: ChannelType
@@ -260,10 +270,15 @@ export const guild = d<Guild>(_guild => {
           )
       ])
     ),
-    presences: _guild.presences?.mapValues(guildPresence) ?? new Collection(),
-    audit_log_entries:
-      _guild.audit_log_entries?.mapValues(auditLogEntry) ?? new Collection(),
+    presences: resolveCollectionUserId<GuildPresence>(
+      _guild.presences,
+      guildPresence
+    ),
+    audit_log_entries: resolveCollectionId<AuditLogEntry>(
+      _guild.audit_log_entries,
+      auditLogEntry
+    ),
     ...(_guild.template ? {template: guildTemplate(_guild.template)} : {}),
-    stickers: _guild.stickers?.mapValues(sticker) ?? new Collection()
+    stickers: resolveCollectionId<GuildSticker>(_guild.stickers, guildSticker)
   }
 })

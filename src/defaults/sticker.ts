@@ -3,7 +3,7 @@ import {DEFAULT_STICKER_NAME} from './constants'
 import {snowflake} from '../utils'
 import {user} from './user'
 import {createDefaults as d} from './utils'
-import type {Sticker, StickerItem} from '../types'
+import type {GuildSticker, StandardSticker, StickerItem} from '../types'
 
 export const stickerItem = d<StickerItem>(item => ({
   id: snowflake(),
@@ -12,11 +12,17 @@ export const stickerItem = d<StickerItem>(item => ({
   ...item
 }))
 
-export const sticker = d<Sticker>(_sticker => ({
+export const guildSticker = d<GuildSticker>(_sticker => ({
   description: null,
   tags: '',
   asset: '',
   type: StickerType.Guild,
   ...stickerItem(_sticker),
   ...(_sticker.user ? {user: user(_sticker.user)} : {})
+}))
+
+export const standardSticker = d<StandardSticker>(({type, ...rest}) => ({
+  pack_id: snowflake(),
+  ...guildSticker(rest),
+  type: StickerType.Standard
 }))

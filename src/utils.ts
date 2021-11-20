@@ -182,21 +182,22 @@ export type CollectionResolvable<T, K extends keyof T> =
 export type CollectionResolvableId<T extends {id: unknown}> =
   CollectionResolvable<T, 'id'>
 
-const resolveCollection = <T extends object, K extends keyof T>(
-  data: CollectionResolvable<T, K>,
-  key: K,
-  defaults: (value: PartialDeep<T>) => T
-): Collection<T[K], T> =>
-  data instanceof Collection
-    ? data.mapValues((x, id) =>
-        defaults({...x, [key]: id} as unknown as PartialDeep<T>)
-      )
-    : arrayToCollection<PartialDeep<T>, T, K>(data, key, defaults)
+const resolveCollection =
+  <K extends PropertyKey>(key: K) =>
+  <T extends Record<K, unknown>>(
+    data: CollectionResolvable<T, K>,
 
-export const resolveCollectionId = <T extends {id: unknown}>(
-  data: CollectionResolvableId<T>,
-  mapper: (value: PartialDeep<T>) => T
-): Collection<T['id'], T> => resolveCollection(data, 'id', mapper)
+    defaults: (value: PartialDeep<T>) => T
+  ): Collection<T[K], T> =>
+    data instanceof Collection
+      ? data.mapValues((x, id) =>
+          defaults({...x, [key]: id} as unknown as PartialDeep<T>)
+        )
+      : arrayToCollection<PartialDeep<T>, T, K>(data, key, defaults)
+
+export const resolveCollectionId = resolveCollection('id')
+
+export const resolveCollectionUserId = resolveCollection('user_id')
 
 export const toCollection: {
   <V extends object, K extends keyof V>(

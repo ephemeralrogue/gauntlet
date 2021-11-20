@@ -1,6 +1,12 @@
 import type * as D from 'discord-api-types/v9'
 import type {Collection} from 'discord.js'
-import type {AnyFunction, Override, RequireKeys} from '../utils'
+import type {CollectionResolvable} from '..'
+import type {
+  AnyFunction,
+  CollectionResolvableId,
+  Override,
+  RequireKeys
+} from '../utils'
 import type {
   APIAuditLogChange,
   APIAuditLogChangeKeyOverwriteType,
@@ -38,7 +44,6 @@ export type PartialChannel = D.APIPartialChannel
 export type PartialGuild = D.APIPartialGuild
 export type SelectMenuOption = D.APISelectMenuOption
 export type SelectMenuComponent = D.APISelectMenuComponent
-export type Sticker = D.APISticker
 export type StickerItem = D.APIStickerItem
 export type Snowflake = D.Snowflake
 export type Team = D.APITeam
@@ -82,7 +87,12 @@ export type PartialDeep<T> = T extends AuditLogChange
       : readonly PartialDeep<U>[] // ordinary readonly array
     : ObjectPartialDeep<T> // tuple
   : T extends Collection<infer K, infer V>
-  ? Collection<K, PartialDeep<V>>
+  ? // don't distribute
+    [V] extends [{id: K}]
+    ? CollectionResolvableId<V>
+    : [V] extends [{user_id: K}]
+    ? CollectionResolvable<V, 'user_id'>
+    : Collection<K, PartialDeep<V>>
   : T extends AnyFunction
   ? T
   : T extends object
@@ -264,12 +274,20 @@ export type GuildPresence = Omit<Presence, 'guild_id'>
 export type GuildTemplate = Omit<D.APITemplate, 'creator' | 'source_guild_id'>
 export type Role = Override<D.APIRole, {permissions: bigint}>
 
+interface StickerBase<T extends D.StickerType>
+  extends Omit<D.APISticker, 'guild_id'> {
+  type: T
+}
+export type StandardSticker = RequireKeys<
+  StickerBase<D.StickerType.Standard>,
+  'pack_id'
+>
+export type GuildSticker = Omit<StickerBase<D.StickerType.Guild>, 'pack_id'>
+export type Sticker = GuildSticker | StandardSticker
+
 export type Guild = Override<
   Omit<
-    RequireKeys<
-      APIGuild,
-      'channels' | 'members' | 'voice_states' | 'widget_enabled'
-    >,
+    RequireKeys<APIGuild, 'widget_enabled'>,
     // Member counts will be computed
     | 'approximate_member_count'
     | 'approximate_presence_count'
@@ -289,7 +307,7 @@ export type Guild = Override<
     members: SnowflakeCollection<GuildMember>
     presences: SnowflakeCollection<GuildPresence>
     roles: SnowflakeCollection<Role>
-    stickers: SnowflakeCollection<D.APISticker>
+    stickers: SnowflakeCollection<GuildSticker>
     template?: GuildTemplate
     voice_states: SnowflakeCollection<GuildVoiceState>
   }

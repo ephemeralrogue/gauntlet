@@ -8,10 +8,11 @@ import {
   OverwriteType,
   ThreadAutoArchiveDuration
 } from 'discord-api-types/v9'
-import {Collection} from 'discord.js'
 import {
   attachmentURLs,
   removeUndefined,
+  resolveCollectionId,
+  resolveCollectionUserId,
   snowflake,
   timestamp
 } from '../../utils'
@@ -266,7 +267,7 @@ export const overwrite = d<Overwrite>(_overwrite => ({
 const messages = (
   channel?: PartialDeep<TextBasedChannel>
 ): TextBasedChannel['messages'] =>
-  channel?.messages?.mapValues(message(channel.id)) ?? new Collection()
+  resolveCollectionId<Message>(channel?.messages, message(channel?.id))
 
 const textBasedChannel: Pick<
   TextBasedChannel,
@@ -322,13 +323,11 @@ export const guildChannel = d<GuildChannel>((channel): GuildChannel => {
   const permissionOverwrites = (
     chan?: PartialDeep<Exclude<GuildChannel, ThreadChannel>>
   ): SnowflakeCollection<Overwrite> =>
-    chan?.permission_overwrites
-      ? chan.permission_overwrites.mapValues(o => overwrite(o))
-      : new Collection()
+    resolveCollectionId<Overwrite>(chan?.permission_overwrites, overwrite)
   const webhooks = (
     chan?: PartialDeep<NewsChannel | TextChannel>
   ): SnowflakeCollection<Webhook> =>
-    chan?.webhooks ? chan.webhooks.mapValues(h => webhook(h)) : new Collection()
+    resolveCollectionId<Webhook>(chan?.webhooks, webhook)
 
   const base = {
     name: DEFAULT_CHANNEL_NAME,
@@ -369,7 +368,7 @@ export const guildChannel = d<GuildChannel>((channel): GuildChannel => {
         ...textBasedChannel,
         ...base,
         messages: messages(chan),
-        members: chan?.members?.mapValues(threadMember) ?? new Collection(),
+        members: resolveCollectionUserId(chan?.members, threadMember),
         thread_metadata: threadMetadata(chan?.thread_metadata)
       }
     }
