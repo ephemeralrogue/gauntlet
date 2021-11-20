@@ -6,17 +6,23 @@ import {
   GatewayIntentBits,
   PermissionFlagsBits
 } from 'discord-api-types/v9'
-import * as convert from '../../../convert'
-import * as defaults from '../../../defaults'
+import * as convert from '../../../../convert'
+import * as defaults from '../../../../defaults'
 import {
   attachmentURLs,
   clientUserId,
   pick,
   omit,
   filterMap
-} from '../../../utils'
-import {getChannel, getPermissions, hasPermissions} from '../../utils'
-import {Method, error, errors, formBodyErrors, mkRequest} from '../../../errors'
+} from '../../../../utils'
+import {getChannel, getPermissions, hasPermissions} from '../../../utils'
+import {
+  Method,
+  error,
+  errors,
+  formBodyErrors,
+  mkRequest
+} from '../../../../errors'
 import type {HTTPAttachmentData} from 'discord.js'
 import type {
   APIAllowedMentions,
@@ -25,8 +31,8 @@ import type {
   RESTPostAPIChannelMessageResult,
   Snowflake
 } from 'discord-api-types/v9'
-import type {Backend, EmitPacket, HasIntents} from '../../../Backend'
-import type {FormBodyError, FormBodyErrors} from '../../../errors'
+import type {Backend, EmitPacket, HasIntents} from '../../../../Backend'
+import type {FormBodyError, FormBodyErrors} from '../../../../errors'
 import type {
   Channel,
   Embed,
@@ -34,8 +40,8 @@ import type {
   GuildChannel,
   Message,
   TextBasedChannel
-} from '../../../types'
-import type {AttachmentURLs, RequireKeys} from '../../../utils'
+} from '../../../../types'
+import type {AttachmentURLs, RequireKeys} from '../../../../utils'
 
 export type MessagesPost = (options: {
   data: RESTPostAPIChannelMessageJSONBody
