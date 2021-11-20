@@ -1,6 +1,6 @@
 import {Collection, SnowflakeUtil} from 'discord.js'
 import type {Backend} from './Backend'
-import type {Snowflake} from './types'
+import type {PartialDeep, Snowflake} from './types'
 
 declare global {
   interface ArrayConstructor {
@@ -162,36 +162,41 @@ export const filterMap = <A extends readonly unknown[], T>(
     return result === undefined ? acc : [...acc, result]
   }, [])
 
-/**
- * Resolves an array of data to a collection.
- *
- * @param array The array to be resolved.
- * @param key The property of the values to use as the collection key.
- * @param mapper A function to resolve each value in `array` to a new value for
- * collection. Defaults to the identity function.
- * @returns The resolved collection.
- */
-export const resolveCollection: {
-  <V extends object, K extends keyof V>(
-    array: readonly V[] | undefined,
-    key: K
-  ): Collection<V[K], V>
-  <V extends object, U extends V, K extends keyof U>(
-    array: readonly V[] | undefined,
-    key: K,
-    mapper: (value: V) => U
-  ): Collection<U[K], U>
-} = <V extends object, U extends V, K extends keyof U>(
-  array: readonly V[] | undefined,
+export const arrayToCollection = <T extends object, U, K extends keyof U>(
+  array: readonly T[] | undefined,
   key: K,
-  mapper = (value: V): U => value as U
+  fn: (value: T) => U
 ): Collection<U[K], U> =>
   new Collection<U[K], U>(
     array?.map(item => {
-      const mapped = mapper(item)
+      const mapped = fn(item)
       return [mapped[key], mapped]
     })
   )
+
+export type CollectionResolvable<T, K extends keyof T> =
+  | Collection<T[K], PartialDeep<Omit<T, K>>>
+  | readonly PartialDeep<T>[]
+  | undefined
+
+export type CollectionResolvableId<T extends {id: unknown}> =
+  CollectionResolvable<T, 'id'>
+
+const resolveCollection = <T extends object, K extends keyof T>(
+  data: CollectionResolvable<T, K>,
+  key: K,
+  defaults: (value: PartialDeep<T>) => T
+): Collection<T[K], T> =>
+  data instanceof Collection
+    ? data.mapValues((x, id) =>
+        defaults({...x, [key]: id} as unknown as PartialDeep<T>)
+      )
+    : arrayToCollection<PartialDeep<T>, T, K>(data, key, defaults)
+
+export const resolveCollectionId = <T extends {id: unknown}>(
+  data: CollectionResolvableId<T>,
+  mapper: (value: PartialDeep<T>) => T
+): Collection<T['id'], T> => resolveCollection(data, 'id', mapper)
 
 export const toCollection: {
   <V extends object, K extends keyof V>(

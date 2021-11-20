@@ -1,10 +1,11 @@
-import {resolveCollection} from '../utils'
+import {clone, arrayToCollection, resolveCollectionId} from '../utils'
 import {createDefaults as d} from './utils'
 import type {Collection} from 'discord.js'
-import type {PartialDeep, VoiceRegion} from '../types'
+import type {VoiceRegion} from '../types'
+import type {CollectionResolvableId} from '..'
 
 export const defaultVoiceRegions: Collection<string, VoiceRegion> =
-  resolveCollection(
+  arrayToCollection(
     [
       {
         id: 'us-west',
@@ -159,7 +160,8 @@ export const defaultVoiceRegions: Collection<string, VoiceRegion> =
         optimal: false
       }
     ],
-    'id'
+    'id',
+    x => x
   )
 
 export const voiceRegion = d<VoiceRegion>(region => ({
@@ -173,8 +175,8 @@ export const voiceRegion = d<VoiceRegion>(region => ({
 }))
 
 export const voiceRegions = (
-  regions?: readonly PartialDeep<VoiceRegion>[]
+  regions?: CollectionResolvableId<VoiceRegion>
 ): Collection<string, VoiceRegion> =>
   regions
-    ? resolveCollection(regions, 'id', voiceRegion)
-    : defaultVoiceRegions.clone()
+    ? resolveCollectionId<VoiceRegion>(regions, voiceRegion)
+    : clone(defaultVoiceRegions)

@@ -3,4 +3,9 @@ export {Backend} from './Backend'
 
 // Types
 export * from './types'
-export {KeysMatching, RequireKeys} from './utils'
+export {
+  CollectionResolvable,
+  CollectionResolvableId,
+  KeysMatching,
+  RequireKeys
+} from './utils'

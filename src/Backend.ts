@@ -1,12 +1,8 @@
 import {Collection} from 'discord.js'
 import * as defaults from './defaults'
 import * as endpoints from './endpoints'
-import {
-  clone,
-  filterMap,
-  resolveCollection as arrayResolveCollection,
-  toCollection
-} from './utils'
+import {clone, filterMap, resolveCollectionId, toCollection} from './utils'
+import type {Channels, Guilds, OAuth2, Voice} from './endpoints'
 import type {
   DMChannel,
   FullApplication,
@@ -23,7 +19,7 @@ import type {
   User,
   VoiceRegion
 } from './types'
-import type {Channels, Guilds, OAuth2, Voice} from './endpoints'
+import type {CollectionResolvableId} from './utils'
 
 interface API {
   readonly channels: Channels
@@ -36,23 +32,6 @@ const userEntry = (id: Snowflake): [Snowflake, User] => [
   id,
   defaults.user({id})
 ]
-
-type CollectionResolvable<T extends {id: unknown}> =
-  | Collection<T['id'], PartialDeep<Omit<T, 'id'>>>
-  | readonly PartialDeep<T>[]
-  | undefined
-
-const resolveCollection = <T extends {id: unknown}>(
-  obj: CollectionResolvable<T>,
-  mapper: (value: PartialDeep<T>) => T
-): Collection<T['id'], T> =>
-  obj instanceof Collection
-    ? obj.mapValues((x, id) => mapper({...x, id} as unknown as PartialDeep<T>))
-    : arrayResolveCollection<PartialDeep<T>, Extract<T, PartialDeep<T>>, 'id'>(
-        obj,
-        'id',
-        mapper as (value: PartialDeep<T>) => Extract<T, PartialDeep<T>>
-      )
 
 export class Backend {
   /** @internal */
@@ -77,19 +56,19 @@ export class Backend {
     users,
     voiceRegions
   }: {
-    applications?: CollectionResolvable<FullApplication>
-    dmChannels?: CollectionResolvable<DMChannel>
-    guilds?: CollectionResolvable<Guild>
-    standardStickers?: CollectionResolvable<Sticker>
-    users?: CollectionResolvable<User>
-    voiceRegions?: CollectionResolvable<VoiceRegion>
+    applications?: CollectionResolvableId<FullApplication>
+    dmChannels?: CollectionResolvableId<DMChannel>
+    guilds?: CollectionResolvableId<Guild>
+    standardStickers?: CollectionResolvableId<Sticker>
+    users?: CollectionResolvableId<User>
+    voiceRegions?: CollectionResolvableId<VoiceRegion>
   } = {}) {
-    this.dmChannels = resolveCollection<DMChannel>(
+    this.dmChannels = resolveCollectionId<DMChannel>(
       dmChannels,
       defaults.dmChannel
     )
-    this.guilds = resolveCollection<Guild>(guilds, defaults.guild)
-    this.standardStickers = resolveCollection<Sticker>(
+    this.guilds = resolveCollectionId<Guild>(guilds, defaults.guild)
+    this.standardStickers = resolveCollectionId<Sticker>(
       standardStickers,
       defaults.sticker
     )
@@ -98,13 +77,13 @@ export class Backend {
         ? voiceRegions.mapValues(defaults.voiceRegion)
         : defaults.voiceRegions(voiceRegions)
 
-    const resolvedApps = resolveCollection<FullApplication>(
+    const resolvedApps = resolveCollectionId<FullApplication>(
       applications,
       defaults.fullApplication
     )
     this.applications = resolvedApps
 
-    const resolvedUsers = resolveCollection<User>(users, defaults.user)
+    const resolvedUsers = resolveCollectionId<User>(users, defaults.user)
     this.users = resolvedUsers.concat(
       new Collection([
         // DM channel recipients
