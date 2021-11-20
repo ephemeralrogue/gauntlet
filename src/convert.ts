@@ -75,9 +75,10 @@ export const guildMember =
     premium_since,
     pending
   }: GuildMember): APIGuildMember => {
-    const {deaf, mute} = guild.voice_states.find(
-      ({user_id}) => user_id === id
-    ) ?? {deaf: false, mute: false}
+    const {deaf, mute} = guild.voice_states.get(id) ?? {
+      deaf: false,
+      mute: false
+    }
     return {
       user: allUsers.get(id)!,
       nick,
@@ -271,9 +272,7 @@ export const message =
       ...(mention_channels
         ? {
             mention_channels: mention_channels.map(({id, guild_id}) => {
-              const {name, type} = guilds
-                .get(guild_id)!
-                .channels.find(chan => chan.id === id)!
+              const {name, type} = guilds.get(guild_id)!.channels.get(id)!
               return {id, guild_id, name, type}
             })
           }

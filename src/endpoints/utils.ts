@@ -57,7 +57,7 @@ export const getPermissions = (
   member: GuildMember,
   channel?: GuildChannel
 ): bigint => {
-  const everyoneRole = guild.roles.find(({id}) => id === guild.id)!
+  const everyoneRole = guild.roles.get(guild.id)!
   const memberRoles = new Set(member.roles)
   const roles = guild.roles.filter(({id}) => memberRoles.has(id))
   const basePerms = roles.reduce(
@@ -72,9 +72,7 @@ export const getPermissions = (
       ? channel
       : (guild.channels.get(channel.parent_id) as NewsChannel | TextChannel)
   ).permission_overwrites
-  const everyoneOverwrites = permissionOverwrites.find(
-    ({id}) => id === guild.id
-  )
+  const everyoneOverwrites = permissionOverwrites.get(guild.id)
   const [allow, deny] = permissionOverwrites.reduce(
     ([all, den], overwrite) =>
       memberRoles.has(overwrite.id)
@@ -89,7 +87,7 @@ export const getPermissions = (
       ~deny) |
     allow
 
-  const memberOverwrite = permissionOverwrites.find(({id}) => id === member.id)
+  const memberOverwrite = permissionOverwrites.get(member.id)
   return memberOverwrite
     ? (overwritePerms & ~memberOverwrite.deny) | memberOverwrite.allow
     : overwritePerms
@@ -112,7 +110,7 @@ export const getChannel =
     const dmChannel = dmChannels.get(id)
     if (dmChannel) return [undefined, dmChannel]
     for (const [, guild] of guilds) {
-      const channel = guild.channels.find(chan => chan.id === id)
+      const channel = guild.channels.get(id)
       if (channel) return [guild, channel]
     }
     return [undefined, undefined]

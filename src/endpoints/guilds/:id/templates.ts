@@ -67,7 +67,7 @@ export default (backend: Backend, applicationId: Snowflake) => {
     ): Guild => {
       const guild = backend.guilds.get(id)
       if (!guild) error(request, errors.UNKNOWN_GUILD)
-      const member = guild.members.find(m => m.id === userId)
+      const member = guild.members.get(userId)
       if (
         member &&
         hasPermissions(

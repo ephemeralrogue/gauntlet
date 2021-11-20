@@ -352,7 +352,7 @@ export default (
     const checkPermissions = (guild: Guild, channel: GuildChannel): bigint => {
       const permissions = getPermissions(
         guild,
-        guild.members.find(member => member.id === userId)!,
+        guild.members.get(userId)!,
         channel
       )
       if (!hasPermissions(permissions, PermissionFlagsBits.ViewChannel))
