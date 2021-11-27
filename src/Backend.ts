@@ -254,7 +254,6 @@ export type EmitPacket = <T extends GatewayDispatchEvents>(
 
 export type HasIntents = (intents: IntentBits) => boolean
 
-// TODO: make endpoints a proxy https://github.com/discordjs/discord.js/pull/5256
 export const api = (
   backend: Backend,
   applicationId: Snowflake,

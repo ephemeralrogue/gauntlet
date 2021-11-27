@@ -16,10 +16,41 @@ export const BASE_TYPE_REQUIRED: FormBodyError = {
   message: 'This field is required'
 }
 
+export const BUTTON_COMPONENT_CUSTOM_ID_REQUIRED: FormBodyError = {
+  code: 'BUTTON_COMPONENT_CUSTOM_ID_REQUIRED',
+  message: 'A custom id is required'
+}
+
+export const BUTTON_COMPONENT_CUSTOM_ID_URL_MUTUALLY_EXCLUSIVE: FormBodyError =
+  {
+    code: 'BUTTON_COMPONENT_CUSTOM_ID_URL_MUTUALLY_EXCLUSIVE',
+    message: 'A custom id and url cannot both be specified"'
+  }
+
+export const BUTTON_COMPONENT_INVALID_EMOJI: FormBodyError = {
+  code: 'BUTTON_COMPONENT_INVALID_EMOJI',
+  message: 'Invalid emoji'
+}
+
 export const CHANNEL_PARENT_INVALID_TYPE: FormBodyError = {
   code: 'CHANNEL_PARENT_INVALID_TYPE',
   message: 'Not a category'
 }
+
+export const COMPONENT_CUSTOM_ID_DUPLICATED: FormBodyError = {
+  code: 'COMPONENT_CUSTOM_ID_DUPLICATED',
+  message: 'Component custom id cannot be duplicated'
+}
+
+export const COMPONENT_LAYOUT_WIDTH_EXCEEDED: FormBodyError = {
+  code: 'COMPONENT_LAYOUT_WIDTH_EXCEEDED',
+  message: 'The specified component exceeds the maximum width'
+}
+
+// export const COMPONENT_TYPE_INVALID: FormBodyError = {
+//   code: 'COMPONENT_TYPE_INVALID',
+//   message: 'The specified component type is invalid in this context'
+// }
 
 export const GUILD_CREATE_AFK_CHANNEL_NOT_GUILD_VOICE: FormBodyError = {
   code: 'GUILD_CREATE_AFK_CHANNEL_NOT_GUILD_VOICE',
@@ -66,11 +97,23 @@ export const REPLIES_UNKNOWN_MESSAGE: FormBodyError = {
   message: 'Unknown message'
 }
 
+export const SELECT_COMPONENT_OPTION_VALUE_DUPLICATED: FormBodyError = {
+  code: 'SELECT_COMPONENT_OPTION_VALUE_DUPLICATED',
+  message: 'The specified option value is already used'
+}
+
+export const SELECT_COMPONENT_TOO_MANY_DEFAULT_VALUES: FormBodyError = {
+  code: 'SELECT_COMPONENT_TOO_MANY_DEFAULT_VALUES',
+  message:
+    'The specified number of default values exceeds the specified maximum values'
+}
+
 export const SET_TYPE_ALREADY_CONTAINS_VALUE: FormBodyError = {
   code: 'SET_TYPE_ALREADY_CONTAINS_VALUE',
   message: 'The set already contains this value'
 }
 
+// TODO: url validation
 // export const URL_TYPE_INVALID_URL: FormBodyError = {
 //   code: 'URL_TYPE_INVALID_URL',
 //   message: 'Not a well formed URL.'
@@ -87,6 +130,11 @@ export const BASE_TYPE_BAD_LENGTH = (
 export const BASE_TYPE_MAX_LENGTH = (max: number): FormBodyError => ({
   code: 'BASE_TYPE_MAX_LENGTH',
   message: `Must be ${max} or fewer in length.`
+})
+
+export const BASE_TYPE_MIN_LENGTH = (max: number): FormBodyError => ({
+  code: 'BASE_TYPE_MIN_LENGTH',
+  message: `Must be ${max} or more in length.`
 })
 
 export const BASE_TYPE_CHOICES = (
@@ -113,12 +161,18 @@ export const MESSAGE_ALLOWED_MENTIONS_PARSE_EXCLUSIVE = (
   type: AllowedMentionsTypes
 ): FormBodyError => ({
   code: 'MESSAGE_ALLOWED_MENTIONS_PARSE_EXCLUSIVE',
+  // actual message doesn't have space after 'parse:'
   message: `parse:["${type}"] and ${type}: [ids...] are mutually exclusive.`
 })
 
-export const NUMBER_TYPE_MAX = (max: number): FormBodyError => ({
+// export const NUMBER_TYPE_COERCE = (value: string): FormBodyError => ({
+//   code: 'NUMBER_TYPE_COERCE',
+//   message: `Value "${value}" is not snowflake."`
+// })
+
+export const NUMBER_TYPE_MAX = (max: number, value = 'int'): FormBodyError => ({
   code: 'NUMBER_TYPE_MAX',
-  message: `int value should be less than or equal to ${max}.`
+  message: `${value} value should be less than or equal to ${max}.`
 })
 
 export const NUMBER_TYPE_MIN = (min: number): FormBodyError => ({
@@ -128,6 +182,6 @@ export const NUMBER_TYPE_MIN = (min: number): FormBodyError => ({
 
 // export const URL_TYPE_INVALID_SCHEME = (scheme: string): FormBodyError => ({
 //   code: 'URL_TYPE_INVALID_SCHEME',
-//   message: `Scheme "${scheme}" is not supported. Scheme must be one of ('http', 'https').`
+//   message: `Scheme "${scheme}" is not supported. Scheme must be one of ('http', 'https', 'discord').`
 // })
 /* eslint-enable id-length */

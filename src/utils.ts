@@ -9,15 +9,6 @@ declare global {
 }
 
 declare module 'discord.js' {
-  interface Collection<K, V> {
-    // type in @discordjs/collection returns a Collection from that library
-    // however it actually returns an instance of the same class (using Symbol.species)
-    // without this there will be errors like 'Property 'toJSON' does not exist...'
-    mapValues<T>(
-      fn: (value: V, key: K, collection: this) => T
-    ): Collection<K, T>
-  }
-
   interface Client {
     sweepMessageInterval: NodeJS.Timeout
   }
@@ -84,6 +75,12 @@ export type UnUnion<T> = Pick<T, keyof T> & {
     : never
 }
 
+export type UnStrictPartial<T> = {
+  [K in keyof T]: Partial<Record<K, T[K]>> extends Pick<T, K>
+    ? T[K] | undefined
+    : T[K]
+}
+
 export type AttachmentURLs = Record<'proxy_url' | 'url', string>
 
 const filterKeys = <T extends object>(
@@ -113,6 +110,17 @@ export const omit = <T extends object, K extends keyof T>(
       ? (key): boolean => !(keys as readonly PropertyKey[]).includes(key)
       : (key): boolean => key !== keys
   ) as Omit<T, K>
+
+/**
+ * ```ts
+ * Object.keys(object).length ? {[key]: object} : {}
+ * ```
+ */
+export const o = <K extends PropertyKey, T extends object>(
+  key: K,
+  object: T
+): Partial<Record<K, T>> =>
+  Object.keys(object).length ? ({[key]: object} as Record<K, T>) : {}
 
 const isObject = <T>(x: T): x is T & object =>
   typeof x == 'object' && x !== null
