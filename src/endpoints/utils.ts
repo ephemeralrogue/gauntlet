@@ -6,42 +6,15 @@ import type {
   GuildChannel,
   GuildMember,
   NewsChannel,
+  Overwrite,
   Snowflake,
   TextChannel
 } from '../types'
 
-// const ALL_PERMISSIONS =
-//   PermissionFlagsBits.AddReactions |
-//   PermissionFlagsBits.Administrator |
-//   PermissionFlagsBits.AttachFiles |
-//   PermissionFlagsBits.BanMembers |
-//   PermissionFlagsBits.ChangeNickname |
-//   PermissionFlagsBits.Connect |
-//   PermissionFlagsBits.CreateInstantInvite |
-//   PermissionFlagsBits.DeafenMembers |
-//   PermissionFlagsBits.EmbedLinks |
-//   PermissionFlagsBits.KickMembers |
-//   PermissionFlagsBits.ManageChannels |
-//   PermissionFlagsBits.ManageEmojis |
-//   PermissionFlagsBits.ManageGuild |
-//   PermissionFlagsBits.ManageMessages |
-//   PermissionFlagsBits.ManageNicknames |
-//   PermissionFlagsBits.ManageRoles |
-//   PermissionFlagsBits.MnaageWebhooks |
-//   PermissionFlagsBits.MentionEveryone |
-//   PermissionFlagsBits.MoveMembers |
-//   PermissionFlagsBits.MuteMembers |
-//   PermissionFlagsBits.PrioritySpeaker |
-//   PermissionFlagsBits.ReadMessageHistory |
-//   PermissionFlagsBits.SendMessages |
-//   PermissionFlagsBits.SendTTSMessages |
-//   PermissionFlagsBits.SendTTSMessages |
-//   PermissionFlagsBits.Stream |
-//   PermissionFlagsBits.UseExternalEmojis |
-//   PermissionFlagsBits.UseVAD |
-//   PermissionFlagsBits.ViewAuditLog |
-//   PermissionFlagsBits.ViewChannel |
-//   PermissionFlagsBits.ViewGuildInsights
+const applyOverwrite = (
+  permissions: bigint,
+  {allow, deny}: Pick<Overwrite, 'allow' | 'deny'>
+): bigint => (permissions & ~deny) | allow
 
 /**
  * Gets the permissions of a guild member. The `Administrator` permission is not
@@ -72,7 +45,7 @@ export const getPermissions = (
       ? channel
       : (guild.channels.get(channel.parent_id) as NewsChannel | TextChannel)
   ).permission_overwrites
-  const everyoneOverwrites = permissionOverwrites.get(guild.id)
+  const everyoneOverwrite = permissionOverwrites.get(guild.id)
   const [allow, deny] = permissionOverwrites.reduce(
     ([all, den], overwrite) =>
       memberRoles.has(overwrite.id)
@@ -80,17 +53,17 @@ export const getPermissions = (
         : [all | overwrite.allow, den | overwrite.deny],
     [0n, 0n]
   )
-  const overwritePerms =
-    ((everyoneOverwrites
-      ? (basePerms & ~everyoneOverwrites.deny) | everyoneOverwrites.allow
-      : basePerms) &
-      ~deny) |
-    allow
+  const roleOverwritePerms = applyOverwrite(
+    everyoneOverwrite
+      ? applyOverwrite(basePerms, everyoneOverwrite)
+      : basePerms,
+    {allow, deny}
+  )
 
   const memberOverwrite = permissionOverwrites.get(member.id)
   return memberOverwrite
-    ? (overwritePerms & ~memberOverwrite.deny) | memberOverwrite.allow
-    : overwritePerms
+    ? applyOverwrite(roleOverwritePerms, memberOverwrite)
+    : roleOverwritePerms
 }
 
 /**
