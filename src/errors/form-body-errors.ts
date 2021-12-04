@@ -11,6 +11,11 @@ export interface FormBodyErrors {
 }
 
 /* eslint-disable id-length -- using exact code */
+export const ATTACHMENT_NOT_FOUND: FormBodyError = {
+  code: 'ATTACHMENT_NOT_FOUND',
+  message: 'Attachment data not found'
+}
+
 export const BASE_TYPE_REQUIRED: FormBodyError = {
   code: 'BASE_TYPE_REQUIRED',
   message: 'This field is required'
@@ -27,6 +32,7 @@ export const BUTTON_COMPONENT_CUSTOM_ID_URL_MUTUALLY_EXCLUSIVE: FormBodyError =
     message: 'A custom id and url cannot both be specified"'
   }
 
+/** Used for select menu options as well. */
 export const BUTTON_COMPONENT_INVALID_EMOJI: FormBodyError = {
   code: 'BUTTON_COMPONENT_INVALID_EMOJI',
   message: 'Invalid emoji'

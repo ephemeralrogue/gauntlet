@@ -9,6 +9,7 @@ import type {
   GatewayDispatchEvents,
   GatewayDispatchPayload,
   Guild,
+  GuildEmoji,
   GuildMember,
   IntentBits,
   Message,
@@ -112,6 +113,11 @@ export class Backend {
     return this.users.concat(
       toCollection(this.applications.map(({bot}) => bot))
     )
+  }
+
+  /** @internal */
+  get guildEmojis(): SnowflakeCollection<GuildEmoji> {
+    return this.guilds.flatMap(({emojis}) => emojis)
   }
 
   addApplication(application?: PartialDeep<FullApplication>): FullApplication {

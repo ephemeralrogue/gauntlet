@@ -2,43 +2,20 @@
   -- The helper fn expectMentions uses expect
 */
 
-import assert from 'assert'
 import {ChannelType} from 'discord-api-types/v9'
 import * as D from 'discord.js'
-import {snowflake} from '../../../src/utils'
 import {guildWithBot, withClient, withClientF} from '../../utils'
+import {getChannel, send} from './utils'
 import type {Snowflake} from 'discord-api-types/v9'
 import type * as DM from '../../../src'
 import type {DeepPartialOmit, WithClientOptions} from '../../utils'
 import '../../matchers'
 
-const betterAssert: (
-  value: unknown,
-  message?: Error | string
-) => asserts value = assert
-
-const channels: DM.SnowflakeCollection<DM.PartialDeep<DM.GuildChannel>> =
-  new D.Collection([[snowflake(), {type: ChannelType.GuildText}]])
+const channels: DM.CollectionResolvableId<DM.GuildChannel> = [
+  {type: ChannelType.GuildText}
+]
 
 const defaultOpts = (): WithClientOptions => guildWithBot({channels})
-
-const getChannel = (client: D.Client): D.NewsChannel | D.TextChannel => {
-  const guild = client.guilds.cache.first()
-  betterAssert(
-    guild,
-    'There are no cached guilds. Perhaps you forgot to include backend?'
-  )
-  const channel = guild.channels.cache.find(chan => chan.isText()) as
-    | D.NewsChannel
-    | D.TextChannel
-    | undefined
-  betterAssert(channel, 'There are no text channels!')
-  return channel
-}
-const send = async (
-  client: D.Client,
-  options: D.MessageOptions | D.MessagePayload | string
-): Promise<D.Message> => getChannel(client).send(options)
 
 describe('successes', () => {
   test('has same content', async () => {

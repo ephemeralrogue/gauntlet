@@ -1,12 +1,11 @@
-import patch from './patch'
+import patch from './:id/patch'
 import post from './post'
 import type {Backend, EmitPacket, HasIntents} from '../../../../Backend'
 import type {Snowflake} from '../../../../types'
-import type {MessagesPatch} from './patch'
+import type {MessagesPatch} from './:id/patch'
 import type {MessagesPost} from './post'
 
-export interface Messages {
-  patch: MessagesPatch
+export interface Messages extends Record<`${bigint}`, {patch: MessagesPatch}> {
   post: MessagesPost
 }
 
@@ -16,7 +15,20 @@ export default (
     hasIntents: HasIntents,
     emitPacket: EmitPacket
   ) =>
-  (id: Snowflake): Messages => ({
-    patch: patch(backend, applicationId, hasIntents, emitPacket)(id),
-    post: post(backend, applicationId, hasIntents, emitPacket)(id)
-  })
+  (channelId: Snowflake): Messages =>
+    new Proxy(
+      {},
+      {
+        get: (_, key: string) =>
+          key === 'post'
+            ? post(backend, applicationId, hasIntents, emitPacket)(channelId)
+            : {
+                patch: patch(
+                  backend,
+                  applicationId,
+                  hasIntents,
+                  emitPacket
+                )(channelId, key)
+              }
+      }
+    ) as Messages

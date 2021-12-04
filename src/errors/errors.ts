@@ -14,6 +14,7 @@ export const errors = {
   UNKNOWN_CHANNEL: ['Unknown Channel', 404, RESTJSONErrorCodes.UnknownChannel],
   UNKNOWN_GUILD: ['Unknown Guild', 404, RESTJSONErrorCodes.UnknownGuild],
   UNKNOWN_INVITE: ['Unknown Invite', 404, RESTJSONErrorCodes.UnknownInvite],
+  UNKNOWN_MESSAGE: ['Unknown Message', 404, RESTJSONErrorCodes.UnknownMessage],
   UNKNOWN_WEBHOOK: ['Unknown Webhook', 404, RESTJSONErrorCodes.UnknownWebhook],
   UNKNOWN_GUILD_TEMPLATE: ['Unknown guild template', 404, 10_057],
   MAXIMUM_GUILDS: [
@@ -27,6 +28,11 @@ export const errors = {
     RESTJSONErrorCodes.GuildAlreadyHasTemplate
   ],
   MISSING_ACCESS: ['Missing Access', 403, RESTJSONErrorCodes.MissingAccess],
+  EDIT_MESSAGE_NOT_AUTHOR: [
+    'Cannot edit a message authored by another user',
+    403,
+    RESTJSONErrorCodes.CannotEditMessageAuthoredByAnotherUser
+  ],
   EMPTY_MESSAGE: [
     'Cannot send an empty message',
     400,
@@ -51,6 +57,11 @@ export const errors = {
     'Invalid Form Body',
     400,
     RESTJSONErrorCodes.InvalidFormBodyOrContentType
+  ],
+  CANNOT_USE_STICKER: [
+    'Cannot use this sticker',
+    403,
+    RESTJSONErrorCodes.InvalidStickerSent
   ]
 } as const
 

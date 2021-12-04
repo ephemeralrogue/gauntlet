@@ -1,18 +1,15 @@
-import {
-  GatewayDispatchEvents,
-  GatewayIntentBits,
-  PermissionFlagsBits
-} from 'discord-api-types/v9'
+import {GatewayDispatchEvents, PermissionFlagsBits} from 'discord-api-types/v9'
 import * as convert from '../../../../convert'
 import * as defaults from '../../../../defaults'
 import {clientUserId} from '../../../../utils'
-import {getChannel, getPermissions, hasPermissions} from '../../../utils'
+import {hasPermissions} from '../../../utils'
 import {
+  getAndCheckChannel,
+  getAndCheckPermissions,
   getFormErrors,
-  isTextBasedChannel,
-  parseMentions,
-  resolveEmbed
-} from './utils'
+  isEmpty
+} from './errors'
+import {messagesIntent, messageMentionsDetails, resolveEmbed} from './utils'
 import {
   Method,
   error,
@@ -28,13 +25,14 @@ import type {
 } from 'discord-api-types/v9'
 import type {Backend, EmitPacket, HasIntents} from '../../../../Backend'
 import type {FormBodyError} from '../../../../errors'
-import type {Guild, GuildChannel, Message} from '../../../../types'
+import type {GuildChannel, Message} from '../../../../types'
 
 export type MessagesPost = (options: {
   data: RESTPostAPIChannelMessageJSONBody
   files?: HTTPAttachmentData[]
 }) => Promise<RESTPostAPIChannelMessageResult>
 
+// https://discord.com/developers/docs/resources/channel#create-message
 export default (
     backend: Backend,
     applicationId: Snowflake,
@@ -44,21 +42,20 @@ export default (
   (channelId: Snowflake): MessagesPost =>
   // eslint-disable-next-line complexity, max-statements
   async (options): Promise<RESTPostAPIChannelMessageResult> => {
+    const {data, files} = options
     const {
-      data: {
-        content = '',
-        nonce,
-        tts,
-        embeds,
-        allowed_mentions,
-        message_reference,
-        components
-        // TODO: stickers
-        // 403 Cannot use this sticker 50081
-        // sticker_ids
-      },
-      files
-    } = options
+      content = '',
+      nonce,
+      tts,
+      embeds,
+      allowed_mentions,
+      message_reference,
+      components,
+      sticker_ids
+      // TODO [discord-api-types@>0.24]
+      // attachments
+    } = data
+
     // Errors
     const request = mkRequest(
       `/channels/${channelId}/messages`,
@@ -67,14 +64,33 @@ export default (
     )
     const userId = clientUserId(backend, applicationId)
 
-    const checkPermissions = (guild: Guild, channel: GuildChannel): bigint => {
-      const permissions = getPermissions(
+    const [guild, channel] = getAndCheckChannel(backend, channelId, request)
+
+    // if hasn't connected to gateway: 400, {"message": "Unauthorized", "code": 40001}
+    // Basic validation
+    const nonceError =
+      typeof nonce == 'string' && nonce.length > 25
+        ? formBodyErrors.NONCE_TYPE_TOO_LONG
+        : typeof nonce == 'number'
+        ? Number.isInteger(nonce)
+          ? undefined
+          : formBodyErrors.NONCE_TYPE_INVALID_TYPE
+        : undefined
+    const formErrs = {
+      ...getFormErrors(backend, data),
+      ...(nonceError ? {nonce: {_errors: [nonceError]}} : {})
+    }
+    if (Object.keys(formErrs).length)
+      error(request, errors.INVALID_FORM_BODY, formErrs)
+
+    let permissions: bigint | undefined
+    if (guild) {
+      permissions = getAndCheckPermissions(
+        request,
+        userId,
         guild,
-        guild.members.get(userId)!,
-        channel
+        channel as GuildChannel
       )
-      if (!hasPermissions(permissions, PermissionFlagsBits.ViewChannel))
-        error(request, errors.MISSING_ACCESS)
       if (
         !hasPermissions(
           permissions,
@@ -84,36 +100,7 @@ export default (
         )
       )
         error(request, errors.MISSING_PERMISSIONS)
-      return permissions
     }
-
-    // if hasn't connected to gateway: 400, {"message": "Unauthorized", "code": 40001}
-    // Basic validation
-    const formErrs = getFormErrors({
-      allowed_mentions,
-      components,
-      content,
-      nonce,
-      embeds
-    })
-    if (Object.keys(formErrs).length)
-      error(request, errors.INVALID_FORM_BODY, formErrs)
-
-    // Unknown channel
-    const [guild, channel] = getChannel(backend)(channelId)
-    if (!channel) error(request, errors.UNKNOWN_CHANNEL)
-
-    // Non-text channel
-    if (!isTextBasedChannel(channel)) error(request, errors.NON_TEXT_CHANNEL)
-
-    // Permissions
-    const permissions = guild
-      ? checkPermissions(guild, channel as GuildChannel)
-      : undefined
-
-    // Empty message
-    if (!content && !(embeds?.length ?? 0) && !(files?.length ?? 0))
-      error(request, errors.EMPTY_MESSAGE)
 
     // Replies
     if (message_reference) {
@@ -129,33 +116,47 @@ export default (
       }
     }
 
-    const mentions = parseMentions(content, allowed_mentions)
-    const canMentionEveryone =
-      permissions !== undefined &&
-      hasPermissions(permissions, PermissionFlagsBits.MentionEveryone)
+    // TODO: find out if bots can use stickers from other guilds
+    // they can use emojis from other guilds in select menu options somehow
+    if (
+      sticker_ids?.length &&
+      (!guild || sticker_ids.some(id => !guild.stickers.has(id)))
+    )
+      error(request, errors.CANNOT_USE_STICKER)
+
+    if (
+      isEmpty(content, embeds) &&
+      !(files?.length ?? 0) &&
+      !(sticker_ids?.length ?? 0)
+    )
+      error(request, errors.EMPTY_MESSAGE)
+
     const base = defaults.message(channelId)({
       content,
       nonce,
+      flags: 0,
       tts:
         (tts ?? false) &&
         permissions !== undefined &&
         hasPermissions(permissions, PermissionFlagsBits.SendTTSMessages),
       author_id: userId,
       message_reference,
-      mention_everyone: mentions.everyone && guild && canMentionEveryone,
-      mentions: mentions.users.filter(id => backend.allUsers.has(id)),
-      mention_roles: guild
-        ? mentions.roles.filter(id => {
-            const role = guild.roles.get(id)
-            return role && (role.mentionable || canMentionEveryone)
-          })
-        : []
+      ...messageMentionsDetails(
+        backend,
+        guild,
+        permissions,
+        content,
+        allowed_mentions
+      ),
+      components,
+      stickers: sticker_ids?.map(id => [id, guild!.id])
     })
 
     const defaultAttachment = defaults.attachment(channelId, base.id)
     const message: Message = {
       ...base,
       embeds: embeds?.map(resolveEmbed(channelId, base.id, files)) ?? [],
+      // TODO [discord-api-types@>0.24]: proper attachments with the attachments property, file sizes, etc.
       attachments:
         files?.map(({name}) => defaultAttachment({filename: name})) ?? []
     }
@@ -164,13 +165,7 @@ export default (
     channel.last_message_id = message.id
 
     const apiMessage = convert.message(backend, channelId)(message)
-    if (
-      hasIntents(
-        guild
-          ? GatewayIntentBits.GuildMessages
-          : GatewayIntentBits.DirectMessages
-      )
-    )
+    if (hasIntents(messagesIntent(guild)))
       emitPacket(GatewayDispatchEvents.MessageCreate, apiMessage)
     return apiMessage
   }

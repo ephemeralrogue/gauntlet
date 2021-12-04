@@ -75,12 +75,6 @@ export type UnUnion<T> = Pick<T, keyof T> & {
     : never
 }
 
-export type UnStrictPartial<T> = {
-  [K in keyof T]: Partial<Record<K, T[K]>> extends Pick<T, K>
-    ? T[K] | undefined
-    : T[K]
-}
-
 export type AttachmentURLs = Record<'proxy_url' | 'url', string>
 
 const filterKeys = <T extends object>(
