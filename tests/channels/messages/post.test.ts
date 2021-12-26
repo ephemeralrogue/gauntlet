@@ -81,6 +81,8 @@ describe('successes', () => {
     }, defaultOpts())
   })
 
+  test.todo('DM channel')
+
   // https://discord.com/developers/docs/resources/channel#allowed-mentions-object-allowed-mentions-reference
   describe('allowed mentions', () => {
     const userId1 = '10'
@@ -174,6 +176,8 @@ describe('successes', () => {
 
     test.todo('replied_user')
   })
+
+  test.todo('message replies')
 })
 
 describe('errors', () => {
@@ -192,4 +196,7 @@ describe('errors', () => {
       )
     )
   })
+
+  test.todo('invalid channel')
+  test.todo('no VIEW_CHANNEL')
 })

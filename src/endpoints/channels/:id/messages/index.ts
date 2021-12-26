@@ -1,11 +1,14 @@
-import patch from './:id/patch'
 import post from './post'
+import get from './:id/get'
+import patch from './:id/patch'
 import type {Backend, EmitPacket, HasIntents} from '../../../../Backend'
 import type {Snowflake} from '../../../../types'
+import type {MessagesGet} from './:id/get'
 import type {MessagesPatch} from './:id/patch'
 import type {MessagesPost} from './post'
 
-export interface Messages extends Record<`${bigint}`, {patch: MessagesPatch}> {
+export interface Messages
+  extends Record<`${bigint}`, {get: MessagesGet; patch: MessagesPatch}> {
   post: MessagesPost
 }
 
@@ -23,6 +26,7 @@ export default (
           key === 'post'
             ? post(backend, applicationId, hasIntents, emitPacket)(channelId)
             : {
+                get: get(backend, applicationId)(channelId, key),
                 patch: patch(
                   backend,
                   applicationId,

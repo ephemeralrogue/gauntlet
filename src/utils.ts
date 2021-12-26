@@ -222,7 +222,7 @@ export const timestamp = (date?: Date | number): string =>
 
 export const randomString = (): string => Math.random().toString(36).slice(2)
 
-export const snowflake = SnowflakeUtil.generate as () => Snowflake
+export const snowflake = SnowflakeUtil.generate // as () => Snowflake
 
 export const attachmentURLs = (
   channelId = snowflake(),

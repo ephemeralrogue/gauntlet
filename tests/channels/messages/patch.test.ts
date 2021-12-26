@@ -1,10 +1,9 @@
-import {ChannelType} from 'discord-api-types/v9'
+import {ChannelType, PermissionFlagsBits} from 'discord-api-types/v9'
 import * as D from 'discord.js'
-import {guildWithBot, withClient} from '../../utils'
-import {send} from './utils'
+import {guildWithBot, withClient, withClientF} from '../../utils'
+import {getChannel, send} from './utils'
 import type * as DM from '../../../src'
 import type {WithClientOptions} from '../../utils'
-import '../../matchers'
 
 const channels: DM.CollectionResolvableId<DM.GuildChannel> = [
   {type: ChannelType.GuildText}
@@ -69,4 +68,25 @@ describe('flags', () => {
   )
 
   test.todo('ignore non-SUPPRESS_EMBEDS flags')
+
+  test('can edit SUPPRESS_EMBEDS on other messages', async () => {
+    const roleId = '0'
+    const messageId = '1'
+    await withClient(
+      async client => {
+        const message = await getChannel(client).messages.fetch(messageId)
+        await message.edit({flags: 'SUPPRESS_EMBEDS'})
+        expect(message.flags.has('SUPPRESS_EMBEDS')).toBe(true)
+      },
+      guildWithBot(
+        {
+          channels: [
+            {type: ChannelType.GuildText, messages: [{id: messageId}]}
+          ],
+          roles: [{id: roleId, permissions: PermissionFlagsBits.ManageMessages}]
+        },
+        {botGuildMember: {roles: [roleId]}}
+      )
+    )
+  })
 })

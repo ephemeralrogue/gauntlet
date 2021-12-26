@@ -7,7 +7,7 @@ describe('initial guilds', () => {
     const guildId = '1'
     const backend = new DM.Backend()
     const app = backend.addApplication({bot: {id: userId}})
-    backend.addGuildWithBot({id: guildId}, {}, app)
+    backend.addGuildWithBot({id: guildId, owner_id: app.bot.id}, {}, app)
     const client = new D.Client({intents: ['GUILDS']})
     const promise = new Promise<void>(resolve => {
       client.on('guildCreate', async guild => {

@@ -139,7 +139,7 @@ export class Backend {
       this.applications.set(app.id, app)
     } else app = this.addApplication(application)
 
-    const g = defaults.guild({...guild, owner_id: app.bot.id})
+    const g = defaults.guild(guild)
     if (!g.members.has(app.bot.id)) {
       g.members.set(
         app.bot.id,

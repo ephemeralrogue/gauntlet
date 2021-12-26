@@ -44,15 +44,16 @@ export const guildWithBot: (
   guild?: DM.PartialDeep<DM.Guild>,
   options?: {
     backendOpts?: ConstructorParameters<typeof DM.Backend>[0]
+    botGuildMember?: DM.PartialDeep<Omit<DM.GuildMember, 'id'>>
     application?: DM.PartialDeep<DM.FullApplication>
   }
 ) => Required<Pick<WithClientOptions, 'applicationId' | 'backend'>> = (
   guild,
-  {backendOpts, application} = {}
+  {backendOpts, botGuildMember, application} = {}
 ) => {
   const backend = new DM.Backend(backendOpts)
   const app = backend.addApplication(application)
-  backend.addGuildWithBot(guild, {}, app)
+  backend.addGuildWithBot(guild, botGuildMember, app)
   return {backend, applicationId: app.id}
 }
 

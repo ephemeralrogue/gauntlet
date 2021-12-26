@@ -5,16 +5,17 @@ import {
 } from 'discord-api-types/v9'
 import * as convert from '../../../../../convert'
 import * as defaults from '../../../../../defaults'
+import {Method, error, errors, mkRequest} from '../../../../../errors'
 import {clientUserId, timestamp} from '../../../../../utils'
 import {hasPermissions} from '../../../../utils'
 import {
-  getAndCheckChannel,
+  getChannel,
   getAndCheckPermissions,
   getFormErrors,
   isEmpty
 } from '../errors'
 import {messagesIntent, messageMentionsDetails, resolveEmbed} from '../utils'
-import {Method, error, errors, mkRequest} from '../../../../../errors'
+import {getMessage} from './utils'
 import type {HTTPAttachmentData} from 'discord.js'
 import type {
   RESTPatchAPIChannelMessageJSONBody,
@@ -55,9 +56,8 @@ export default (
     )
     const userId = clientUserId(backend, applicationId)
 
-    const [guild, channel] = getAndCheckChannel(backend, channelId, request)
-    const message = channel.messages.get(messageId)
-    if (!message) error(request, errors.UNKNOWN_MESSAGE)
+    const [guild, channel] = getChannel(backend, channelId, request)
+    const message = getMessage(messageId, request, channel)
 
     const formErrs = getFormErrors(backend, data)
     if (Object.keys(formErrs).length)

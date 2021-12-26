@@ -6,7 +6,11 @@ import {
   PermissionFlagsBits
 } from 'discord-api-types/v9'
 import {o, filterMap} from '../../../../utils'
-import {getChannel, getPermissions, hasPermissions} from '../../../utils'
+import {
+  getChannel as _getChannel,
+  getPermissions,
+  hasPermissions
+} from '../../../utils'
 import {error, errors, formBodyErrors} from '../../../../errors'
 import type {
   APIActionRowComponent,
@@ -20,6 +24,7 @@ import type {
 import type {Backend} from '../../../../Backend'
 import type {FormBodyError, FormBodyErrors, Request} from '../../../../errors'
 import type {
+  Channel,
   Guild,
   GuildChannel,
   Snowflake,
@@ -29,6 +34,16 @@ import type {
 const MAX_EMBED_COLOR = 0xff_ff_ff
 const MAX_URL = 2048
 
+export const getChannel = (
+  backend: Backend,
+  channelId: Snowflake,
+  request: Request
+): [Guild | undefined, Channel] => {
+  const [guild, channel] = _getChannel(backend)(channelId)
+  if (!channel) error(request, errors.UNKNOWN_CHANNEL)
+  return [guild, channel]
+}
+
 const textChannelTypes = new Set([
   ChannelType.DM,
   ChannelType.GuildText,
@@ -37,17 +52,9 @@ const textChannelTypes = new Set([
   ChannelType.GuildPrivateThread,
   ChannelType.GuildNewsThread
 ])
-export const getAndCheckChannel = (
-  backend: Backend,
-  channelId: Snowflake,
-  request: Request
-): [Guild | undefined, TextBasedChannel] => {
-  const [guild, channel] = getChannel(backend)(channelId)
-  if (!channel) error(request, errors.UNKNOWN_CHANNEL)
-  if (!textChannelTypes.has(channel.type))
-    error(request, errors.NON_TEXT_CHANNEL)
-  return [guild, channel as TextBasedChannel]
-}
+export const isTextBasedChannel = (
+  channel: Channel
+): channel is TextBasedChannel => textChannelTypes.has(channel.type)
 
 export const getAndCheckPermissions = (
   request: Request,

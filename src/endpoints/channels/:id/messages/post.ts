@@ -1,15 +1,6 @@
 import {GatewayDispatchEvents, PermissionFlagsBits} from 'discord-api-types/v9'
 import * as convert from '../../../../convert'
 import * as defaults from '../../../../defaults'
-import {clientUserId} from '../../../../utils'
-import {hasPermissions} from '../../../utils'
-import {
-  getAndCheckChannel,
-  getAndCheckPermissions,
-  getFormErrors,
-  isEmpty
-} from './errors'
-import {messagesIntent, messageMentionsDetails, resolveEmbed} from './utils'
 import {
   Method,
   error,
@@ -17,6 +8,16 @@ import {
   formBodyErrors,
   mkRequest
 } from '../../../../errors'
+import {clientUserId} from '../../../../utils'
+import {hasPermissions} from '../../../utils'
+import {
+  getChannel,
+  getAndCheckPermissions,
+  isTextBasedChannel,
+  getFormErrors,
+  isEmpty
+} from './errors'
+import {messagesIntent, messageMentionsDetails, resolveEmbed} from './utils'
 import type {HTTPAttachmentData} from 'discord.js'
 import type {
   RESTPostAPIChannelMessageJSONBody,
@@ -64,7 +65,7 @@ export default (
     )
     const userId = clientUserId(backend, applicationId)
 
-    const [guild, channel] = getAndCheckChannel(backend, channelId, request)
+    const [guild, channel] = getChannel(backend, channelId, request)
 
     // if hasn't connected to gateway: 400, {"message": "Unauthorized", "code": 40001}
     // Basic validation
@@ -101,6 +102,7 @@ export default (
       )
         error(request, errors.MISSING_PERMISSIONS)
     }
+    if (!isTextBasedChannel(channel)) error(request, errors.NON_TEXT_CHANNEL)
 
     // Replies
     if (message_reference) {
