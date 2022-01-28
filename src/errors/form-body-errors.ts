@@ -5,7 +5,6 @@ export interface FormBodyError {
   message: string
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style -- circular type
 export interface FormBodyErrors {
   [key: string]: FormBodyErrors | {_errors: FormBodyError[]}
 }
