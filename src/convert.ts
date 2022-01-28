@@ -3,6 +3,7 @@ import type {
   APIApplication,
   APIChannel,
   APIGuildMember,
+  APIGuildScheduledEvent,
   APIMessage,
   APIOverwrite,
   APIRole,
@@ -26,7 +27,6 @@ import type {
 import type {
   APIGuild,
   APIGuildEmoji,
-  APIGuildScheduledEvent,
   GatewayPresenceUpdate
 } from './types/patches'
 import type {DOverride, UnUnion} from './utils'

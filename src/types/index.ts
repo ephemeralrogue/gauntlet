@@ -14,7 +14,6 @@ import type {
   APIAuditLogEntry,
   APIGuild,
   APIGuildEmoji,
-  APIGuildScheduledEvent,
   GatewayActivity,
   GatewayPresenceUpdate
 } from './patches'
@@ -289,7 +288,7 @@ export type GuildSticker = Omit<StickerBase<D.StickerType.Guild>, 'pack_id'>
 export type Sticker = GuildSticker | StandardSticker
 
 export type GuildScheduledEvent = DOmit<
-  APIGuildScheduledEvent,
+  D.APIGuildScheduledEvent,
   'creator' | 'guild_id' | 'user_count'
 > & {
   user_ids: Snowflake[]
