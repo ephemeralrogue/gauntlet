@@ -53,7 +53,6 @@ export default (
       message_reference,
       components,
       sticker_ids
-      // TODO [discord-api-types@>0.24]
       // attachments
     } = data
 
@@ -158,7 +157,7 @@ export default (
     const message: Message = {
       ...base,
       embeds: embeds?.map(resolveEmbed(channelId, base.id, files)) ?? [],
-      // TODO [discord-api-types@>0.24]: proper attachments with the attachments property, file sizes, etc.
+      // TODO: file sizes, etc
       attachments:
         files?.map(({name}) => defaultAttachment({filename: name})) ?? []
     }

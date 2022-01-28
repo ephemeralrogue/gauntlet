@@ -428,7 +428,10 @@ const getActionRowComponentErrors = (
 
 export const getFormErrors = (
   backend: Backend,
-  data: RESTPatchAPIChannelMessageJSONBody
+  data: Pick<
+    RESTPatchAPIChannelMessageJSONBody,
+    'allowed_mentions' | 'components' | 'content' | 'embeds'
+  >
 ): FormBodyErrors => {
   const {allowed_mentions, embeds} = data
   const content = data.content ?? ''

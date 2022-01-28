@@ -5,12 +5,10 @@ import * as convert from '../../convert'
 import * as defaults from '../../defaults'
 import {clientUserId, snowflake, timestamp, toCollection} from '../../utils'
 import type {
-  APIGuild,
   APIGuildCreateOverwrite,
   APIGuildCreatePartialChannel,
   APIGuildCreateRole,
-  RESTPostAPIGuildsJSONBody,
-  RESTPostAPIGuildsResult
+  RESTPostAPIGuildsJSONBody
 } from 'discord-api-types/v9'
 import type {Backend, EmitPacket, HasIntents} from '../../Backend'
 import type {
@@ -20,6 +18,7 @@ import type {
   Role,
   Snowflake
 } from '../../types'
+import type {APIGuild, RESTPostAPIGuildsResult} from '../../types/patches'
 import type {FormBodyError, FormBodyErrors, Request} from '../../errors'
 import type {KeysMatching, Override, RequireKeys} from '../../utils'
 

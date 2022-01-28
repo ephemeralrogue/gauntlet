@@ -55,6 +55,54 @@ export interface APIGuildEmoji
   name: string
 }
 
-export interface APIGuild extends DAT.APIGuild {
-  emojis: APIGuildEmoji[]
+// TODO [discord-api-types@>0.25.2]: remove once
+// https://github.com/discordjs/discord-api-types/pull/278 is merged
+type APIGuildScheduledEventBase<T extends DAT.GuildScheduledEventEntityType> =
+  Override<
+    DAT.APIGuildScheduledEvent,
+    {
+      entity_type: T
+      entity_metadata: DAT.APIGuildScheduledEventEntityMetadata | null
+    }
+  >
+
+interface ChannelGuildScheduledEvent<
+  T extends DAT.GuildScheduledEventEntityType
+> extends APIGuildScheduledEventBase<T> {
+  channel_id: DAT.Snowflake
+  entity_metadata: null
 }
+type APIStageInstanceGuildScheduledEvent =
+  ChannelGuildScheduledEvent<DAT.GuildScheduledEventEntityType.StageInstance>
+type APIVoiceGuildScheduledEvent =
+  ChannelGuildScheduledEvent<DAT.GuildScheduledEventEntityType.Voice>
+
+interface APIExternalGuildScheduledEvent
+  extends APIGuildScheduledEventBase<DAT.GuildScheduledEventEntityType.External> {
+  channel_id: null
+  entity_metadata: Required<DAT.APIGuildScheduledEventEntityMetadata>
+}
+
+export type APIGuildScheduledEvent =
+  | APIExternalGuildScheduledEvent
+  | APIStageInstanceGuildScheduledEvent
+  | APIVoiceGuildScheduledEvent
+
+export type APIGuild = Override<
+  DAT.APIGuild,
+  {
+    emojis: APIGuildEmoji[]
+    guild_scheduled_events?: APIGuildScheduledEvent[]
+  }
+>
+
+type GatewayGuildCreateDispatch = Override<
+  DAT.GatewayGuildCreateDispatch,
+  {d: APIGuild}
+>
+export type GatewayDispatchPayload =
+  | Exclude<DAT.GatewayDispatchPayload, DAT.GatewayGuildCreateDispatch>
+  | GatewayGuildCreateDispatch
+
+export type RESTPostAPIGuildsResult = APIGuild
+export type RESTPostAPITemplateCreateGuildResult = APIGuild

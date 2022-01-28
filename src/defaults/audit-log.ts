@@ -2,6 +2,9 @@ import {
   AuditLogEvent,
   AuditLogOptionsType,
   ChannelType,
+  GuildScheduledEventEntityType,
+  GuildScheduledEventPrivacyLevel,
+  GuildScheduledEventStatus,
   IntegrationExpireBehavior,
   PermissionFlagsBits,
   WebhookType
@@ -354,6 +357,30 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
         key: 'description',
         old_value: DEFAULT_STICKER_DESCRIPTION,
         new_value: 'new sticker description'
+      })
+
+    case AuditLogEvent.GuildScheduledEventCreate:
+    case AuditLogEvent.GuildScheduledEventDelete:
+      return createOrDelete(base.action_type, key =>
+        targetAndChangesNoOptions(
+          {key: 'name', [key]: 'guild scheduled event name'},
+          {
+            key: 'privacy_level',
+            [key]: GuildScheduledEventPrivacyLevel.GuildOnly
+          },
+          {key: 'status', [key]: GuildScheduledEventStatus.Scheduled},
+          {
+            key: 'entity_type',
+            [key]: GuildScheduledEventEntityType.StageInstance
+          },
+          {key: 'channel_id', [key]: snowflake()}
+        )
+      )
+    case AuditLogEvent.GuildScheduledEventUpdate:
+      return targetAndChangesNoOptions({
+        key: 'status',
+        old_value: GuildScheduledEventStatus.Scheduled,
+        new_value: GuildScheduledEventStatus.Active
       })
 
     case AuditLogEvent.ThreadCreate:

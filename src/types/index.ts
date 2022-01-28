@@ -4,6 +4,7 @@ import type {CollectionResolvable} from '..'
 import type {
   AnyFunction,
   CollectionResolvableId,
+  DOmit,
   Override,
   RequireKeys
 } from '../utils'
@@ -13,6 +14,7 @@ import type {
   APIAuditLogEntry,
   APIGuild,
   APIGuildEmoji,
+  APIGuildScheduledEvent,
   GatewayActivity,
   GatewayPresenceUpdate
 } from './patches'
@@ -33,6 +35,8 @@ export type GuildCreatePartialChannel = D.APIGuildCreatePartialChannel
 export type GuildCreateRole = D.APIGuildCreateRole
 export type GuildIntegration = D.APIGuildIntegration
 export type GuildIntegrationApplication = D.APIGuildIntegrationApplication
+export type GuildScheduledEventEntityMetadata =
+  D.APIGuildScheduledEventEntityMetadata
 export type GuildWelcomeScreen = D.APIGuildWelcomeScreen
 export type GuildWelcomeScreenChannel = D.APIGuildWelcomeScreenChannel
 export type IntegrationAccount = D.APIIntegrationAccount
@@ -55,7 +59,6 @@ export type VoiceRegion = D.APIVoiceRegion
 export type ActivityEmoji = D.GatewayActivityEmoji
 export type ActivityParty = D.GatewayActivityParty
 export type GatewayDispatchEvents = D.GatewayDispatchEvents
-export type GatewayDispatchPayload = D.GatewayDispatchPayload
 export type IntentBits = D.GatewayIntentBits
 
 export type AuditLogChange = APIAuditLogChange
@@ -285,6 +288,13 @@ export type StandardSticker = RequireKeys<
 export type GuildSticker = Omit<StickerBase<D.StickerType.Guild>, 'pack_id'>
 export type Sticker = GuildSticker | StandardSticker
 
+export type GuildScheduledEvent = DOmit<
+  APIGuildScheduledEvent,
+  'creator' | 'guild_id' | 'user_count'
+> & {
+  user_ids: Snowflake[]
+}
+
 export type Guild = Override<
   Omit<
     RequireKeys<APIGuild, 'widget_enabled'>,
@@ -310,7 +320,10 @@ export type Guild = Override<
     stickers: SnowflakeCollection<GuildSticker>
     template?: GuildTemplate
     voice_states: SnowflakeCollection<GuildVoiceState>
+    guild_scheduled_events: SnowflakeCollection<GuildScheduledEvent>
   }
 >
+
+export {GatewayDispatchPayload} from './patches'
 
 // #endregion

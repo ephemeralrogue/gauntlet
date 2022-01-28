@@ -2,8 +2,6 @@ import {clientUserId, removeUndefined} from './utils'
 import type {
   APIApplication,
   APIChannel,
-  APIEmoji,
-  APIGuild,
   APIGuildMember,
   APIMessage,
   APIOverwrite,
@@ -19,13 +17,19 @@ import type {
   GuildEmoji,
   GuildMember,
   GuildPresence,
+  GuildScheduledEvent,
   GuildTemplate,
   Message,
   Overwrite,
   Role
 } from './types'
-import type {GatewayPresenceUpdate} from './types/patches'
-import type {Override, UnUnion} from './utils'
+import type {
+  APIGuild,
+  APIGuildEmoji,
+  APIGuildScheduledEvent,
+  GatewayPresenceUpdate
+} from './types/patches'
+import type {DOverride, UnUnion} from './utils'
 
 export const application = (
   {users}: Backend,
@@ -38,10 +42,11 @@ export const application = (
 const addGuildId = <T>(
   guild: Guild,
   obj: T
-): Override<T, {guild_id: Snowflake}> => ({
-  ...obj,
-  guild_id: guild.id
-})
+): DOverride<T, {guild_id: Snowflake}> =>
+  ({
+    ...obj,
+    guild_id: guild.id
+  } as unknown as DOverride<T, {guild_id: Snowflake}>)
 
 export const guildEmoji =
   ({allUsers}: Backend) =>
@@ -54,7 +59,7 @@ export const guildEmoji =
     managed,
     animated,
     available
-  }: GuildEmoji): APIEmoji => ({
+  }: GuildEmoji): APIGuildEmoji => ({
     id,
     name,
     roles,
@@ -122,6 +127,19 @@ export const guildPresence =
   ({user_id, ...rest}: GuildPresence): GatewayPresenceUpdate =>
     addGuildId(guild, {user: allUsers.get(user_id)!, ...rest})
 
+export const guildScheduledEvent =
+  ({allUsers}: Backend, guild: Guild) =>
+  ({
+    creator_id,
+    user_ids,
+    ...rest
+  }: GuildScheduledEvent): APIGuildScheduledEvent =>
+    addGuildId(guild, {
+      creator_id,
+      ...(creator_id === null ? {} : {creator: allUsers.get(creator_id)!}),
+      ...rest
+    })
+
 /**
  * Converts a `Guild` into an `APIGuild`. This does not include fields only sent
  * in `GUILD_CREATE`, Get Current User Guilds, Get Guild without `with_counts`,
@@ -133,79 +151,90 @@ export const guildPresence =
  */
 export const guild =
   (backend: Backend) =>
-  ({
-    id,
-    name,
-    icon,
-    splash,
-    discovery_splash,
-    owner_id,
-    region,
-    afk_channel_id,
-    afk_timeout,
-    widget_enabled,
-    widget_channel_id,
-    verification_level,
-    default_message_notifications,
-    explicit_content_filter,
-    roles,
-    emojis,
-    features,
-    mfa_level,
-    application_id,
-    system_channel_id,
-    system_channel_flags,
-    rules_channel_id,
-    max_presences,
-    max_members,
-    vanity_url_code,
-    description,
-    banner,
-    premium_tier,
-    premium_subscription_count,
-    preferred_locale,
-    public_updates_channel_id,
-    max_video_channel_users,
-    nsfw_level,
-    stickers
-  }: Guild): APIGuild => ({
-    id,
-    name,
-    icon,
-    splash,
-    discovery_splash,
-    owner_id,
-    region,
-    afk_channel_id,
-    afk_timeout,
-    widget_enabled,
-    ...(widget_channel_id === undefined ? {} : {widget_channel_id}),
-    verification_level,
-    default_message_notifications,
-    explicit_content_filter,
-    roles: roles.map(role),
-    emojis: emojis.map(guildEmoji(backend)),
-    features,
-    mfa_level,
-    application_id,
-    system_channel_id,
-    system_channel_flags,
-    rules_channel_id,
-    ...(max_presences === undefined ? {} : {max_presences}),
-    ...(max_members === undefined ? {} : {max_members}),
-    vanity_url_code,
-    description,
-    banner,
-    premium_tier,
-    ...(premium_subscription_count === undefined
-      ? {}
-      : {premium_subscription_count}),
-    preferred_locale,
-    public_updates_channel_id,
-    ...(max_video_channel_users === undefined ? {} : {max_video_channel_users}),
-    nsfw_level,
-    stickers: [...stickers.values()]
-  })
+  (_guild: Guild): APIGuild => {
+    const {
+      id,
+      name,
+      icon,
+      splash,
+      discovery_splash,
+      owner_id,
+      region,
+      afk_channel_id,
+      afk_timeout,
+      widget_enabled,
+      widget_channel_id,
+      verification_level,
+      default_message_notifications,
+      explicit_content_filter,
+      roles,
+      emojis,
+      features,
+      mfa_level,
+      application_id,
+      system_channel_id,
+      system_channel_flags,
+      rules_channel_id,
+      max_presences,
+      max_members,
+      vanity_url_code,
+      description,
+      banner,
+      premium_tier,
+      premium_subscription_count,
+      preferred_locale,
+      public_updates_channel_id,
+      max_video_channel_users,
+      nsfw_level,
+      stickers,
+      premium_progress_bar_enabled,
+      guild_scheduled_events
+    } = _guild
+    return {
+      id,
+      name,
+      icon,
+      splash,
+      discovery_splash,
+      owner_id,
+      region,
+      afk_channel_id,
+      afk_timeout,
+      widget_enabled,
+      ...(widget_channel_id === undefined ? {} : {widget_channel_id}),
+      verification_level,
+      default_message_notifications,
+      explicit_content_filter,
+      roles: roles.map(role),
+      emojis: emojis.map(guildEmoji(backend)),
+      features,
+      mfa_level,
+      application_id,
+      system_channel_id,
+      system_channel_flags,
+      rules_channel_id,
+      ...(max_presences === undefined ? {} : {max_presences}),
+      ...(max_members === undefined ? {} : {max_members}),
+      vanity_url_code,
+      description,
+      banner,
+      premium_tier,
+      ...(premium_subscription_count === undefined
+        ? {}
+        : {premium_subscription_count}),
+      preferred_locale,
+      public_updates_channel_id,
+      ...(max_video_channel_users === undefined
+        ? {}
+        : {max_video_channel_users}),
+      nsfw_level,
+      stickers: [...stickers.values()],
+      premium_progress_bar_enabled,
+      guild_scheduled_events: guild_scheduled_events.map(
+        guildScheduledEvent(backend, _guild)
+      )
+    }
+  }
 
 /**
  * {@linkcode guild} but includes fields only sent in `GUILD_CREATE`.

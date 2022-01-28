@@ -18,11 +18,17 @@ export type AnyFunction =
   | ((...args: never[]) => unknown)
   | (new (...args: never[]) => unknown)
 
+type DKeys<T> = T extends unknown ? keyof T : never
+export type DOmit<T, K extends DKeys<T>> = T extends unknown
+  ? Omit<T, K>
+  : never
+
 /**
  * An intersection between `T` and `U`, but the properties of `U` override the
  * properties of `T`.
  */
 export type Override<T, U> = Omit<T, keyof U> & U
+export type DOverride<T, U> = T extends unknown ? Override<T, U> : never
 
 /** Make some keys required. */
 export type RequireKeys<T, K extends keyof T> = T & {
@@ -197,8 +203,9 @@ const resolveCollection =
         )
       : arrayToCollection<PartialDeep<T>, T, K>(data, key, defaults)
 
+// TODO: fix inference so explicitly instantiating generic type params isn't
+// required for these fns
 export const resolveCollectionId = resolveCollection('id')
-
 export const resolveCollectionUserId = resolveCollection('user_id')
 
 export const toCollection: {

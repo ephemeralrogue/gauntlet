@@ -22,6 +22,7 @@ import {
 } from '../constants'
 import {guildEmoji} from '../emoji'
 import {guildPresence} from '../gateway'
+import {guildScheduledEvent} from '../guild-scheduled-event'
 import {guildChannel, guildChannels} from '../channel'
 import {partialApplication} from '../oauth2'
 import {role} from '../permissions'
@@ -39,6 +40,7 @@ import type {
   GuildIntegrationApplication,
   GuildMember,
   GuildPresence,
+  GuildScheduledEvent,
   GuildSticker,
   GuildVoiceState,
   IntegrationAccount,
@@ -211,6 +213,7 @@ export const guild = d<Guild>(_guild => {
     public_updates_channel_id: null,
     nsfw_level: GuildNSFWLevel.Default,
     integration_ids: [],
+    premium_progress_bar_enabled: false,
     ...partial,
     owner_id,
     system_channel_id,
@@ -279,6 +282,10 @@ export const guild = d<Guild>(_guild => {
       auditLogEntry
     ),
     ...(_guild.template ? {template: guildTemplate(_guild.template)} : {}),
-    stickers: resolveCollectionId<GuildSticker>(_guild.stickers, guildSticker)
+    stickers: resolveCollectionId<GuildSticker>(_guild.stickers, guildSticker),
+    guild_scheduled_events: resolveCollectionId<GuildScheduledEvent>(
+      _guild.guild_scheduled_events,
+      guildScheduledEvent
+    )
   }
 })

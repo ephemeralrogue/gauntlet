@@ -3,12 +3,12 @@ import {Method, error, errors, mkRequest} from '../../errors'
 import {checkClientGuildCount, createGuild, getNameErrors} from './post'
 import type {
   RESTGetAPITemplateResult,
-  RESTPostAPITemplateCreateGuildJSONBody,
-  RESTPostAPITemplateCreateGuildResult
+  RESTPostAPITemplateCreateGuildJSONBody
 } from 'discord-api-types/v9'
 import type {Backend, EmitPacket, HasIntents} from '../../Backend'
 import type {Request} from '../../errors'
 import type {Guild, GuildTemplate, Snowflake} from '../../types'
+import type {RESTPostAPITemplateCreateGuildResult} from '../../types/patches'
 
 export type GuildsTemplates = (code: string) => {
   get: () => Promise<RESTGetAPITemplateResult>
