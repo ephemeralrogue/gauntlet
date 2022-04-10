@@ -103,6 +103,17 @@ export default (
     }
     if (!isTextBasedChannel(channel)) error(request, errors.NON_TEXT_CHANNEL)
 
+    // Attachments
+    const attachmentsErrors =
+      attachments?.reduce((acc, attachment) => {
+        const index = Number(attachment.id)
+        return files && index >= 0 && index < files.length
+          ? acc
+          : {...acc, [index]: {_errors: [formBodyErrors.ATTACHMENT_NOT_FOUND]}}
+      }, {}) ?? {}
+    if (Object.keys(attachmentsErrors).length)
+      error(request, errors.INVALID_FORM_BODY, {attachments: attachmentsErrors})
+
     // Replies
     if (message_reference) {
       let err: FormBodyError | undefined
@@ -159,7 +170,12 @@ export default (
       embeds: embeds?.map(resolveEmbed(channelId, base.id, files)) ?? [],
       // TODO: file sizes, etc
       attachments:
-        files?.map(({name}) => defaultAttachment({filename: name})) ?? []
+        attachments?.map(attachment =>
+          defaultAttachment({
+            ...attachment,
+            filename: attachment.filename ?? files![Number(attachment.id)]!.name
+          })
+        ) ?? []
     }
 
     channel.messages.set(message.id, message)

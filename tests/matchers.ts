@@ -153,15 +153,13 @@ Received: ${pass ? 'resolved' : 'rejected'} with ${utils.printReceived(result)}`
       return true
     })()
 
-    const matcherHintOptions: jest.MatcherHintOptions = {isNot, promise}
-
     return {
       pass,
       message: (): string => `${utils.matcherHint(
         'toStrictEqualMapEntries',
         undefined,
         'expectedEntries',
-        matcherHintOptions
+        {isNot, promise}
       )}
 
 Expected: ${pass ? 'not ' : ''}${utils.printExpected(expected)}
@@ -179,8 +177,9 @@ Received: ${utils.printReceived(received)}`
       `${utils.matcherHint('toEqualBitfield', 'received', 'expected', {
         isNot,
         promise,
-        comment:
-          received instanceof D.Permissions ? 'Not checking admin' : undefined
+        ...(received instanceof D.Permissions
+          ? {comment: 'Not checking admin'}
+          : {})
       })}
 
 `
