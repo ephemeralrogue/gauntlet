@@ -1,0 +1,107 @@
+---
+root: true
+extends: ['@cherryblossom/eslint-config/node']
+ignorePatterns:
+- dist/
+- docs/
+- tests/coverage/
+- '**/**'
+# TODO: remove
+- stuff/
+- oldSrc/
+- oldTests/
+
+overrides:
+- files: ['**/*.ts']
+  rules:
+    # Allow formBodyErrors.BASE_TYPE_CHOICES
+    new-cap:
+    - 1
+    - properties: false
+
+    # https://github.com/microsoft/TypeScript/issues/15300
+    '@typescript-eslint/ban-types':
+    - 2
+    - extendDefaults: true
+      types:
+        object: false
+
+    '@typescript-eslint/naming-convention':
+    - 1
+    # Allow snake_case properties
+    - selector: default
+      format:
+      - camelCase
+      leadingUnderscore: allow
+      trailingUnderscore: allow
+    - selector:
+      - property
+      - parameter
+      - variable
+      format:
+      - camelCase
+      - UPPER_CASE
+      - snake_case
+      leadingUnderscore: allow
+      trailingUnderscore: allow
+    # Allow UPPER_CASE methods (for formBodyErrors.BASE_TYPE_CHOICES)
+    - selector: method
+      format:
+      - camelCase
+      - UPPER_CASE
+    - selector: typeLike
+      format:
+      - PascalCase
+      leadingUnderscore: allow
+      trailingUnderscore: allow
+    - selector: enumMember
+      format:
+      - PascalCase
+      - UPPER_CASE
+      leadingUnderscore: allow
+      trailingUnderscore: allow
+
+- files: [src/API.ts]
+  rules:
+    # Not necessarily (e.g. fetchVoiceRegions)
+    class-methods-use-this: 0
+    # Too annoying
+    '@typescript-eslint/explicit-function-return-type': 0
+    # Not all async functions do any async operations but have to return promises in this lib
+    '@typescript-eslint/require-await': 0
+
+- files: [src/index.ts]
+  rules:
+    # Main file
+    import/no-unused-modules: 0
+
+- files: [esm.mjs]
+  parserOptions:
+    sourceType: module
+    ecmaVersion: 2020
+
+- files: [tests/**/*]
+  env:
+    jest: true
+
+- files: [tests/**/*.mjs]
+  rules:
+    import/no-unused-modules: 0
+
+rules:
+  jsdoc/check-param-names: 0
+  # Allow URls to the Discord docs
+  jsdoc/require-description-complete-sentence: 0
+  jsdoc/match-description:
+  - 1
+  - matchDescription: ^([A-Z`\d_{][\s\S]*[.?!`])|https://discord.com/developers/docs/[\s\S]+$
+  node/no-unpublished-import:
+  - 2
+  - convertPath:
+      # Files not exposed by Discord.js have to be imported using relative imports, which would normally cause a linting
+      # error. All these files have types in the types directory.
+      node_modules/discord.js/src/**/*.js: [^node_modules/discord.js/src/(.+?)\.js$, types/$1.d.ts]
+
+  # TODO: remove
+  jsdoc/require-param: 0
+  jsdoc/require-returns: 0

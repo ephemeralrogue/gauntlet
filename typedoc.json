@@ -1,0 +1,7 @@
+{
+  "mode": "library",
+  "tsconfig": "tsconfig.build.json",
+  "excludePrivate": true,
+  "listInvalidSymbolLinks": true,
+  "theme": "pages-plugin"
+}

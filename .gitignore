@@ -1,0 +1,13 @@
+.DS_Store
+.eslintcache
+pnpm-debug.log
+tsconfig*.tsbuildinfo
+.history/
+dist/
+node_modules/
+tests/coverage/
+
+# TODO: remove when finished devloping
+stuff/
+json/
+.vscode/launch.json

@@ -1,0 +1,6 @@
+export * from './GuildChannelManager'
+export * from './GuildEmojiManager'
+export * from './GuildMemberManager'
+export * from './RoleManager'
+export * from './PresenceManager'
+export * from './VoiceStateManager'

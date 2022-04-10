@@ -1,0 +1,93 @@
+{
+  "name": "discord.js-mock",
+  "version": "0.0.0-development",
+  "description": "A mocking library for discord.js.",
+  "keywords": [
+    "discord.js",
+    "discord",
+    "mock",
+    "mocking"
+  ],
+  "author": "cherryblossom (https://github.com/cherryblossom000)",
+  "license": "MIT",
+  "homepage": "https://github.com/cherryblossom/discord.js-mock#readme",
+  "repository": "github:cherryblossom000/discord.js-mock",
+  "bugs": "https://github.com/cherryblossom000/discord.js-mock/issues",
+  "engines": {
+    "node": ">=12"
+  },
+  "files": [
+    "dist/**/*.js",
+    "esm.mjs"
+  ],
+  "main": "./dist/index",
+  "exports": {
+    ".": [
+      {
+        "require": "./dist/index.js",
+        "import": "./esm.mjs"
+      },
+      "./dist/index.js"
+    ],
+    "./esm": "./esm.mjs"
+  },
+  "directories": {
+    "lib": "./dist",
+    "test": "./tests"
+  },
+  "scripts": {
+    "prepare": "for f in types/*/*.d.ts; do ln -sf \"../../../../../../../$f\" \"node_modules/discord.js/src/${f#*/}\"; done && for f in types/*/*/*.d.ts; do ln -sf \"../../../../../../../../$f\" \"node_modules/discord.js/src/${f#*/}\"; done",
+    "build": "tsc -p tsconfig.build.json",
+    "build:dev": "tsc -p tsconfig.build.json --sourceMap --incremental",
+    "watch": "pnpm run build:dev -- -w",
+    "typecheck": "tsc",
+    "lint": "eslint --max-warnings 0 --report-unused-disable-directives --ext .js,.mjs,.ts .",
+    "lint:dev": "pnpm run lint -- --cache",
+    "lint:md": "markdownlint .",
+    "test": "jest",
+    "test:dev": "jest -c jest.config.dev.js",
+    "docs": "typedoc src/index.ts"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "dependencies": {
+    "lodash.chunk": "^4.2.0"
+  },
+  "peerDependencies": {
+    "discord.js": "^12.4.1"
+  },
+  "devDependencies": {
+    "@cherryblossom/eslint-config": "^11.0.0",
+    "@semantic-release/changelog": "^5.0.1",
+    "@semantic-release/git": "^9.0.0",
+    "@types/jest": "^26.0.15",
+    "@types/lodash.chunk": "^4.2.6",
+    "@types/node": "^12.19.2",
+    "@types/ws": "^7.2.8",
+    "@typescript-eslint/eslint-plugin": "^4.6.0",
+    "@typescript-eslint/parser": "^4.6.0",
+    "commitizen": "^4.2.2",
+    "cz-conventional-changelog": "^3.3.0",
+    "discord.js": "^12.4.1",
+    "eslint": "~7.11.0",
+    "eslint-config-prettier": "^6.14.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsdoc": "^30.7.3",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-unicorn": "^23.0.0",
+    "jest": "^26.6.1",
+    "markdownlint-cli": "^0.24.0",
+    "prettier": "^2.1.2",
+    "semantic-release": "^17.2.1",
+    "ts-jest": "^26.4.3",
+    "typedoc": "^0.19.2",
+    "typedoc-plugin-pages": "^1.0.1",
+    "typescript": "^4.0.5"
+  }
+}

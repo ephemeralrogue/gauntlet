@@ -1,0 +1,15 @@
+{
+  "editor.rulers": [80],
+  "search.exclude": {
+    "docs/": true,
+    "dist/": true,
+    "node_modules": true,
+    "pnpm-lock.yaml": true
+  },
+  "jest.pathToConfig": "jest.config.dev.js",
+  "cSpell.words": [
+    "Discordjs",
+    "HYPESQUAD",
+    "NITRO"
+  ]
+}
