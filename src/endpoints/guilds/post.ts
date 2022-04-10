@@ -217,6 +217,7 @@ const roleFromGuildCreateRole = (
   })
 
 // Type annotation required
+// eslint-disable-next-line max-statements
 export const createGuild = (
   backend: Backend,
   applicationId: Snowflake,
@@ -305,7 +306,7 @@ export const createGuild = (
                         allow,
                         deny,
                         ...overwriteRest
-                      }: // TODO: fix types in discord-api-types and discord-api-docs (allow/deny/type can be undefined)
+                      }: // TODO: fix types in discord-api-types and discord-api-docs (allow/deny can be undefined)
                       Override<
                         APIGuildCreateOverwrite,
                         Partial<Pick<APIGuildCreateOverwrite, 'allow' | 'deny'>>

@@ -52,8 +52,8 @@ export default (
       allowed_mentions,
       message_reference,
       components,
-      sticker_ids
-      // attachments
+      sticker_ids,
+      attachments
     } = data
 
     // Errors

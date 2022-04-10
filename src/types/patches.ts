@@ -22,7 +22,7 @@ type PartialRole = Pick<DAT.APIRole, 'id' | 'name'>
 export type APIAuditLogChange =
   | APIAuditLogChangeKeyOverwriteType
   | Exclude<
-      DAT.APIAuditLogChange,
+     DAT.APIAuditLogChange,
       DAT.APIAuditLogChangeKey$Add | DAT.APIAuditLogChangeKey$Remove
     >
   | {
