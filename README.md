@@ -1,21 +1,25 @@
-# discord.js-mock
+This was my attempt to create a mocking library for Discord.js. Abandoned for
+now due to stuff in real life and, to be honest, lack of motivation.
+([Context](https://github.com/discordjs/discord.js/discussions/6179))
 
-<!-- markdownlint-disable MD013 -->
-[![Build Status](https://img.shields.io/github/workflow/status/cherryblossom000/discord.js-mock/CI?logo=github&style=for-the-badge)](https://github.com/cherryblossom000/discord.js-mock/actions/workflows/ci.yml)
-[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg?style=for-the-badge)](https://github.com/semantic-release/semantic-release)
-<!-- markdownlint-enable MD013 -->
+I’m publishing this code so that it may be useful for someone else. The code is
+pretty messy and I was in the process of refactoring everything, hence the
+[`main` branch][main] and the [`old` branch][old] with the old version.
 
-> This library is a work in progress.
+- I initially did a *very* rough version when I subclassed all the discord.js
+  classes and overrode all the methods. This is can be found
+  [in `oldSrc` in the `old` branch](https://github.com/cherryblossom000/discord.js-mock/tree/old/oldSrc).
+- Quickly realising the above was a bad idea, I was refactoring it to override
+  the `Client#api` property instead. I never finished this though. This can be
+  found [in the `old` branch][old].
+- Then I decided to refactor the code again, which is what’s in the
+  [`main` branch][main].
 
-A mocking library for [discord.js](https://discord.js.org).
+Sorry for the disorganisation and not really following OOP like the rest of the
+discord.js community tends to do.
 
-## Roadmap
+If you have any questions about the code or anything else really, feel free to
+[open a discussion](https://github.com/cherryblossom000/discord.js-mock/discussions/new?category=general).
 
-- sharding
-- voice
-- WebhookClient
-- non-rich embeds
-
-## License
-
-[MIT](LICENSE) © 2020 cherryblossom000
+[main]: https://github.com/cherryblossom000/discord.js-mock/tree/main
+[old]: https://github.com/cherryblossom000/discord.js-mock/tree/old
