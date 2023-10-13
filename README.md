@@ -2,7 +2,7 @@
 <h2 align="center">a discord.js mock library for assisting in the development of Discord bots</h2>
 
 <p align="center">
-  <img src="./assets/gauntletjs_emblem.png" alt="gauntletjs-logo" width="512px" height="512px"/>
+  <a href="https://discord.gg/C3NVrrScBv"><img src="./assets/gauntletjs_emblem.png" alt="gauntletjs-logo" width="512px" height="512px"/></a>
 </p>
 
 > To run the gauntlet means to take part in a form of corporal punishment in which the party judged guilty is forced to run between two rows of soldiers, who strike out and attack them with sticks or other weapons. Metaphorically, this expression is also used to convey a public trial that one must overcome.
