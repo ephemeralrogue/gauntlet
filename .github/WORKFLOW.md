@@ -1,5 +1,5 @@
 # Workflow
-This is extended from [CONTRIBUTING.md](https://github.com/nonsensetwice/gauntlet/blob/main/docs). Please read that document before perusing this one, as it provides a general overview of the trunk-based workflow in use.
+This is extended from [CONTRIBUTING.md](https://github.com/nonsensetwice/gauntlet/blob/main/.github/CONTRIBUTING.md). Please read that document before perusing this one, as it provides a general overview of the trunk-based workflow in use.
 
 # Git Branches
 
