@@ -44,8 +44,11 @@ First off, read the docs, as outlined below. Second, review the issues. Third, [
   
 TypeScript and JavaScript developers are all welcome to pop in and help as we progress through reorganization. If you're new to open source contribution, or development generally, feel free to pair up with someone or get a small team together to tackle issues.
 
-Please read the [contributor docs](https://github.com/nonsensetwice/gauntlet/blob/main/docs) and [code of conduct](https://github.com/nonsensetwice/gauntlet/blob/main/docs/CODE_OF_CONDUCT.md) before diving in.
+Please read the contributor docs, [CONTRIBUTING.md][contributing] & [WORKFLOW.md][workflow], and [code of conduct](https://github.com/nonsensetwice/gauntlet/blob/main/.github/CODE_OF_CONDUCT.md) before diving in.
 
 If you have questions about how to get started, reach out to me on Discord via the server linked above, or on [twitter](https://twitter.com/nonsensecodes).
 
 The current state of this project leaves much work to be done to bring it to a point of ease of contribution, so if you're ready to get your hands dirty with some cleanup, pick up an issue and LFG🚀! 
+  
+[contributing]: https://github.com/nonsensetwice/gauntlet/blob/main/.github/CONTRIBUTING.md
+[workflow]: https://github.com/nonsensetwice/gauntlet/blob/main/.github/WORKFLOW.md
