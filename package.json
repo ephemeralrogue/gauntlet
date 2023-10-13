@@ -1,7 +1,7 @@
 {
-  "name": "discord.js-mock",
-  "version": "0.0.0-development",
-  "description": "A mocking library for discord.js.",
+  "name": "gauntlet",
+  "version": "0.0.1",
+  "description": "A discord.js mocking library for Discord bot developers.",
   "keywords": [
     "discord.js",
     "discord",
@@ -10,9 +10,9 @@
   ],
   "author": "cherryblossom (https://github.com/cherryblossom000)",
   "license": "MIT",
-  "homepage": "https://github.com/cherryblossom/discord.js-mock#readme",
-  "repository": "github:cherryblossom000/discord.js-mock",
-  "issues": "https://github.com/cherryblossom000/discord.js-mock/issues",
+  "homepage": "https://github.com/nonsensetwice/gauntlet#readme",
+  "repository": "github:nonsensetwice/gauntlet",
+  "issues": "https://github.com/nonsensetwice/gauntlet/issues",
   "engines": {
     "node": ">=16.6"
   },
