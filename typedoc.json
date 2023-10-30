@@ -1,5 +1,0 @@
-{
-  "entryPoints": ["src/index.ts"],
-  "tsconfig": "src",
-  "excludePrivate": true
-}
