@@ -1,0 +1,34 @@
+settings:
+  jsdoc:
+    ignoreInternal: true
+
+rules:
+  # Allow formBodyErrors.BASE_TYPE_CHOICES, for example
+  new-cap:
+  - 1
+  - properties: false
+
+  jsdoc/check-tag-names:
+  - 1
+  - definedTags: [internal]
+
+  # Too many false positives with Collection
+  unicorn/prefer-spread: 0
+
+  # https://github.com/microsoft/TypeScript/issues/15300
+  '@typescript-eslint/ban-types':
+  - 2
+  - extendDefaults: true
+    types:
+      object: false
+  '@typescript-eslint/prefer-readonly-parameter-types': 0
+
+overrides:
+- files: index.ts
+  rules:
+    import/no-unused-modules: 0
+- files: '**/*d.ts'
+  rules:
+    import/no-mutable-exports: 0
+    jsdoc/newline-after-description: 0
+    node/no-extraneous-import: 0

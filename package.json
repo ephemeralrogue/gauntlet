@@ -1,0 +1,89 @@
+{
+  "name": "gauntlet",
+  "version": "0.0.1",
+  "description": "A discord.js mocking library for Discord bot developers.",
+  "keywords": [
+    "discord.js",
+    "discord",
+    "mock",
+    "mocking"
+  ],
+  "author": "cherryblossom (https://github.com/cherryblossom000)",
+  "license": "MIT",
+  "homepage": "https://github.com/nonsensetwice/gauntlet#readme",
+  "repository": "github:nonsensetwice/gauntlet",
+  "issues": "https://github.com/nonsensetwice/gauntlet/issues",
+  "engines": {
+    "node": ">=16.6"
+  },
+  "files": [
+    "dist/**/*.js",
+    "esm.mjs"
+  ],
+  "main": "./dist",
+  "exports": {
+    "require": "./dist/index.js",
+    "import": "./esm.mjs"
+  },
+  "directories": {
+    "lib": "./dist",
+    "test": "./tests"
+  },
+  "scripts": {
+    "prepare": "ln -sf $(realpath types/WebSocketShard.d.ts) node_modules/discord.js/src/client/websocket/WebSocketShard.d.ts",
+    "build": "tsc -b src && gen-esm-wrapper . esm.mjs",
+    "build:dev": "tsc -b src/tsconfig.dev.json",
+    "watch": "pnpm build:dev -- -w",
+    "build:all": "tsc -b",
+    "build:all:dev": "tsc -b tsconfig.dev.json",
+    "watch:all": "pnpm build:all:dev -- -w",
+    "typecheck": "tsc -b tsconfig.config.json && tsc -b tests",
+    "lint": "eslint --max-warnings 0 --ext js,ts .",
+    "lint:dev": "pnpm lint -- --cache",
+    "lint:md": "markdownlint-cli2 .",
+    "test": "jest",
+    "test:dev": "jest -c jest.config.dev.js",
+    "docs": "typedoc src/index.ts"
+  },
+  "peerDependencies": {
+    "discord.js": "^13.0.0"
+  },
+  "dependencies": {
+    "discord-markdown": "^2.5.1"
+  },
+  "devDependencies": {
+    "@cherryblossom/eslint-config": "16.0.0-beta.2",
+    "@commitlint/config-conventional": "^16.2.1",
+    "@semantic-release/changelog": "^6.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@types/jest": "^27.4.1",
+    "@types/node": "^16.18.59",
+    "@typescript-eslint/eslint-plugin": "^5.18.0",
+    "@typescript-eslint/parser": "^5.18.0",
+    "commitizen": "^4.2.4",
+    "commitlint": "^16.2.3",
+    "cz-conventional-changelog": "^3.3.0",
+    "discord-api-types": "0.26.1",
+    "discord.js": "^13.6.0",
+    "eslint": "^8.13.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jest": "^26.1.4",
+    "eslint-plugin-jsdoc": "^39.1.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-unicorn": "^42.0.0",
+    "expect": "^27.5.1",
+    "gen-esm-wrapper": "^1.1.3",
+    "husky": "^7.0.4",
+    "jest": "^27.5.1",
+    "markdownlint-cli2": "^0.4.0",
+    "prettier": "^2.6.2",
+    "semantic-release": "^19.0.3",
+    "simple-markdown": "^0.7.3",
+    "ts-jest": "^27.1.4",
+    "typedoc": "^0.22.14",
+    "typescript": "~4.6.3"
+  }
+}

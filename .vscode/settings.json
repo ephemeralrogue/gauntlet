@@ -1,0 +1,10 @@
+{
+  "[typescript]": {
+    "editor.formatOnSave": true
+  },
+  "cSpell.words": [
+    "RESTJSON",
+    "Spidey"
+  ],
+  "jest.jestCommandLine": "pnpx jest -c jest.config.dev.js"
+}

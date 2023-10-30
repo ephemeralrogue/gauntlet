@@ -1,0 +1,10 @@
+.DS_Store
+.eslintcache
+esm.mjs
+pnpm-debug.log
+*.tsbuildinfo
+.history/
+coverage/
+dist/
+docs/
+node_modules/
