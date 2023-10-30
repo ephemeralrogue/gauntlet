@@ -4,7 +4,7 @@ import {
   GatewayOpcodes
 } from 'discord-api-types/v9'
 import * as D from 'discord.js'
-import WebSocketShard from '../node_modules/discord.js/src/client/websocket/WebSocketShard'
+var WebSocketShard = require('../node_modules/discord.js/src/client/websocket/WebSocketShard')
 import {Backend, api} from './Backend'
 import * as convert from './convert'
 import type {ClientOptions} from 'discord.js'
