@@ -1,9 +1,8 @@
-# name: CI
-# on:
+name: CI
+on:
 - push
 - pull_request
-
-# jobs:
+jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
