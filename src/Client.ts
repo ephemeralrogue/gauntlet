@@ -24,13 +24,17 @@ const _mockClient = (
   // Stop the RESTManager from setting an interval
   client.options.restSweepInterval = 0
 
-  const app =
-    (applicationId === undefined
-      ? undefined
-      : backend.applications.get(applicationId)) ??
-    backend.addApplication(
-      applicationId === undefined ? {} : {id: applicationId}
-    )
+  var appBuild = undefined
+  if (applicationId === undefined) {
+    appBuild = undefined
+  } else {
+    appBuild = backend.applications.get(applicationId)
+  }
+
+  if (appBuild === undefined) {
+    appBuild = backend.addApplication({id: applicationId})
+  }
+  const app = appBuild;
 
   // Create a shard
   const shard = new WebSocketShard(client.ws, 0)
@@ -40,6 +44,7 @@ const _mockClient = (
     // Intents are always resolved
     // https://github.com/discordjs/discord.js/blob/0e40f9b86826ba50aa3840807fb86e1bce6b1c3d/src/client/Client.js#L463
     !!((client.options.intents as number) & intents)
+    
   const emitPacket: EmitPacket = (t, d) => {
     client.ws['handlePacket']({op: GatewayOpcodes.Dispatch, t, d}, shard)
   }
@@ -56,6 +61,7 @@ const _mockClient = (
     client: Discord.Client,
     data: RawUserData
   ) => Discord.ClientUser)(client, app.bot)
+
   client.application = new (Discord.ClientApplication as new (
     client: Discord.Client,
     data: RawClientApplicationData

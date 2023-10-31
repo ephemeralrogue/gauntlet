@@ -6,7 +6,6 @@
     "types": ["node"],
     "esModuleInterop": true,
     "declaration": true,
-    "ignoreDeprecations": "5.0",
     "noErrorTruncation": true
   },
 }
