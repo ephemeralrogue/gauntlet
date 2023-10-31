@@ -3,7 +3,7 @@ import {
   GatewayIntentBits,
   GatewayOpcodes
 } from 'discord-api-types/v9'
-import * as D from 'discord.js'
+import * as Discord from 'discord.js'
 var WebSocketShard = require('../node_modules/discord.js/src/client/websocket/WebSocketShard')
 import {Backend, api} from './Backend'
 import * as convert from './convert'
@@ -16,7 +16,7 @@ import type {EmitPacket, HasIntents} from './Backend'
 import type {Snowflake} from './types'
 
 const _mockClient = (
-  client: D.Client,
+  client: Discord.Client,
   backend: Backend,
   applicationId?: Snowflake
 ): void => {
@@ -51,14 +51,14 @@ const _mockClient = (
 
   // Initialise the client user and application
   // type casts needed because constructors are private
-  client.user = new (D.ClientUser as new (
-    client: D.Client,
+  client.user = new (Discord.ClientUser as new (
+    client: Discord.Client,
     data: RawUserData
-  ) => D.ClientUser)(client, app.bot)
-  client.application = new (D.ClientApplication as new (
-    client: D.Client,
+  ) => Discord.ClientUser)(client, app.bot)
+  client.application = new (Discord.ClientApplication as new (
+    client: Discord.Client,
     data: RawClientApplicationData
-  ) => D.ClientApplication)(client, app)
+  ) => Discord.ClientApplication)(client, app)
 
   // Make the websocket manager ready to receive packets
   client.ws['triggerClientReady']()
@@ -84,7 +84,7 @@ const _mockClient = (
  * @param applicationId The id of the Discord application of the client.
  */
 export const mockClient: (
-  client: D.Client,
+  client: Discord.Client,
   backend?: Backend,
   applicationId?: Snowflake
 ) => void = (client, backend = new Backend(), applicationId): void => {
@@ -95,8 +95,8 @@ export const mockClient: (
   _mockClient(client, backend, applicationId)
 }
 
-export class Client extends D.Client {
-  declare user: D.ClientUser
+export class Client extends Discord.Client {
+  declare user: Discord.ClientUser
 
   constructor(
     options: Readonly<ClientOptions>,
