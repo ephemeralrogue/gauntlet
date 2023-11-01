@@ -1,4 +1,4 @@
-import * as D from 'discord.js'
+import * as Discord from 'discord.js'
 import * as DM from '../src'
 import type {AnyFunction} from '../src/utils'
 
@@ -31,10 +31,10 @@ export type DeepPartialOmit<
 
 // Omitting valueOf because ({...}).valueOf() is Object, whereas
 // (guild as D.Guild).valueOf() is string
-export type MatchObjectGuild = DeepPartialOmit<D.Guild, 'valueOf'>
+export type MatchObjectGuild = DeepPartialOmit<Discord.Guild, 'valueOf'>
 
 export interface WithClientOptions {
-  intents?: D.ClientOptions['intents']
+  intents?: Discord.ClientOptions['intents']
   backend?: DM.Backend
   applicationId?: DM.Snowflake
 }
@@ -57,7 +57,7 @@ export const guildWithBot: (
   return {backend, applicationId: app.id}
 }
 
-const defaultIntents = new D.Intents([
+const defaultIntents = new Discord.Intents([
   'GUILDS',
   'GUILD_MESSAGES',
   'GUILD_MESSAGE_REACTIONS',
@@ -66,11 +66,11 @@ const defaultIntents = new D.Intents([
 ])
 
 export const withClient = <T>(
-  fn: (client: D.Client) => T,
+  fn: (client: Discord.Client) => T,
   {intents = defaultIntents, backend, applicationId}: WithClientOptions = {}
 ): T => fn(new DM.Client({intents}, backend, applicationId))
 
 export const withClientF =
-  <T>(fn: (client: D.Client) => T, options?: WithClientOptions) =>
+  <T>(fn: (client: Discord.Client) => T, options?: WithClientOptions) =>
   (): T =>
     withClient(fn, options)

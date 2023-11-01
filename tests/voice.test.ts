@@ -1,4 +1,4 @@
-import * as D from 'discord.js'
+import * as Discord from 'discord.js'
 import * as DM from '../src'
 import {withClientF} from './utils'
 
@@ -8,7 +8,7 @@ describe('fetchVoiceRegions', () => {
     withClientF(async client => {
       const voiceRegions = await client.fetchVoiceRegions()
       for (const [, region] of voiceRegions)
-        expect(region).toBeInstanceOf(D.VoiceRegion)
+        expect(region).toBeInstanceOf(Discord.VoiceRegion)
     })
   )
 
@@ -18,7 +18,7 @@ describe('fetchVoiceRegions', () => {
       async client => {
         const voiceRegions = await client.fetchVoiceRegions()
         for (const [, region] of voiceRegions)
-          expect(region).toBeInstanceOf(D.VoiceRegion)
+          expect(region).toBeInstanceOf(Discord.VoiceRegion)
         expect(voiceRegions.get('id1')?.name).toBe('name 1')
         expect(voiceRegions.get('id2')?.name).toBe('name 2')
       },

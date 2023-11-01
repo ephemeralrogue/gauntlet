@@ -3,7 +3,7 @@
 */
 
 import {ChannelType} from 'discord-api-types/v9'
-import * as D from 'discord.js'
+import * as Discord from 'discord.js'
 import {guildWithBot, withClient, withClientF} from '../../utils'
 import {getChannel, send} from './utils'
 import type {Snowflake} from 'discord-api-types/v9'
@@ -50,7 +50,7 @@ describe('successes', () => {
   test('basic embed', async () => {
     const title = 'title'
     const description = 'description'
-    const fields: D.EmbedFieldData[] = [
+    const fields: Discord.EmbedFieldData[] = [
       {name: 'field 1', value: 'field 1 value'},
       {name: 'field 2', value: 'field 2 value'}
     ]
@@ -60,7 +60,7 @@ describe('successes', () => {
           (
             await send(client, {embeds: [{title, description, fields}]})
           ).embeds
-        ).toMatchObject<DeepPartialOmit<D.MessageEmbed[]>>([
+        ).toMatchObject<DeepPartialOmit<Discord.MessageEmbed[]>>([
           {title, description, fields}
         ]),
       defaultOpts()
@@ -75,7 +75,7 @@ describe('successes', () => {
       })
       expect(message.attachments.size).toBe(1)
       expect(message.attachments.first()!).toMatchObject<
-        DeepPartialOmit<D.MessageAttachment>
+        DeepPartialOmit<Discord.MessageAttachment>
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- asymmetric matcher
       >({name, attachment: expect.stringContaining(message.id)})
     }, defaultOpts())
@@ -91,7 +91,7 @@ describe('successes', () => {
     const roleId1 = '20'
     const expectMentions = (
       content: string,
-      allowedMentions: D.MessageMentionOptions | undefined,
+      allowedMentions: Discord.MessageMentionOptions | undefined,
       {
         everyone,
         users,
@@ -116,7 +116,7 @@ describe('successes', () => {
           {roles: [{id: roleId1}]},
           {
             backendOpts: {
-              users: new D.Collection([
+              users: new Discord.Collection([
                 [userId1, {}],
                 [userId2, {}]
               ])

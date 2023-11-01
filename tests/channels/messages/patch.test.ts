@@ -1,5 +1,5 @@
 import {ChannelType, PermissionFlagsBits} from 'discord-api-types/v9'
-import * as D from 'discord.js'
+import * as Discord from 'discord.js'
 import {guildWithBot, withClient, withClientF} from '../../utils'
 import {getChannel, send} from './utils'
 import type * as DM from '../../../src'
@@ -36,7 +36,7 @@ describe('successes', () => {
     withClientF(async client => {
       const message = await send(client, {
         content: 'foo',
-        embeds: [new D.MessageEmbed({title: 'foo'})]
+        embeds: [new Discord.MessageEmbed({title: 'foo'})]
       })
       const oldEmbeds = message.embeds
       const newContent = 'bar'
