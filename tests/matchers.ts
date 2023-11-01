@@ -1,5 +1,5 @@
 import {RESTJSONErrorCodes} from 'discord-api-types/v9'
-import * as D from 'discord.js'
+import * as Discord from 'discord.js'
 import {getMatchers} from 'expect/build/jestMatchersObject'
 import type {SyncExpectationResult} from 'expect/build/types'
 
@@ -18,8 +18,8 @@ declare global {
           : never
       ): R
       toEqualBitfield(
-        ...args: T extends D.BitField<infer S, infer N> | undefined
-          ? [bits: D.BitFieldResolvable<S, N>]
+        ...args: T extends Discord.BitField<infer S, infer N> | undefined
+          ? [bits: Discord.BitFieldResolvable<S, N>]
           : IncompatibleExpectType
       ): R
       toThrowAPIError(
@@ -75,7 +75,7 @@ Received: resolved with ${utils.printReceived(result)}`
     const instanceOfResult = toBeInstanceOf.call(
       context,
       error,
-      D.DiscordAPIError
+      Discord.DiscordAPIError
     )
     if (
       (!instanceOfResult.pass && !isNot) ||
@@ -88,7 +88,7 @@ ${removeMatcherHint(instanceOfResult)}`
       }
     }
 
-    const matchObjectInput: Partial<D.DiscordAPIError> = {code}
+    const matchObjectInput: Partial<Discord.DiscordAPIError> = {code}
     const matchObjectResult = toMatchObject.call(
       context,
       error,
@@ -169,15 +169,15 @@ Received: ${utils.printReceived(received)}`
 
   toEqualBitfield<S extends string, N extends bigint | number>(
     this: jest.MatcherContext,
-    received: D.BitField<S, N> | undefined,
-    bits: D.BitFieldResolvable<S, N>
+    received: Discord.BitField<S, N> | undefined,
+    bits: Discord.BitFieldResolvable<S, N>
   ): jest.CustomMatcherResult {
     const {isNot, promise, utils} = this
     const matcherHint = (): string =>
       `${utils.matcherHint('toEqualBitfield', 'received', 'expected', {
         isNot,
         promise,
-        ...(received instanceof D.Permissions
+        ...(received instanceof Discord.Permissions
           ? {comment: 'Not checking admin'}
           : {})
       })}
@@ -188,7 +188,7 @@ Received: ${utils.printReceived(received)}`
         pass: false,
         message: (): string => `${matcherHint()}
 Expected: ${utils.printExpected(bits)}${
-          bits instanceof D.BitField
+          bits instanceof Discord.BitField
             ? ` (${utils.printExpected(bits.toArray())})`
             : ''
         }

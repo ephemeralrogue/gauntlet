@@ -1,10 +1,10 @@
 import * as DM from '../../src'
 import {guildWithBot, withClient, withClientF} from '../utils'
-import type * as D from 'discord.js'
+import type * as Discord from 'discord.js'
 import type {DeepPartialOmit, MatchObjectGuild} from '../utils'
 import '../matchers'
 
-type MatchObjectTemplate = DeepPartialOmit<D.GuildTemplate, 'valueOf'>
+type MatchObjectTemplate = DeepPartialOmit<Discord.GuildTemplate, 'valueOf'>
 
 const guildId = '0'
 
@@ -118,7 +118,7 @@ describe('create guild template', () => {
   })
 })
 
-const getTemplate = async (client: D.Client): Promise<D.GuildTemplate> =>
+const getTemplate = async (client: Discord.Client): Promise<Discord.GuildTemplate> =>
   (await client.guilds.cache.get(guildId)!.fetchTemplates()).first()!
 
 describe('modify guild template', () => {

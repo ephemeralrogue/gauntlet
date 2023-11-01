@@ -1,8 +1,8 @@
-import type * as D from 'discord.js'
+import type * as Discord from 'discord.js'
 
 // constructor is private
 declare const WebSocketShard: new (
-  manager: D.WebSocketManager,
+  manager: Discord.WebSocketManager,
   id: number
-) => D.WebSocketShard
+) => Discord.WebSocketShard
 export = WebSocketShard

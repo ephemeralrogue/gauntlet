@@ -3,7 +3,7 @@
 */
 
 import {RESTJSONErrorCodes} from 'discord-api-types/v9'
-import * as D from 'discord.js'
+import * as Discord from 'discord.js'
 import * as DM from '../../src'
 import {withClient, withClientF} from '../utils'
 import type {ChannelTypes} from 'discord.js/typings/enums'
@@ -13,10 +13,10 @@ import '../matchers'
 
 // TODO: fix Discord.js types
 type GuildCreateOpts = Override<
-  D.GuildCreateOptions,
+  Discord.GuildCreateOptions,
   {
     channels?: Override<
-      D.PartialChannelData,
+      Discord.PartialChannelData,
       {type?: keyof typeof ChannelTypes}
     >[]
   }
@@ -50,10 +50,10 @@ describe('successes', () => {
     'overriding basic defaults',
     withClientF(async client => {
       const afkTimeout = 60
-      const defaultMessageNotifications: D.DefaultMessageNotificationLevel =
+      const defaultMessageNotifications: Discord.DefaultMessageNotificationLevel =
         'ONLY_MENTIONS'
-      const explicitContentFilter: D.ExplicitContentFilterLevel = 'ALL_MEMBERS'
-      const verificationLevel: D.VerificationLevel = 'HIGH'
+      const explicitContentFilter: Discord.ExplicitContentFilterLevel = 'ALL_MEMBERS'
+      const verificationLevel: Discord.VerificationLevel = 'HIGH'
       await expect(
         client.guilds.create(name, {
           afkTimeout,
@@ -123,15 +123,15 @@ describe('successes', () => {
       'channel overrides',
       withClientF(async client => {
         const id = 0
-        const deny: D.PermissionString = 'VIEW_CHANNEL'
+        const deny: Discord.PermissionString = 'VIEW_CHANNEL'
         const guild = await client.guilds.create(name, {
           roles: [{}, {id}],
           channels: [{name, permissionOverwrites: [{id, deny}]}]
         })
         const channel = guild.channels.cache.first()!
-        expect(channel).toBeInstanceOf(D.TextChannel)
+        expect(channel).toBeInstanceOf(Discord.TextChannel)
         expect(
-          (channel as D.TextChannel).permissionOverwrites.cache.get(
+          (channel as Discord.TextChannel).permissionOverwrites.cache.get(
             guild.roles.cache.findKey(role => role.id !== guild.id)!
           )?.deny
         ).toEqualBitfield(deny)
@@ -158,7 +158,7 @@ describe('errors', () => {
   // every time otherwise TypeErrors may occur
   // This is why a function is sometimes used to provide the options
   const _formErr = (
-    ...args: Parameters<D.GuildManager['create']>
+    ...args: Parameters<Discord.GuildManager['create']>
   ): (() => Promise<void>) =>
     withClientF(async client =>
       expect(client.guilds.create(...args)).toThrowAPIFormError()

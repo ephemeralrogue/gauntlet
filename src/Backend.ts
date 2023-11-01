@@ -252,7 +252,7 @@ export class Backend {
 type ExtractGatewayPayload<
   E extends GatewayDispatchEvents,
   P extends GatewayDispatchPayload = GatewayDispatchPayload
-> = P extends {t: infer T} ? (T extends E ? P['d'] : never) : never
+> = P extends {t: infer T} ? (T extends E ? any : any) : any
 export type EmitPacket = <T extends GatewayDispatchEvents>(
   t: T,
   d: ExtractGatewayPayload<T>

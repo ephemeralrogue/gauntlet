@@ -1,11 +1,11 @@
-import * as D from 'discord.js'
+import * as Discord from 'discord.js'
 import * as DM from '../src'
 import type {MatchObjectGuild} from './utils'
 import './matchers'
 
 describe('mockClient', () => {
   test('ready event is emitted', async () => {
-    const client = new D.Client({intents: []})
+    const client = new Discord.Client({intents: []})
     const promise = new Promise<void>(resolve => {
       client.on('ready', () => resolve())
     })
@@ -24,9 +24,9 @@ describe('mockClient', () => {
       .addGuildWithBot({id: id2}, {}, app)
 
     test('are emitted with GUILDS intent', async () => {
-      const client = new D.Client({intents: ['GUILDS']})
-      const emittedGuilds = new Promise<ReadonlySet<D.Guild>>(resolve => {
-        const guilds = new Set<D.Guild>()
+      const client = new Discord.Client({intents: ['GUILDS']})
+      const emittedGuilds = new Promise<ReadonlySet<Discord.Guild>>(resolve => {
+        const guilds = new Set<Discord.Guild>()
         client.on('guildCreate', guild => {
           guilds.add(guild)
           if (guilds.size === 2) resolve(guilds)
@@ -42,7 +42,7 @@ describe('mockClient', () => {
     })
 
     test('not emitted without GUILDS intent', async () => {
-      const client = new D.Client({intents: []})
+      const client = new Discord.Client({intents: []})
       const promise = new Promise<void>((resolve, reject) => {
         setTimeout(resolve, 500)
         client.on('guildCreate', ({id}) => {

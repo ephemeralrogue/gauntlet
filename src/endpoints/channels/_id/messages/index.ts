@@ -1,10 +1,10 @@
 import post from './post'
-import get from './:id/get'
-import patch from './:id/patch'
+import get from './_id/get'
+import patch from './_id/patch'
 import type {Backend, EmitPacket, HasIntents} from '../../../../Backend'
 import type {Snowflake} from '../../../../types'
-import type {MessagesGet} from './:id/get'
-import type {MessagesPatch} from './:id/patch'
+import type {MessagesGet} from './_id/get'
+import type {MessagesPatch} from './_id/patch'
 import type {MessagesPost} from './post'
 
 export interface Messages
