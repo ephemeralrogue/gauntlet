@@ -14,7 +14,7 @@
   "repository": "github:nonsensetwice/gauntlet",
   "issues": "https://github.com/nonsensetwice/gauntlet/issues",
   "engines": {
-    "node": ">=16.6"
+    "node": ">=18"
   },
   "files": [
     "dist/**/*.js",

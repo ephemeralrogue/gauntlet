@@ -1,0 +1,23 @@
+name: Build and Test
+on:
+    pull_request:
+      branches:
+        - 'main'
+        - 'hotfix/**'
+        - 'release/**'
+jobs:
+    build-test:
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: '18.12.1'
+            - name: Install dependencies
+              run: npm install
+            - name: Lint Code
+              run: npm run lint
+            - name: Build and Compile Typescript
+              run: npm run build
+            - name: Run test cases
+              run: npm run test --watchAll=false
