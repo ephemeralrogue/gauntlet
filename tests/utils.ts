@@ -1,11 +1,11 @@
 import * as Discord from 'discord.js'
 import * as DM from '../src'
-import type {AnyFunction} from '../src/utils'
+import type { AnyFunction } from '../src/utils'
 
 export const expectNotToBeNull: <T>(
   actual: T
 ) => asserts actual is Exclude<T, null> = actual =>
-  expect(actual).not.toBeNull()
+    expect(actual).not.toBeNull()
 
 type ObjectDeepPartialOmit<T extends object, O extends PropertyKey> = {
   // eslint-disable-next-line @typescript-eslint/no-use-before-define -- recursive
@@ -17,10 +17,10 @@ export type DeepPartialOmit<
   O extends PropertyKey = never
 > = T extends readonly (infer U)[]
   ? number extends T['length']
-    ? T extends unknown[]
-      ? DeepPartialOmit<U>[] // ordinary mutable array
-      : readonly DeepPartialOmit<U>[] // ordinary readonly array
-    : ObjectDeepPartialOmit<T, O> // tuple
+  ? T extends unknown[]
+  ? DeepPartialOmit<U>[] // ordinary mutable array
+  : readonly DeepPartialOmit<U>[] // ordinary readonly array
+  : ObjectDeepPartialOmit<T, O> // tuple
   : T extends AnyFunction
   ? T
   : T extends Map<infer K, infer V>
@@ -49,13 +49,13 @@ export const guildWithBot: (
   }
 ) => Required<Pick<WithClientOptions, 'applicationId' | 'backend'>> = (
   guild,
-  {backendOpts, botGuildMember, application} = {}
+  { backendOpts, botGuildMember, application } = {}
 ) => {
-  const backend = new DM.Backend(backendOpts)
-  const app = backend.addApplication(application)
-  backend.addGuildWithBot(guild, botGuildMember, app)
-  return {backend, applicationId: app.id}
-}
+    const backend = new DM.Backend(backendOpts)
+    const app = backend.addApplication(application)
+    backend.addGuildWithBot(guild, botGuildMember, app)
+    return { backend, applicationId: app.id }
+  }
 
 const defaultIntents = new Discord.Intents([
   'GUILDS',
@@ -67,10 +67,10 @@ const defaultIntents = new Discord.Intents([
 
 export const withClient = <T>(
   fn: (client: Discord.Client) => T,
-  {intents = defaultIntents, backend, applicationId}: WithClientOptions = {}
-): T => fn(new DM.Client({intents}, backend, applicationId))
+  { intents = defaultIntents, backend, applicationId }: WithClientOptions = {}
+): T => fn(new DM.Client({ intents }, backend, applicationId))
 
 export const withClientF =
   <T>(fn: (client: Discord.Client) => T, options?: WithClientOptions) =>
-  (): T =>
-    withClient(fn, options)
+    (): T =>
+      withClient(fn, options)

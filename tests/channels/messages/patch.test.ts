@@ -1,15 +1,25 @@
-import {ChannelType, PermissionFlagsBits} from 'discord-api-types/v9'
+import {
+  ChannelType,
+  PermissionFlagsBits
+} from 'discord-api-types/v9'
 import * as Discord from 'discord.js'
-import {guildWithBot, withClient, withClientF} from '../../utils'
-import {getChannel, send} from './utils'
+import {
+  guildWithBot,
+  withClient,
+  withClientF
+} from '../../utils.ts';
+import {
+  getChannel,
+  send
+} from './utils.ts';
 import type * as DM from '../../../src'
-import type {WithClientOptions} from '../../utils'
+import type { WithClientOptions } from '../../utils.ts';
 
 const channels: DM.CollectionResolvableId<DM.GuildChannel> = [
-  {type: ChannelType.GuildText}
+  { type: ChannelType.GuildText }
 ]
 
-const defaultOpts = (): WithClientOptions => guildWithBot({channels})
+const defaultOpts = (): WithClientOptions => guildWithBot({ channels })
 
 describe('successes', () => {
   test(
@@ -36,7 +46,7 @@ describe('successes', () => {
     withClientF(async client => {
       const message = await send(client, {
         content: 'foo',
-        embeds: [new Discord.MessageEmbed({title: 'foo'})]
+        embeds: [new Discord.MessageEmbed({ title: 'foo' })]
       })
       const oldEmbeds = message.embeds
       const newContent = 'bar'
@@ -52,7 +62,7 @@ describe('flags', () => {
     'set SUPPRESS_EMBEDS',
     withClientF(async client => {
       const message = await send(client, 'foo')
-      await message.edit({flags: 'SUPPRESS_EMBEDS'})
+      await message.edit({ flags: 'SUPPRESS_EMBEDS' })
       expect(message.flags.has('SUPPRESS_EMBEDS')).toBe(true)
     }, defaultOpts())
   )
@@ -60,9 +70,9 @@ describe('flags', () => {
   test(
     'unset SUPPRESS_EMBEDS',
     withClientF(async client => {
-      const message = await send(client, {content: 'foo'})
-      await message.edit({flags: 'SUPPRESS_EMBEDS'})
-      await message.edit({flags: 0})
+      const message = await send(client, { content: 'foo' })
+      await message.edit({ flags: 'SUPPRESS_EMBEDS' })
+      await message.edit({ flags: 0 })
       expect(message.flags.has('SUPPRESS_EMBEDS')).toBe(false)
     }, defaultOpts())
   )
@@ -75,17 +85,17 @@ describe('flags', () => {
     await withClient(
       async client => {
         const message = await getChannel(client).messages.fetch(messageId)
-        await message.edit({flags: 'SUPPRESS_EMBEDS'})
+        await message.edit({ flags: 'SUPPRESS_EMBEDS' })
         expect(message.flags.has('SUPPRESS_EMBEDS')).toBe(true)
       },
       guildWithBot(
         {
           channels: [
-            {type: ChannelType.GuildText, messages: [{id: messageId}]}
+            { type: ChannelType.GuildText, messages: [{ id: messageId }] }
           ],
-          roles: [{id: roleId, permissions: PermissionFlagsBits.ManageMessages}]
+          roles: [{ id: roleId, permissions: PermissionFlagsBits.ManageMessages }]
         },
-        {botGuildMember: {roles: [roleId]}}
+        { botGuildMember: { roles: [roleId] } }
       )
     )
   })

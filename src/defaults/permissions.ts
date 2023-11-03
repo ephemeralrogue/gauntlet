@@ -1,7 +1,10 @@
-import {snowflake} from '../utils'
-import {DEFAULT_PERMISSIONS, DEFAULT_ROLE_NAME} from './constants'
-import {createDefaults as d} from './utils'
-import type {Role} from '../types'
+import { snowflake } from '../utils.ts';
+import {
+  DEFAULT_PERMISSIONS,
+  DEFAULT_ROLE_NAME
+} from './constants.ts';
+import { createDefaults as d } from './utils.ts';
+import type { Role } from '../types/index.ts';
 
 export const role = d<Role>(_role => ({
   id: snowflake(),

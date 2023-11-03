@@ -1,8 +1,14 @@
-import {randomString, snowflake} from '../utils'
-import {team} from './teams'
-import {createDefaults as d} from './utils'
-import type {Application, GuildIntegrationApplication} from '../types'
-import type {CommonProperties} from '../utils'
+import {
+  randomString,
+  snowflake
+} from '../utils.ts';
+import { team } from './teams.ts';
+import { createDefaults as d } from './utils.ts';
+import type {
+  Application,
+  GuildIntegrationApplication
+} from '../types/index.ts';
+import type { CommonProperties } from '../utils.ts';
 
 type PartialApplication = CommonProperties<
   Application,

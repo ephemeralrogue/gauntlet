@@ -1,17 +1,23 @@
-import {snowflake} from '../utils'
-import {DEFAULT_CUSTOM_EMOJI_NAME, DEFAULT_STANDARD_EMOJI} from './constants'
-import {createDefaults as d} from './utils'
-import type {GuildEmoji, PartialEmoji} from '../types'
+import { snowflake } from '../utils.ts';
+import {
+  DEFAULT_CUSTOM_EMOJI_NAME,
+  DEFAULT_STANDARD_EMOJI
+} from './constants.ts';
+import { createDefaults as d } from './utils.ts';
+import type {
+  GuildEmoji,
+  PartialEmoji
+} from '../types/index.ts';
 
 export const partialEmoji = d<PartialEmoji>(emoji =>
   emoji.id == null
     ? // Ordinary emoji
-      {id: null, name: emoji.name ?? DEFAULT_STANDARD_EMOJI}
+    { id: null, name: emoji.name ?? DEFAULT_STANDARD_EMOJI }
     : // Custom emoji
-      {
-        id: emoji.id,
-        name: emoji.name ?? DEFAULT_CUSTOM_EMOJI_NAME
-      }
+    {
+      id: emoji.id,
+      name: emoji.name ?? DEFAULT_CUSTOM_EMOJI_NAME
+    }
 )
 
 export const guildEmoji = d<GuildEmoji>(emoji => ({

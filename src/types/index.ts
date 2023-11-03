@@ -1,13 +1,13 @@
 import type * as D from 'discord-api-types/v9'
-import type {Collection} from 'discord.js'
-import type {CollectionResolvable} from '..'
+import type { Collection } from 'discord.js'
+import type { CollectionResolvable } from '..'
 import type {
   AnyFunction,
   CollectionResolvableId,
   DOmit,
   Override,
   RequireKeys
-} from '../utils'
+} from '../utils.ts';
 import type {
   APIAuditLogChange,
   APIAuditLogChangeKeyOverwriteType,
@@ -16,7 +16,7 @@ import type {
   APIGuildEmoji,
   GatewayActivity,
   GatewayPresenceUpdate
-} from './patches'
+} from './patches.ts';
 
 // #region Type aliases
 
@@ -84,17 +84,17 @@ export type PartialDeep<T> = T extends AuditLogChange
   ? T
   : T extends readonly (infer U)[]
   ? number extends T['length']
-    ? T extends unknown[]
-      ? PartialDeep<U>[] // ordinary mutable array
-      : readonly PartialDeep<U>[] // ordinary readonly array
-    : ObjectPartialDeep<T> // tuple
+  ? T extends unknown[]
+  ? PartialDeep<U>[] // ordinary mutable array
+  : readonly PartialDeep<U>[] // ordinary readonly array
+  : ObjectPartialDeep<T> // tuple
   : T extends Collection<infer K, infer V>
   ? // don't distribute
-    [V] extends [{id: K}]
-    ? CollectionResolvableId<V>
-    : [V] extends [{user_id: K}]
-    ? CollectionResolvable<V, 'user_id'>
-    : Collection<K, PartialDeep<V>>
+  [V] extends [{ id: K }]
+  ? CollectionResolvableId<V>
+  : [V] extends [{ user_id: K }]
+  ? CollectionResolvable<V, 'user_id'>
+  : Collection<K, PartialDeep<V>>
   : T extends AnyFunction
   ? T
   : T extends object
@@ -120,9 +120,9 @@ export interface GuildEmoji extends Omit<APIGuildEmoji, 'user'> {
 
 export type PartialEmoji =
   // Normal emoji
-  | {id: null; name: string}
+  | { id: null; name: string }
   // Custom emoji
-  | {id: Snowflake; name: string | null}
+  | { id: Snowflake; name: string | null }
 
 export type ChannelMention = Omit<D.APIChannelMention, 'name' | 'type'>
 
@@ -176,7 +176,7 @@ type RequiredPick<T, K extends keyof T> = Required<Pick<T, K>>
 
 interface TextBasedChannelBase<T extends D.ChannelType>
   extends RequiredPick<D.APIChannel, 'last_message_id' | 'last_pin_timestamp'>,
-    ChannelBase<T> {
+  ChannelBase<T> {
   messages: SnowflakeCollection<Message>
 }
 
@@ -188,7 +188,7 @@ type Name = RequiredPick<D.APIChannel, 'name'>
 
 type NormalGuildChannel<T extends D.ChannelType> = Override<
   ChannelBase<T> & Name & RequiredPick<D.APIChannel, 'position'>,
-  {permission_overwrites: SnowflakeCollection<Overwrite>}
+  { permission_overwrites: SnowflakeCollection<Overwrite> }
 >
 
 export type CategoryChannel = NormalGuildChannel<D.ChannelType.GuildCategory>
@@ -217,8 +217,8 @@ export type StageChannel = ChildGuildChannel<D.ChannelType.GuildStageVoice> &
 
 interface GuildTextBasedChannelBase<T extends D.ChannelType>
   extends ChildGuildChannel<T>,
-    RequiredPick<D.APIChannel, 'default_auto_archive_duration' | 'topic'>,
-    TextBasedChannelBase<T> {
+  RequiredPick<D.APIChannel, 'default_auto_archive_duration' | 'topic'>,
+  TextBasedChannelBase<T> {
   webhooks: SnowflakeCollection<Webhook>
 }
 
@@ -234,11 +234,11 @@ export type ThreadMetadata = RequireKeys<D.APIThreadMetadata, 'locked'>
 
 export interface ThreadChannel
   extends TextBasedChannelBase<
-      | D.ChannelType.GuildNewsThread
-      | D.ChannelType.GuildPrivateThread
-      | D.ChannelType.GuildPublicThread
-    >,
-    Name {
+    | D.ChannelType.GuildNewsThread
+    | D.ChannelType.GuildPrivateThread
+    | D.ChannelType.GuildPublicThread
+  >,
+  Name {
   members: SnowflakeCollection<ThreadMember>
   parent_id: Snowflake
   thread_metadata: ThreadMetadata
@@ -274,7 +274,7 @@ interface Presence extends Omit<GatewayPresenceUpdate, 'user'> {
 
 export type GuildPresence = Omit<Presence, 'guild_id'>
 export type GuildTemplate = Omit<D.APITemplate, 'creator' | 'source_guild_id'>
-export type Role = Override<D.APIRole, {permissions: bigint}>
+export type Role = Override<D.APIRole, { permissions: bigint }>
 
 interface StickerBase<T extends D.StickerType>
   extends Omit<D.APISticker, 'guild_id'> {
@@ -323,6 +323,6 @@ export type Guild = Override<
   }
 >
 
-export {GatewayDispatchPayload} from './patches'
+export { GatewayDispatchPayload } from './patches.ts';
 
 // #endregion

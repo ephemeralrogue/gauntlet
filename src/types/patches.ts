@@ -1,7 +1,7 @@
 // Various discord-api-types changes
 
 import type * as DAT from 'discord-api-types/v9'
-import type {Override, RequireKeys} from '../utils'
+import type { Override, RequireKeys } from '../utils.ts';
 
 // TODO: add this stuff in the Discord docs and discord-api-types
 export const enum ChangeOverwriteType {
@@ -22,18 +22,18 @@ type PartialRole = Pick<DAT.APIRole, 'id' | 'name'>
 export type APIAuditLogChange =
   | APIAuditLogChangeKeyOverwriteType
   | Exclude<
-     DAT.APIAuditLogChange,
-      DAT.APIAuditLogChangeKey$Add | DAT.APIAuditLogChangeKey$Remove
-    >
+    DAT.APIAuditLogChange,
+    DAT.APIAuditLogChangeKey$Add | DAT.APIAuditLogChangeKey$Remove
+  >
   | {
-      key: '$add' | '$remove'
-      old_value?: PartialRole[]
-      new_value?: PartialRole[]
-    }
+    key: '$add' | '$remove'
+    old_value?: PartialRole[]
+    new_value?: PartialRole[]
+  }
 
 export type APIAuditLogEntry = Override<
   DAT.APIAuditLogEntry,
-  {changes?: APIAuditLogChange[]}
+  { changes?: APIAuditLogChange[] }
 >
 
 // Bots only receive strings for the buttons
@@ -55,11 +55,11 @@ export interface APIGuildEmoji
   name: string
 }
 
-export type APIGuild = Override<DAT.APIGuild, {emojis: APIGuildEmoji[]}>
+export type APIGuild = Override<DAT.APIGuild, { emojis: APIGuildEmoji[] }>
 
 type GatewayGuildCreateDispatch = Override<
   DAT.GatewayGuildCreateDispatch,
-  {d: APIGuild}
+  { d: APIGuild }
 >
 export type GatewayDispatchPayload =
   | Exclude<DAT.GatewayDispatchPayload, DAT.GatewayGuildCreateDispatch>

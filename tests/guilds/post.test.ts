@@ -2,13 +2,16 @@
   -- The helper functions _formErr and formErr use expect
 */
 
-import {RESTJSONErrorCodes} from 'discord-api-types/v9'
+import { RESTJSONErrorCodes } from 'discord-api-types/v9';
 import * as Discord from 'discord.js'
-import * as DM from '../../src'
-import {withClient, withClientF} from '../utils'
-import type {ChannelTypes} from 'discord.js/typings/enums'
-import type {Override} from '../../src/utils'
-import type {MatchObjectGuild} from '../utils'
+import * as DM from '../../src/index.ts';
+import {
+  withClient,
+  withClientF
+} from '../utils.ts';
+import type { ChannelTypes } from 'discord.js/typings/enums'
+import type { Override } from '../../src/utils.ts';
+import type { MatchObjectGuild } from '../utils.ts';
 import '../matchers'
 
 // TODO: fix Discord.js types
@@ -17,7 +20,7 @@ type GuildCreateOpts = Override<
   {
     channels?: Override<
       Discord.PartialChannelData,
-      {type?: keyof typeof ChannelTypes}
+      { type?: keyof typeof ChannelTypes }
     >[]
   }
 >
@@ -77,7 +80,7 @@ describe('successes', () => {
       withClientF(async client => {
         const parentId = 0
         const {
-          channels: {cache: channels}
+          channels: { cache: channels }
         } = await client.guilds.create(name, {
           channels: [
             {
@@ -85,11 +88,11 @@ describe('successes', () => {
               id: parentId,
               type: 'GUILD_CATEGORY'
             },
-            {name, parentId}
+            { name, parentId }
           ]
         })
-        expect(channels.find(({type}) => type === 'GUILD_TEXT')!.parentId).toBe(
-          channels.find(({type}) => type === 'GUILD_CATEGORY')!.id
+        expect(channels.find(({ type }) => type === 'GUILD_TEXT')!.parentId).toBe(
+          channels.find(({ type }) => type === 'GUILD_CATEGORY')!.id
         )
       })
     )
@@ -100,7 +103,7 @@ describe('successes', () => {
       withClientF(async client => {
         const id = 0
         const guild = await client.guilds.create(name, {
-          channels: [{name, id, type: 'GUILD_VOICE'}],
+          channels: [{ name, id, type: 'GUILD_VOICE' }],
           afkChannelId: id
         })
         expect(guild.afkChannelId).toBe(guild.channels.cache.first()!.id)
@@ -112,7 +115,7 @@ describe('successes', () => {
       withClientF(async client => {
         const id = 0
         const guild = await client.guilds.create(name, {
-          channels: [{name, id}],
+          channels: [{ name, id }],
           systemChannelId: id
         })
         expect(guild.systemChannelId).toBe(guild.channels.cache.first()!.id)
@@ -125,8 +128,8 @@ describe('successes', () => {
         const id = 0
         const deny: Discord.PermissionString = 'VIEW_CHANNEL'
         const guild = await client.guilds.create(name, {
-          roles: [{}, {id}],
-          channels: [{name, permissionOverwrites: [{id, deny}]}]
+          roles: [{}, { id }],
+          channels: [{ name, permissionOverwrites: [{ id, deny }] }]
         })
         const channel = guild.channels.cache.first()!
         expect(channel).toBeInstanceOf(Discord.TextChannel)
@@ -150,7 +153,7 @@ describe('errors', () => {
         expect(client.guilds.create('name')).toThrowAPIError(
           RESTJSONErrorCodes.MaximumNumberOfGuildsReached
         ),
-      {backend, applicationId: app.id}
+      { backend, applicationId: app.id }
     )
   })
 
@@ -172,27 +175,27 @@ describe('errors', () => {
     _formErr(name, options)
 
   describe('channels', () => {
-    test('no channel name', formErr({channels: [{name: ''}]}))
+    test('no channel name', formErr({ channels: [{ name: '' }] }))
 
     test(
       'too long channel name',
-      formErr({channels: [{name: 'a'.repeat(101)}]})
+      formErr({ channels: [{ name: 'a'.repeat(101) }] })
     )
 
-    test('invalid channel type', formErr({channels: [{name, type: 'DM'}]}))
+    test('invalid channel type', formErr({ channels: [{ name, type: 'DM' }] }))
 
     const parentId = 0
 
     describe('parent channel', () => {
-      test('missing', formErr({channels: [{name, parentId}]}))
+      test('missing', formErr({ channels: [{ name, parentId }] }))
 
       describe('invalid type', () => {
         test(
           'using default text type',
           formErr({
             channels: [
-              {name, id: parentId},
-              {name, parentId}
+              { name, id: parentId },
+              { name, parentId }
             ]
           })
         )
@@ -201,8 +204,8 @@ describe('errors', () => {
           'using explicit incorrect type',
           formErr({
             channels: [
-              {name, id: parentId, type: 'GUILD_TEXT'},
-              {name, parentId}
+              { name, id: parentId, type: 'GUILD_TEXT' },
+              { name, parentId }
             ]
           })
         )
@@ -212,8 +215,8 @@ describe('errors', () => {
         'parent not before child',
         formErr({
           channels: [
-            {name, parentId},
-            {name, id: parentId, type: 'GUILD_CATEGORY'}
+            { name, parentId },
+            { name, id: parentId, type: 'GUILD_CATEGORY' }
           ]
         })
       )
@@ -225,16 +228,16 @@ describe('errors', () => {
       ['system channel', 'systemChannelId', 'GUILD_VOICE']
     ] as const)('%s', (_, key, type, checkDefault = false) => {
       const id = 0
-      test('missing', formErr({channels: [{name}], [key]: id}))
+      test('missing', formErr({ channels: [{ name }], [key]: id }))
       if (checkDefault) {
         test(
           'invalid default type',
-          formErr({channels: [{name, id}], [key]: id})
+          formErr({ channels: [{ name, id }], [key]: id })
         )
       }
-      test('invalid type', formErr({channels: [{name, id, type}], [key]: id}))
+      test('invalid type', formErr({ channels: [{ name, id, type }], [key]: id }))
     })
   })
 
-  test('invalid AFK timeout', formErr({afkTimeout: 1234}))
+  test('invalid AFK timeout', formErr({ afkTimeout: 1234 }))
 })

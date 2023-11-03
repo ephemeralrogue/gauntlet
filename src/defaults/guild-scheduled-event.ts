@@ -3,9 +3,12 @@ import {
   GuildScheduledEventPrivacyLevel,
   GuildScheduledEventStatus
 } from 'discord-api-types/v9'
-import {snowflake, timestamp} from '../utils'
-import {createDefaults as d} from './utils'
-import type {GuildScheduledEvent} from '../types'
+import {
+  snowflake,
+  timestamp
+} from '../utils.ts';
+import { createDefaults as d } from './utils.ts';
+import type { GuildScheduledEvent } from '../types/index.ts';
 
 type DOmit<T, K extends T extends unknown ? keyof T : never> = T extends unknown
   ? Omit<T, K>
@@ -34,7 +37,7 @@ export const guildScheduledEvent = d<GuildScheduledEvent>(event => {
     case GuildScheduledEventEntityType.External:
       return {
         channel_id: null,
-        entity_metadata: {location: '', ...event.entity_metadata},
+        entity_metadata: { location: '', ...event.entity_metadata },
         ...(base as typeof base & {
           entity_type: GuildScheduledEventEntityType.External
         })

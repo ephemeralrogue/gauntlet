@@ -15,18 +15,22 @@ import {
   resolveCollectionUserId,
   snowflake,
   timestamp
-} from '../../utils'
+} from '../../utils.ts';
 import {
   DEFAULT_CHANNEL_NAME,
   DEFAULT_THREAD_AUTO_ARCHIVE_DURATION
-} from '../constants'
-import {partialEmoji} from '../emoji'
-import {user} from '../user'
-import {createDefaults as d} from '../utils'
-import {webhook} from '../webhook'
-import {partialChannel} from './partial'
-import type {CommonProperties, RemoveUndefined, RequireKeys} from '../../utils'
-import type {Defaults} from '../utils'
+} from '../constants.ts';
+import { partialEmoji } from '../emoji.ts';
+import { user } from '../user.ts';
+import { createDefaults as d } from '../utils.ts';
+import { webhook } from '../webhook.ts';
+import { partialChannel } from './partial.ts';
+import type {
+  CommonProperties,
+  RemoveUndefined,
+  RequireKeys
+} from '../../utils.ts';
+import type { Defaults } from '../utils.ts';
 import type {
   ActionRowComponent,
   Attachment,
@@ -63,9 +67,9 @@ import type {
   ThreadMetadata,
   VoiceChannel,
   Webhook
-} from '../../types'
+} from '../../types/index.ts';
 
-export * from './partial'
+export * from './partial.ts';
 
 export const channelMention = d<ChannelMention>(mention => ({
   id: snowflake(),
@@ -103,15 +107,15 @@ export const embedFooter = d<EmbedFooter>(footer => ({
 }))
 
 export const embed = d<Embed>(
-  ({author, fields, footer, image, provider, thumbnail, video, ...rest}) => ({
+  ({ author, fields, footer, image, provider, thumbnail, video, ...rest }) => ({
     ...rest,
-    ...(footer ? {footer: embedFooter(footer)} : {}),
-    ...(fields ? {fields: fields.map(embedField)} : {}),
-    ...(image?.url === undefined ? {} : {image: image as EmbedImage}),
+    ...(footer ? { footer: embedFooter(footer) } : {}),
+    ...(fields ? { fields: fields.map(embedField) } : {}),
+    ...(image?.url === undefined ? {} : { image: image as EmbedImage }),
     ...(thumbnail?.url === undefined
       ? {}
-      : {thumbnail: thumbnail as EmbedThumbnail}),
-    ...(author?.name === undefined ? {} : {author: author as EmbedAuthor})
+      : { thumbnail: thumbnail as EmbedThumbnail }),
+    ...(author?.name === undefined ? {} : { author: author as EmbedAuthor })
   })
 )
 
@@ -148,15 +152,15 @@ export const buttonComponent = d<ButtonComponent>(component => {
   }
   return base.style === ButtonStyle.Link
     ? {
-        url: 'https://discord.com',
-        ...(base as typeof base & {style: ButtonStyle.Link})
-      }
+      url: 'https://discord.com',
+      ...(base as typeof base & { style: ButtonStyle.Link })
+    }
     : {
-        custom_id: 'click_one',
-        ...(base as typeof base & {
-          style: Exclude<ButtonStyle, ButtonStyle.Link>
-        })
-      }
+      custom_id: 'click_one',
+      ...(base as typeof base & {
+        style: Exclude<ButtonStyle, ButtonStyle.Link>
+      })
+    }
 })
 
 export const selectMenuOption = d<SelectMenuOption>(option => ({
@@ -195,8 +199,8 @@ export const messageComponent = d<MessageComponent>(component =>
   component.type === ComponentType.ActionRow
     ? actionRowComponent(component)
     : nonActionRowComponent(
-        component as RemoveUndefined<PartialDeep<NonActionRowComponent>>
-      )
+      component as RemoveUndefined<PartialDeep<NonActionRowComponent>>
+    )
 )
 
 export const message = (channelId = snowflake()): Defaults<Message> =>
@@ -225,21 +229,21 @@ export const message = (channelId = snowflake()): Defaults<Message> =>
         type: MessageType.Default,
         ...rest,
         ...(mention_channels
-          ? {mention_channels: mention_channels.map(channelMention)}
+          ? { mention_channels: mention_channels.map(channelMention) }
           : {}),
         embeds: rest.embeds?.map(embed) ?? [],
         reactions: rest.reactions?.map(reaction) ?? [],
-        ...(activity ? {activity: messageActivity(activity)} : {}),
+        ...(activity ? { activity: messageActivity(activity) } : {}),
         ...(message_reference
-          ? {message_reference: messageReference(message_reference)}
+          ? { message_reference: messageReference(message_reference) }
           : {}),
         ...(referenced_message
-          ? {referenced_message: message()(referenced_message)}
+          ? { referenced_message: message()(referenced_message) }
           : referenced_message === null
-          ? {referenced_message: null}
-          : {}),
-        ...(interaction ? {interaction: messageInteraction(interaction)} : {}),
-        ...(components ? {components: components.map(actionRowComponent)} : {}),
+            ? { referenced_message: null }
+            : {}),
+        ...(interaction ? { interaction: messageInteraction(interaction) } : {}),
+        ...(components ? { components: components.map(actionRowComponent) } : {}),
         stickers:
           rest.stickers?.map(([id, guildId]) => [id ?? snowflake(), guildId]) ??
           []
@@ -305,10 +309,10 @@ const threadMetadata = d<ThreadMetadata>(metadata => ({
 export const guildChannel = d<GuildChannel>((channel): GuildChannel => {
   const partial = partialChannel(channel)
 
-  const parentId = {parent_id: null}
-  const position = {position: 0}
-  const nsfw = {nsfw: false}
-  const rtcRegion = {rtc_region: null}
+  const parentId = { parent_id: null }
+  const position = { position: 0 }
+  const nsfw = { nsfw: false }
+  const rtcRegion = { rtc_region: null }
   const textOrNewsChannel: Omit<
     CommonProperties<TextChannel, NewsChannel>,
     'id' | 'messages' | 'name' | 'permission_overwrites' | 'webhooks'

@@ -1,4 +1,4 @@
-import type {AllowedMentionsTypes} from 'discord-api-types/v9'
+import type { AllowedMentionsTypes } from 'discord-api-types/v9';
 
 export interface FormBodyError {
   code: string
@@ -6,7 +6,7 @@ export interface FormBodyError {
 }
 
 export interface FormBodyErrors {
-  [key: string]: FormBodyErrors | {_errors: FormBodyError[]}
+  [key: string]: FormBodyErrors | { _errors: FormBodyError[] }
 }
 
 /* eslint-disable id-length -- using exact code */
@@ -26,10 +26,10 @@ export const BUTTON_COMPONENT_CUSTOM_ID_REQUIRED: FormBodyError = {
 }
 
 export const BUTTON_COMPONENT_CUSTOM_ID_URL_MUTUALLY_EXCLUSIVE: FormBodyError =
-  {
-    code: 'BUTTON_COMPONENT_CUSTOM_ID_URL_MUTUALLY_EXCLUSIVE',
-    message: 'A custom id and url cannot both be specified"'
-  }
+{
+  code: 'BUTTON_COMPONENT_CUSTOM_ID_URL_MUTUALLY_EXCLUSIVE',
+  message: 'A custom id and url cannot both be specified"'
+}
 
 /** Used for select menu options as well. */
 export const BUTTON_COMPONENT_INVALID_EMOJI: FormBodyError = {

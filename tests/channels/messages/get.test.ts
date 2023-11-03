@@ -2,9 +2,13 @@ import {
   ChannelType,
   PermissionFlagsBits,
   RESTJSONErrorCodes
-} from 'discord-api-types/v9'
-import {guildWithBot, withClient, withClientF} from '../../utils'
-import {getChannel} from './utils'
+} from 'discord-api-types/v9';
+import {
+  guildWithBot,
+  withClient,
+  withClientF
+} from '../../utils.ts';
+import { getChannel } from './utils.ts';
 import type * as DM from '../../../src'
 import '../../matchers'
 
@@ -12,7 +16,7 @@ const messageId = '0'
 const channels: DM.CollectionResolvableId<DM.GuildChannel> = [
   {
     type: ChannelType.GuildText,
-    messages: [{id: messageId}]
+    messages: [{ id: messageId }]
   }
 ]
 
@@ -24,7 +28,7 @@ describe('successes', () => {
         expect((await getChannel(client).messages.fetch(messageId)).id).toBe(
           messageId
         ),
-      guildWithBot({channels})
+      guildWithBot({ channels })
     )
   )
 })
@@ -40,7 +44,7 @@ describe('errors', () => {
       guildWithBot({
         id: guildId,
         channels,
-        roles: [{id: guildId, permissions: PermissionFlagsBits.ViewChannel}]
+        roles: [{ id: guildId, permissions: PermissionFlagsBits.ViewChannel }]
       })
     )
   })

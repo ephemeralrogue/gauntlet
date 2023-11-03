@@ -1,8 +1,12 @@
-import {clone, arrayToCollection, resolveCollectionId} from '../utils'
-import {createDefaults as d} from './utils'
-import type {Collection} from 'discord.js'
-import type {VoiceRegion} from '../types'
-import type {CollectionResolvableId} from '..'
+import {
+  clone,
+  arrayToCollection,
+  resolveCollectionId
+} from '../utils.ts';
+import { createDefaults as d } from './utils.ts';
+import type { Collection } from 'discord.js'
+import type { VoiceRegion } from '../types/index.ts';
+import type { CollectionResolvableId } from '../index.ts';
 
 export const defaultVoiceRegions: Collection<string, VoiceRegion> =
   arrayToCollection(

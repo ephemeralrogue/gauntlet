@@ -1,4 +1,4 @@
-import * as Discord from 'discord.js'
+import * as Discord from 'discord.js';
 import * as DM from '../src'
 
 describe('initial guilds', () => {
@@ -6,9 +6,9 @@ describe('initial guilds', () => {
     const userId = '0'
     const guildId = '1'
     const backend = new DM.Backend()
-    const app = backend.addApplication({bot: {id: userId}})
-    backend.addGuildWithBot({id: guildId, owner_id: app.bot.id}, {}, app)
-    const client = new Discord.Client({intents: ['GUILDS']})
+    const app = backend.addApplication({ bot: { id: userId } })
+    backend.addGuildWithBot({ id: guildId, owner_id: app.bot.id }, {}, app)
+    const client = new Discord.Client({ intents: ['GUILDS'] })
     const promise = new Promise<void>(resolve => {
       client.on('guildCreate', async guild => {
         expect(guild.id).toBe(guildId)

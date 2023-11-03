@@ -5,12 +5,11 @@
     "skipLibCheck": true,
     "lib": ["ES2020"],
     "target": "ES2020",
-    "module": "commonjs",
+    "module": "Node16",
 
     "allowUnreachableCode": false,
     "exactOptionalPropertyTypes": true,
     "forceConsistentCasingInFileNames": true,
-    "importsNotUsedAsValues": "error",
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,

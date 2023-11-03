@@ -1,9 +1,21 @@
-import {OverwriteType, PermissionFlagsBits} from 'discord-api-types/v9'
-import * as convert from '../../../convert'
-import * as defaults from '../../../defaults'
-import {Method, error, errors, formBodyErrors, mkRequest} from '../../../errors'
-import {clientUserId} from '../../../utils'
-import {getPermissions, hasPermissions} from '../../utils'
+import {
+  OverwriteType,
+  PermissionFlagsBits
+} from 'discord-api-types/v9';
+import * as convert from '../../../convert.ts';
+import * as defaults from '../../../defaults/index.ts';
+import {
+  Method,
+  error,
+  errors,
+  formBodyErrors,
+  mkRequest
+} from '../../../errors/index.ts';
+import { clientUserId } from '../../../utils.ts';
+import {
+  getPermissions,
+  hasPermissions
+} from '../../utils.ts';
 import type {
   APIGuildCreateOverwrite,
   RESTDeleteAPIGuildTemplateResult,
@@ -13,10 +25,17 @@ import type {
   RESTPostAPIGuildTemplatesJSONBody,
   RESTPostAPIGuildTemplatesResult
 } from 'discord-api-types/v9'
-import type {Backend} from '../../../Backend'
-import type {Guild, GuildChannel, Snowflake} from '../../../types'
-import type {FormBodyErrors, Request} from '../../../errors'
-import type {UnUnion} from '../../../utils'
+import type { Backend } from '../../../Backend.ts';
+import type {
+  Guild,
+  GuildChannel,
+  Snowflake
+} from '../../../types/index.ts';
+import type {
+  FormBodyErrors,
+  Request
+} from '../../../errors/index.ts';
+import type { UnUnion } from '../../../utils.ts';
 
 type GuildsIdTemplatesFn = (code: string) => {
   delete: () => Promise<RESTDeleteAPIGuildTemplateResult>
@@ -35,7 +54,7 @@ interface GuildsIdsTemplatesObject {
 
 export interface GuildsIdTemplates
   extends GuildsIdTemplatesFn,
-    GuildsIdsTemplatesObject {}
+  GuildsIdsTemplatesObject { }
 
 const checkTemplateInput = (
   request: Request,
@@ -45,13 +64,13 @@ const checkTemplateInput = (
   const errs: FormBodyErrors = {
     ...(description != null && description.length > 120
       ? {
-          description: {
-            _errors: [formBodyErrors.BASE_TYPE_MAX_LENGTH(120)]
-          }
+        description: {
+          _errors: [formBodyErrors.BASE_TYPE_MAX_LENGTH(120)]
         }
+      }
       : {}),
     ...(name !== undefined && (!name || name.length > 100)
-      ? {name: {_errors: [formBodyErrors.BASE_TYPE_BAD_LENGTH(1, 100)]}}
+      ? { name: { _errors: [formBodyErrors.BASE_TYPE_BAD_LENGTH(1, 100)] } }
       : {})
   }
   if (Object.keys(errs).length) error(request, errors.INVALID_FORM_BODY, errs)
@@ -89,7 +108,7 @@ export default (backend: Backend, applicationId: Snowflake) => {
             const guild = getGuildAndCheckPermissions(request)
             if (guild.template?.code !== code)
               error(request, errors.UNKNOWN_GUILD_TEMPLATE)
-            const {template} = guild
+            const { template } = guild
             delete guild.template
             return convertTemplate(guild, template)
           },
@@ -97,7 +116,7 @@ export default (backend: Backend, applicationId: Snowflake) => {
           // https://discord.com/developers/docs/resources/template#modify-guild-template
           patch: async options => {
             const {
-              data: {name, description}
+              data: { name, description }
             } = options
             const request = mkRequest(path, Method.PATCH, options)
             checkTemplateInput(request, name, description)
@@ -122,7 +141,7 @@ export default (backend: Backend, applicationId: Snowflake) => {
         // https://discord.com/developers/docs/resources/template#create-guild-template
         post: async options => {
           const {
-            data: {name, description = null}
+            data: { name, description = null }
           } = options
           const request = mkRequest(basePath, Method.POST, options)
           checkTemplateInput(request, name, description)
@@ -165,7 +184,7 @@ export default (backend: Backend, applicationId: Snowflake) => {
               explicit_content_filter,
               preferred_locale,
               afk_timeout,
-              roles: roles.map(({managed, position, tags, ...role}) => ({
+              roles: roles.map(({ managed, position, tags, ...role }) => ({
                 ...role,
                 id: rolesMap.get(role.id),
                 permissions: `${role.permissions}` as const
@@ -184,9 +203,9 @@ export default (backend: Backend, applicationId: Snowflake) => {
                       ? channel.parent_id
                       : channelsMap.get(channel.parent_id),
                   permission_overwrites: channel.permission_overwrites
-                    ?.filter(({type}) => type === OverwriteType.Role)
+                    ?.filter(({ type }) => type === OverwriteType.Role)
                     .map<APIGuildCreateOverwrite>(
-                      ({id: overwriteId, allow, deny, ...rest}) => ({
+                      ({ id: overwriteId, allow, deny, ...rest }) => ({
                         id: rolesMap.get(overwriteId)!,
                         allow: `${allow}` as const,
                         deny: `${deny}` as const,

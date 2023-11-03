@@ -1,18 +1,22 @@
-import {randomString, snowflake, timestamp} from '../utils'
+import {
+  randomString,
+  snowflake,
+  timestamp
+} from '../utils.ts';
 import {
   DEFAULT_CHANNEL_NAME,
   DEFAULT_GUILD_NAME,
   DEFAULT_GUILD_PREFERRED_LOCALE
-} from './constants'
-import {createDefaults as d} from './utils'
-import {partialOverwrite} from './channel'
+} from './constants.ts';
+import { createDefaults as d } from './utils.ts';
+import { partialOverwrite } from './channel/index.ts';
 import type {
   GuildCreateOverwrite,
   GuildCreatePartialChannel,
   GuildCreateRole,
   GuildTemplate,
   TemplateSerializedSourceGuild
-} from '../types'
+} from '../types/index.ts';
 
 // These live here instead of in ./guild.ts to avoid dependency cycles
 const guildCreateRole = d<GuildCreateRole>(_role => ({
@@ -28,27 +32,27 @@ const guildCreateOverwrite = d<GuildCreateOverwrite>(overwrite => ({
 }))
 
 const guildCreatePartialChannel = d<GuildCreatePartialChannel>(
-  ({permission_overwrites, ...rest}) => ({
+  ({ permission_overwrites, ...rest }) => ({
     name: DEFAULT_CHANNEL_NAME,
     ...rest,
     ...(permission_overwrites
       ? {
-          permission_overwrites: permission_overwrites.map(guildCreateOverwrite)
-        }
+        permission_overwrites: permission_overwrites.map(guildCreateOverwrite)
+      }
       : {})
   })
 )
 
 const templateSerializedSourceGuild = d<TemplateSerializedSourceGuild>(
-  ({channels, roles, ...rest}) => ({
+  ({ channels, roles, ...rest }) => ({
     name: DEFAULT_GUILD_NAME,
     description: null,
     preferred_locale: DEFAULT_GUILD_PREFERRED_LOCALE,
     icon_hash: null,
     ...rest,
     // TODO: @everyone role
-    ...(roles ? {roles: roles.map(guildCreateRole)} : {}),
-    ...(channels ? {channels: channels.map(guildCreatePartialChannel)} : {})
+    ...(roles ? { roles: roles.map(guildCreateRole) } : {}),
+    ...(channels ? { channels: channels.map(guildCreatePartialChannel) } : {})
   })
 )
 

@@ -2,20 +2,29 @@
   -- The helper fn expectMentions uses expect
 */
 
-import {ChannelType} from 'discord-api-types/v9'
-import * as Discord from 'discord.js'
-import {guildWithBot, withClient, withClientF} from '../../utils'
-import {getChannel, send} from './utils'
-import type {Snowflake} from 'discord-api-types/v9'
+import { ChannelType } from 'discord-api-types/v9';
+import * as Discord from 'discord.js';
+import {
+  guildWithBot,
+  withClient, withClientF
+} from '../../utils.ts';
+import {
+  getChannel,
+  send
+} from './utils.ts';
+import type { Snowflake } from 'discord-api-types/v9'
 import type * as DM from '../../../src'
-import type {DeepPartialOmit, WithClientOptions} from '../../utils'
-import '../../matchers'
+import type {
+  DeepPartialOmit,
+  WithClientOptions
+} from '../../utils.ts';
+import '../../matchers';
 
 const channels: DM.CollectionResolvableId<DM.GuildChannel> = [
-  {type: ChannelType.GuildText}
+  { type: ChannelType.GuildText }
 ]
 
-const defaultOpts = (): WithClientOptions => guildWithBot({channels})
+const defaultOpts = (): WithClientOptions => guildWithBot({ channels })
 
 describe('successes', () => {
   test('has same content', async () => {
@@ -32,7 +41,7 @@ describe('successes', () => {
     const id = '0'
     await withClient(
       async client => expect((await send(client, 'foo')).author.id).toBe(id),
-      guildWithBot({channels}, {application: {bot: {id}}})
+      guildWithBot({ channels }, { application: { bot: { id } } })
     )
   })
 
@@ -51,17 +60,17 @@ describe('successes', () => {
     const title = 'title'
     const description = 'description'
     const fields: Discord.EmbedFieldData[] = [
-      {name: 'field 1', value: 'field 1 value'},
-      {name: 'field 2', value: 'field 2 value'}
+      { name: 'field 1', value: 'field 1 value' },
+      { name: 'field 2', value: 'field 2 value' }
     ]
     await withClient(
       async client =>
         expect(
           (
-            await send(client, {embeds: [{title, description, fields}]})
+            await send(client, { embeds: [{ title, description, fields }] })
           ).embeds
         ).toMatchObject<DeepPartialOmit<Discord.MessageEmbed[]>>([
-          {title, description, fields}
+          { title, description, fields }
         ]),
       defaultOpts()
     )
@@ -71,13 +80,13 @@ describe('successes', () => {
     const name = 'test.png'
     await withClient(async client => {
       const message = await send(client, {
-        files: [{attachment: Buffer.of(), name}]
+        files: [{ attachment: Buffer.of(), name }]
       })
       expect(message.attachments.size).toBe(1)
       expect(message.attachments.first()!).toMatchObject<
         DeepPartialOmit<Discord.MessageAttachment>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- asymmetric matcher
-      >({name, attachment: expect.stringContaining(message.id)})
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- asymmetric matcher
+      >({ name, attachment: expect.stringContaining(message.id) })
     }, defaultOpts())
   })
 
@@ -104,8 +113,8 @@ describe('successes', () => {
     ): (() => Promise<void>) =>
       withClientF(
         async client => {
-          const {mentions} = await send(client, {
-            ...(allowedMentions ? {allowedMentions} : {}),
+          const { mentions } = await send(client, {
+            ...(allowedMentions ? { allowedMentions } : {}),
             content
           })
           expect(mentions.everyone).toBe(everyone)
@@ -113,7 +122,7 @@ describe('successes', () => {
           expect(new Set(mentions.roles.keys())).toStrictEqual(new Set(roles))
         },
         guildWithBot(
-          {roles: [{id: roleId1}]},
+          { roles: [{ id: roleId1 }] },
           {
             backendOpts: {
               users: new Discord.Collection([
@@ -142,8 +151,8 @@ describe('successes', () => {
       'all mentions suppressed',
       expectMentions(
         `@everyone hi there, <@${userId1}>`,
-        {parse: []},
-        {everyone: false, users: [], roles: []}
+        { parse: [] },
+        { everyone: false, users: [], roles: [] }
       )
     )
 
@@ -151,8 +160,8 @@ describe('successes', () => {
       'empty users but with parse: [users]',
       expectMentions(
         `@everyone <@${userId1}> <@&${roleId1}>`,
-        {parse: ['users', 'roles'], users: []},
-        {everyone: false, users: [userId1], roles: [roleId1]}
+        { parse: ['users', 'roles'], users: [] },
+        { everyone: false, users: [userId1], roles: [roleId1] }
       )
     )
 
@@ -160,8 +169,8 @@ describe('successes', () => {
       'only some users and no roles',
       expectMentions(
         `@everyone <@${userId1}> <@${userId2}> <@${userId3}> <@&${roleId1}>`,
-        {parse: ['everyone'], users: [userId1, userId2]},
-        {everyone: true, users: [userId1, userId2], roles: []}
+        { parse: ['everyone'], users: [userId1, userId2] },
+        { everyone: true, users: [userId1, userId2], roles: [] }
       )
     )
 
@@ -169,8 +178,8 @@ describe('successes', () => {
       'extra users',
       expectMentions(
         `<@${userId1}> Time for some memes.`,
-        {users: [userId1, userId2]},
-        {everyone: false, users: [userId1], roles: []}
+        { users: [userId1, userId2] },
+        { everyone: false, users: [userId1], roles: [] }
       )
     )
 
@@ -188,7 +197,7 @@ describe('errors', () => {
         async client =>
           expect(
             send(client, {
-              allowedMentions: {parse: ['users'], users: ['0', '1']},
+              allowedMentions: { parse: ['users'], users: ['0', '1'] },
               content: 'foo'
             })
           ).toThrowAPIFormError(),

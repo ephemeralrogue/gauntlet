@@ -6,31 +6,31 @@ import {
   GuildNSFWLevel,
   GuildPremiumTier,
   GuildVerificationLevel
-} from 'discord-api-types/v9'
-import {Collection} from 'discord.js'
+} from 'discord-api-types/v9';
+import { Collection } from 'discord.js';
 import {
   resolveCollectionId,
   resolveCollectionUserId,
   snowflake,
   timestamp,
   toCollection
-} from '../../utils'
-import {auditLogEntry} from '../audit-log'
+} from '../../utils.ts';
+import { auditLogEntry } from '../audit-log.ts';
 import {
   DEFAULT_GUILD_PREFERRED_LOCALE,
   DEFAULT_INTEGRATION_NAME
-} from '../constants'
-import {guildEmoji} from '../emoji'
-import {guildPresence} from '../gateway'
-import {guildScheduledEvent} from '../guild-scheduled-event'
-import {guildChannel, guildChannels} from '../channel'
-import {partialApplication} from '../oauth2'
-import {role} from '../permissions'
-import {guildSticker} from '../sticker'
-import {guildTemplate} from '../template'
-import {user} from '../user'
-import {createDefaults as d} from '../utils'
-import {partialGuild} from './partial'
+} from '../constants.ts';
+import { guildEmoji } from '../emoji.ts';
+import { guildPresence } from '../gateway.ts';
+import { guildScheduledEvent } from '../guild-scheduled-event.ts';
+import { guildChannel, guildChannels } from '../channel/index.ts';
+import { partialApplication } from '../oauth2.ts';
+import { role } from '../permissions.ts';
+import { guildSticker } from '../sticker.ts';
+import { guildTemplate } from '../template.ts';
+import { user } from '../user.ts';
+import { createDefaults as d } from '../utils.ts';
+import { partialGuild } from './partial.ts';
 import type {
   AuditLogEntry,
   Guild,
@@ -47,9 +47,9 @@ import type {
   PartialDeep,
   Role,
   Snowflake
-} from '../../types'
+} from '../../types/index.ts';
 
-export * from './partial'
+export * from './partial.ts';
 
 const integrationAccount = d<IntegrationAccount>(_account => ({
   id: snowflake(),
@@ -60,20 +60,20 @@ const integrationAccount = d<IntegrationAccount>(_account => ({
 export const integrationApplication = d<GuildIntegrationApplication>(
   application => ({
     ...partialApplication(application),
-    ...(application.bot ? {bot: user(application.bot)} : {})
+    ...(application.bot ? { bot: user(application.bot) } : {})
   })
 )
 
 export const integration = d<GuildIntegration>(
-  ({application, user: iUser, ...rest}) => ({
+  ({ application, user: iUser, ...rest }) => ({
     id: snowflake(),
     name: DEFAULT_INTEGRATION_NAME,
     type: 'twitch',
     enabled: false,
     ...rest,
-    ...(iUser ? {user: user(iUser)} : {}),
+    ...(iUser ? { user: user(iUser) } : {}),
     account: integrationAccount(rest.account),
-    ...(application ? {application: integrationApplication(application)} : {})
+    ...(application ? { application: integrationApplication(application) } : {})
   })
 )
 
@@ -131,7 +131,7 @@ export const guild = d<Guild>(_guild => {
       type?: ChannelType
     ): [Snowflake, GuildChannel][] =>
       id != null && !chans.has(id)
-        ? [[id, guildChannel({id, type} as PartialDeep<GuildChannel>)]]
+        ? [[id, guildChannel({ id, type } as PartialDeep<GuildChannel>)]]
         : []
     channels = chans.concat(
       new Collection([
@@ -143,42 +143,42 @@ export const guild = d<Guild>(_guild => {
         ...[...chans.values()].flatMap(chan => [
           ...('messages' in chan
             ? chan.messages
-                .filter(
-                  ({thread_id}) =>
-                    thread_id !== undefined && !chans.has(thread_id)
-                )
-                .map(
-                  ({thread_id}) =>
-                    [
-                      thread_id!,
-                      guildChannel({
-                        id: thread_id,
-                        type:
-                          chan.type === ChannelType.GuildText
-                            ? ChannelType.GuildPublicThread
-                            : ChannelType.GuildNewsThread
-                      })
-                    ] as const
-                )
+              .filter(
+                ({ thread_id }) =>
+                  thread_id !== undefined && !chans.has(thread_id)
+              )
+              .map(
+                ({ thread_id }) =>
+                  [
+                    thread_id!,
+                    guildChannel({
+                      id: thread_id,
+                      type:
+                        chan.type === ChannelType.GuildText
+                          ? ChannelType.GuildPublicThread
+                          : ChannelType.GuildNewsThread
+                    })
+                  ] as const
+              )
             : []),
           ...('parent_id' in chan &&
-          chan.parent_id !== null &&
-          !chans.has(chan.parent_id)
+            chan.parent_id !== null &&
+            !chans.has(chan.parent_id)
             ? [
-                [
-                  chan.parent_id,
-                  guildChannel({
-                    id: chan.parent_id,
-                    type:
-                      chan.type === ChannelType.GuildPublicThread ||
+              [
+                chan.parent_id,
+                guildChannel({
+                  id: chan.parent_id,
+                  type:
+                    chan.type === ChannelType.GuildPublicThread ||
                       chan.type === ChannelType.GuildPrivateThread
-                        ? ChannelType.GuildText
-                        : chan.type === ChannelType.GuildNews
+                      ? ChannelType.GuildText
+                      : chan.type === ChannelType.GuildNews
                         ? ChannelType.GuildNewsThread
                         : ChannelType.GuildCategory
-                  })
-                ] as const
-              ]
+                })
+              ] as const
+            ]
             : [])
         ])
       ])
@@ -222,32 +222,32 @@ export const guild = d<Guild>(_guild => {
         // Owner
         ...(members.has(owner_id)
           ? []
-          : [[owner_id, guildMember({id: owner_id})] as const]),
+          : [[owner_id, guildMember({ id: owner_id })] as const]),
         // Voice states
         ...voice_states
-          .filter(({user_id}) => !members.has(user_id))
-          .map(({user_id}) => [user_id, guildMember({id: user_id})] as const)
+          .filter(({ user_id }) => !members.has(user_id))
+          .map(({ user_id }) => [user_id, guildMember({ id: user_id })] as const)
       ])
     ),
     roles: roles.concat(
       toCollection([
         // @everyone role
         ...(roles.some(
-          ({id, name}) => id === partial.id || name === '@everyone'
+          ({ id, name }) => id === partial.id || name === '@everyone'
         )
           ? []
-          : [role({id: partial.id, name: '@everyone'})]),
+          : [role({ id: partial.id, name: '@everyone' })]),
         ...[...new Set([...members.values()].flatMap(member => member.roles))]
-          .filter(roleId => !roles.some(({id}) => id === roleId))
-          .map(id => role({id}))
+          .filter(roleId => !roles.some(({ id }) => id === roleId))
+          .map(id => role({ id }))
       ])
     ),
     emojis: emojis.concat(
       new Collection(
         partial.welcome_screen?.welcome_channels
-          .filter(({emoji_id}) => emoji_id !== null && !emojis.has(emoji_id))
+          .filter(({ emoji_id }) => emoji_id !== null && !emojis.has(emoji_id))
           .map(
-            ({emoji_id}) => [emoji_id!, guildEmoji({id: emoji_id!})] as const
+            ({ emoji_id }) => [emoji_id!, guildEmoji({ id: emoji_id! })] as const
           )
       )
     ),
@@ -255,20 +255,20 @@ export const guild = d<Guild>(_guild => {
     channels: channels.concat(
       new Collection([
         ...(partial.welcome_screen?.welcome_channels
-          .filter(({channel_id}) => !channels.has(channel_id))
+          .filter(({ channel_id }) => !channels.has(channel_id))
           .map(
-            ({channel_id}) =>
-              [channel_id, guildChannel({id: channel_id})] as const
+            ({ channel_id }) =>
+              [channel_id, guildChannel({ id: channel_id })] as const
           ) ?? []),
         ...voice_states
           .filter(
-            ({channel_id}) => channel_id !== null && !channels.has(channel_id)
+            ({ channel_id }) => channel_id !== null && !channels.has(channel_id)
           )
           .map(
-            ({channel_id}) =>
+            ({ channel_id }) =>
               [
                 channel_id!,
-                guildChannel({id: channel_id!, type: ChannelType.GuildVoice})
+                guildChannel({ id: channel_id!, type: ChannelType.GuildVoice })
               ] as const
           )
       ])
@@ -281,7 +281,7 @@ export const guild = d<Guild>(_guild => {
       _guild.audit_log_entries,
       auditLogEntry
     ),
-    ...(_guild.template ? {template: guildTemplate(_guild.template)} : {}),
+    ...(_guild.template ? { template: guildTemplate(_guild.template) } : {}),
     stickers: resolveCollectionId<GuildSticker>(_guild.stickers, guildSticker),
     guild_scheduled_events: resolveCollectionId<GuildScheduledEvent>(
       _guild.guild_scheduled_events,

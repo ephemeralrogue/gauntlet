@@ -1,7 +1,14 @@
 import * as DM from '../../src'
-import {guildWithBot, withClient, withClientF} from '../utils'
+import {
+  guildWithBot,
+  withClient,
+  withClientF
+} from '../utils.ts';
 import type * as Discord from 'discord.js'
-import type {DeepPartialOmit, MatchObjectGuild} from '../utils'
+import type {
+  DeepPartialOmit,
+  MatchObjectGuild
+} from '../utils.ts';
 import '../matchers'
 
 type MatchObjectTemplate = DeepPartialOmit<Discord.GuildTemplate, 'valueOf'>
@@ -51,10 +58,10 @@ describe('create guild from template', () => {
     const code = 'abc'
     const name = 'Guild name'
     const afkTimeout = 60
-    const {backend, applicationId} = guildWithBot({
+    const { backend, applicationId } = guildWithBot({
       template: {
         code,
-        serialized_source_guild: {afk_timeout: afkTimeout}
+        serialized_source_guild: { afk_timeout: afkTimeout }
       }
     })
     backend.addApplication()
@@ -68,7 +75,7 @@ describe('create guild from template', () => {
           afkTimeout
         })
       },
-      {backend, applicationId}
+      { backend, applicationId }
     )
   })
 
@@ -79,7 +86,7 @@ describe('create guild from template', () => {
         expect(
           (await client.fetchGuildTemplate(code)).createGuild('')
         ).toThrowAPIFormError(),
-      guildWithBot({template: {code}})
+      guildWithBot({ template: { code } })
     )
   })
 })
@@ -91,7 +98,7 @@ describe('get guild templates', () => {
       expect(
         (await client.guilds.cache.get(guildId)!.fetchTemplates()).size
       ).toBe(0)
-    }, guildWithBot({id: guildId}))
+    }, guildWithBot({ id: guildId }))
   )
 
   test('simple template', async () => {
@@ -100,7 +107,7 @@ describe('get guild templates', () => {
       const templates = await client.guilds.cache.get(guildId)!.fetchTemplates()
       expect(templates.size).toBe(1)
       expect(templates.first()!.name).toBe(templateName)
-    }, guildWithBot({id: guildId, template: {name: templateName}}))
+    }, guildWithBot({ id: guildId, template: { name: templateName } }))
   })
 })
 
@@ -112,8 +119,8 @@ describe('create guild template', () => {
       async client =>
         expect(
           client.guilds.cache.get(guildId)!.createTemplate(name, description)
-        ).resolves.toMatchObject<MatchObjectTemplate>({name, description}),
-      guildWithBot({id: guildId})
+        ).resolves.toMatchObject<MatchObjectTemplate>({ name, description }),
+      guildWithBot({ id: guildId })
     )
   })
 })
@@ -130,13 +137,13 @@ describe('modify guild template', () => {
       async client =>
         expect(
           getTemplate(client).then(async template =>
-            template.edit({name: newName})
+            template.edit({ name: newName })
           )
         ).resolves.toMatchObject<MatchObjectTemplate>({
           name: newName,
           description
         }),
-      guildWithBot({id: guildId, template: {name: oldName, description}})
+      guildWithBot({ id: guildId, template: { name: oldName, description } })
     )
   })
 })
@@ -146,6 +153,6 @@ describe('delete guild template', () => {
     const name = 'template name'
     await withClient(async client => {
       expect((await (await getTemplate(client)).delete()).name).toBe(name)
-    }, guildWithBot({id: guildId, template: {name}}))
+    }, guildWithBot({ id: guildId, template: { name } }))
   })
 })

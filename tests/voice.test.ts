@@ -1,6 +1,6 @@
-import * as Discord from 'discord.js'
+import * as Discord from 'discord.js';
 import * as DM from '../src'
-import {withClientF} from './utils'
+import { withClientF } from './utils.ts';
 
 describe('fetchVoiceRegions', () => {
   test(
@@ -25,8 +25,8 @@ describe('fetchVoiceRegions', () => {
       {
         backend: new DM.Backend({
           voiceRegions: [
-            {id: 'id1', name: 'name 1'},
-            {id: 'id2', name: 'name 2'}
+            { id: 'id1', name: 'name 1' },
+            { id: 'id2', name: 'name 2' }
           ]
         })
       }

@@ -1,18 +1,19 @@
-'use strict'
-
-/** @type {import('@jest/types').Config.InitialOptions} */
-const config = {
+/** @type { import('ts-jest').JestConfigWithTsJest } */
+module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testMatch: ['<rootDir>/tests/**/*.test.ts'],
-  collectCoverage: true,
-  coverageReporters: ['html'],
-  collectCoverageFrom: ['<rootDir>/src/**/*.ts'],
-  watchPathIgnorePatterns: ['<rootDir>/(?:node_modules|dist|docs)/'],
-  globals: {
-    'ts-jest': {
-      tsconfig: '<rootDir>/tests/tsconfig.json'
-    }
-  }
-}
-module.exports = config
+  extensionsToTreatAsEsm: ['.ts'],
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
+  transform: {
+    // '^.+\\.[tj]sx?$' to process js/ts with `ts-jest`
+    // '^.+\\.m?[tj]sx?$' to process js/ts/mjs/mts with `ts-jest`
+    '^.+\\.[tj]sx?$': [
+      'ts-jest',
+      {
+        useESM: true,
+      },
+    ],
+  },
+};

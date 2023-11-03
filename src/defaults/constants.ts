@@ -1,7 +1,7 @@
 import {
   PermissionFlagsBits,
   ThreadAutoArchiveDuration
-} from 'discord-api-types/v9'
+} from 'discord-api-types/v9';
 
 export const DEFAULT_CHANNEL_NAME = 'general'
 export const DEFAULT_STANDARD_EMOJI = '🔥'

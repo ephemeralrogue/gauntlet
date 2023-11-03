@@ -1,9 +1,16 @@
-import {StickerFormatType, StickerType} from 'discord-api-types/v9'
-import {DEFAULT_STICKER_NAME} from './constants'
-import {snowflake} from '../utils'
-import {user} from './user'
-import {createDefaults as d} from './utils'
-import type {GuildSticker, StandardSticker, StickerItem} from '../types'
+import {
+  StickerFormatType,
+  StickerType
+} from 'discord-api-types/v9';
+import { DEFAULT_STICKER_NAME } from './constants.ts';
+import { snowflake } from '../utils.ts';
+import { user } from './user.ts';
+import { createDefaults as d } from './utils.ts';
+import type {
+  GuildSticker,
+  StandardSticker,
+  StickerItem
+} from '../types/index.ts';
 
 export const stickerItem = d<StickerItem>(item => ({
   id: snowflake(),
@@ -18,10 +25,10 @@ export const guildSticker = d<GuildSticker>(_sticker => ({
   asset: '',
   type: StickerType.Guild,
   ...stickerItem(_sticker),
-  ...(_sticker.user ? {user: user(_sticker.user)} : {})
+  ...(_sticker.user ? { user: user(_sticker.user) } : {})
 }))
 
-export const standardSticker = d<StandardSticker>(({type, ...rest}) => ({
+export const standardSticker = d<StandardSticker>(({ type, ...rest }) => ({
   pack_id: snowflake(),
   ...guildSticker(rest),
   type: StickerType.Standard

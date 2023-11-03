@@ -4,18 +4,26 @@ import {
   GatewayIntentBits,
   PermissionFlagsBits
 } from 'discord-api-types/v9'
-import * as defaults from '../../../../defaults'
-import {attachmentURLs, pick, omit} from '../../../../utils'
-import {hasPermissions} from '../../../utils'
-import type {HTTPAttachmentData} from 'discord.js'
+import * as defaults from '../../../../defaults/index.ts';
+import {
+  attachmentURLs,
+  pick,
+  omit
+} from '../../../../utils.ts';
+import { hasPermissions } from '../../../utils.js';
+import type { HTTPAttachmentData } from 'discord.js';
 import type {
   APIAllowedMentions,
   APIEmbed,
   Snowflake
 } from 'discord-api-types/v9'
-import type {Backend} from '../../../../Backend'
-import type {Embed, Guild, Message} from '../../../../types'
-import type {AttachmentURLs} from '../../../../utils'
+import type { Backend } from '../../../../Backend.ts'
+import type {
+  Embed,
+  Guild,
+  Message
+} from '../../../../types/index.ts';
+import type { AttachmentURLs } from '../../../../utils.ts';
 
 // #region Mentions
 
@@ -32,7 +40,7 @@ const emptyMentions: Mentions = {
 }
 
 const foldMapMentions = (nodes: readonly md.ASTNode[]): Mentions =>
-  nodes.reduce<Mentions>(({everyone, users, roles}, child) => {
+  nodes.reduce<Mentions>(({ everyone, users, roles }, child) => {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define -- recursive
     const mentions = getMentions(child)
     return {
@@ -46,11 +54,11 @@ const getMentions = (node: md.ASTNode): Mentions => {
   switch (node.type) {
     case 'discordEveryone':
     case 'discordHere':
-      return {...emptyMentions, everyone: true}
+      return { ...emptyMentions, everyone: true }
     case 'discordUser':
-      return {...emptyMentions, users: new Set([node.id])}
+      return { ...emptyMentions, users: new Set([node.id]) }
     case 'discordRole':
-      return {...emptyMentions, roles: new Set([node.id])}
+      return { ...emptyMentions, roles: new Set([node.id]) }
     default:
       return 'content' in node && typeof node.content != 'string'
         ? foldMapMentions(node.content)
@@ -62,11 +70,11 @@ const filterMentions = (
   mentions: Mentions,
   allowed: APIAllowedMentions | undefined
 ): Pick<Mentions, 'everyone'> & Record<'roles' | 'users', Snowflake[]> => {
-  const {everyone} = mentions
+  const { everyone } = mentions
   const users = [...mentions.users]
   const roles = [...mentions.roles]
 
-  if (!allowed) return {everyone, users, roles}
+  if (!allowed) return { everyone, users, roles }
 
   const parse = new Set(allowed.parse)
   const allowedUsers = new Set(allowed.users)
@@ -99,9 +107,9 @@ export const messageMentionsDetails = (
     mentions: mentions.users.filter(id => backend.allUsers.has(id)),
     mention_roles: guild
       ? mentions.roles.filter(id => {
-          const role = guild.roles.get(id)
-          return role && (role.mentionable || canMentionEveryone)
-        })
+        const role = guild.roles.get(id)
+        return role && (role.mentionable || canMentionEveryone)
+      })
       : []
   }
 }
@@ -113,14 +121,14 @@ export const messageMentionsDetails = (
 const ATTACHMENT_SCHEME = 'attachment://'
 
 const resolveURL: {
-  <T extends {icon_url?: string}>(
+  <T extends { icon_url?: string }>(
     channelId: Snowflake,
     messageId: Snowflake,
     files: readonly HTTPAttachmentData[] | undefined,
     object: T,
     icon: true
   ): T
-  <T extends {url?: string}>(
+  <T extends { url?: string }>(
     channelId: Snowflake,
     messageId: Snowflake,
     files: readonly HTTPAttachmentData[] | undefined,
@@ -134,16 +142,16 @@ const resolveURL: {
   object: T,
   icon = false
 ): T => {
-  const fileURL = object[icon ? 'url' : 'icon_url'] as string | undefined
-  let urls: AttachmentURLs | undefined
-  if (fileURL?.startsWith(ATTACHMENT_SCHEME) ?? false) {
-    const file = files?.find(
-      ({name}) => name === fileURL!.slice(ATTACHMENT_SCHEME.length)
-    )
-    if (file) urls = attachmentURLs(channelId, messageId, file.name)
+    const fileURL = object[icon ? 'url' : 'icon_url'] as string | undefined
+    let urls: AttachmentURLs | undefined
+    if (fileURL?.startsWith(ATTACHMENT_SCHEME) ?? false) {
+      const file = files?.find(
+        ({ name }) => name === fileURL!.slice(ATTACHMENT_SCHEME.length)
+      )
+      if (file) urls = attachmentURLs(channelId, messageId, file.name)
+    }
+    return { ...object, ...urls }
   }
-  return {...object, ...urls}
-}
 
 export const resolveEmbed =
   (
@@ -151,53 +159,53 @@ export const resolveEmbed =
     messageId: Snowflake,
     files: readonly HTTPAttachmentData[] | undefined
   ) =>
-  ({
-    title,
-    description,
-    url,
-    timestamp,
-    color,
-    footer,
-    image,
-    thumbnail,
-    author,
-    fields
-  }: APIEmbed): Embed =>
-    defaults.embed({
+    ({
       title,
       description,
       url,
       timestamp,
-      color: color === undefined ? undefined : Math.trunc(color),
-      // Not bothering with proxied URls that an
-      // https://images-ext-1.discordapp.net/external/aVEDne7SrZM-yQgNzl8kSN6ljPFN4SbV5ev7oSSji5Q/https/some-website.com/image.png
-      footer: footer
-        ? resolveURL(
+      color,
+      footer,
+      image,
+      thumbnail,
+      author,
+      fields
+    }: APIEmbed): Embed =>
+      defaults.embed({
+        title,
+        description,
+        url,
+        timestamp,
+        color: color === undefined ? undefined : Math.trunc(color),
+        // Not bothering with proxied URls that an
+        // https://images-ext-1.discordapp.net/external/aVEDne7SrZM-yQgNzl8kSN6ljPFN4SbV5ev7oSSji5Q/https/some-website.com/image.png
+        footer: footer
+          ? resolveURL(
             channelId,
             messageId,
             files,
             omit(footer, 'proxy_icon_url'),
             true
           )
-        : undefined,
-      // Also not bothering with height/widths
-      image: image
-        ? resolveURL(channelId, messageId, files, pick(image, 'url'))
-        : undefined,
-      thumbnail: thumbnail
-        ? resolveURL(channelId, messageId, files, pick(thumbnail, 'url'))
-        : undefined,
-      author: author
-        ? resolveURL(
+          : undefined,
+        // Also not bothering with height/widths
+        image: image
+          ? resolveURL(channelId, messageId, files, pick(image, 'url'))
+          : undefined,
+        thumbnail: thumbnail
+          ? resolveURL(channelId, messageId, files, pick(thumbnail, 'url'))
+          : undefined,
+        author: author
+          ? resolveURL(
             channelId,
             messageId,
             files,
             omit(author, 'proxy_icon_url'),
             true
           )
-        : undefined,
-      fields: fields?.slice(0, 25)
-    })
+          : undefined,
+        fields: fields?.slice(0, 25)
+      })
 
 // #endregion
 

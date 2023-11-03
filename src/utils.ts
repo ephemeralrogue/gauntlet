@@ -1,6 +1,12 @@
-import {Collection, SnowflakeUtil} from 'discord.js'
-import type {Backend} from './Backend'
-import type {PartialDeep, Snowflake} from './types'
+import {
+  Collection,
+  SnowflakeUtil
+} from 'discord.js'
+import type { Backend } from './Backend.ts';
+import type {
+  PartialDeep,
+  Snowflake
+} from './types/index.ts';
 
 declare global {
   interface ArrayConstructor {
@@ -48,10 +54,10 @@ type ObjectRemoveUndefined<T> = {
 /** Removes `undefined` recursively from the values of an object. */
 export type RemoveUndefined<T> = T extends readonly (infer U)[]
   ? number extends T['length']
-    ? T extends unknown[]
-      ? RemoveUndefined<U>[] // ordinary mutable array
-      : readonly RemoveUndefined<U>[] // ordinary readonly array
-    : {[K in keyof T]: RemoveUndefined<T[K]>} // tuple
+  ? T extends unknown[]
+  ? RemoveUndefined<U>[] // ordinary mutable array
+  : readonly RemoveUndefined<U>[] // ordinary readonly array
+  : { [K in keyof T]: RemoveUndefined<T[K]> } // tuple
   : T extends Collection<infer K, infer V>
   ? Collection<K, RemoveUndefined<V>>
   : T extends AnyFunction
@@ -64,21 +70,21 @@ type ValueOf<T> = T[keyof T]
 
 type Equals<T, U, True = true, False = false> = T extends U
   ? U extends T
-    ? True
-    : False
+  ? True
+  : False
   : False
 
 export type CommonProperties<T, U> = Pick<
   T,
-  ValueOf<{[K in Extract<keyof U, keyof T>]: Equals<T[K], U[K], K, never>}>
+  ValueOf<{ [K in Extract<keyof U, keyof T>]: Equals<T[K], U[K], K, never> }>
 >
 
 export type UnUnion<T> = Pick<T, keyof T> & {
   [K in T extends unknown ? keyof T : never]?: T extends unknown
-    ? K extends keyof T
-      ? T[K]
-      : undefined
-    : never
+  ? K extends keyof T
+  ? T[K]
+  : undefined
+  : never
 }
 
 export type AttachmentURLs = Record<'proxy_url' | 'url', string>
@@ -120,7 +126,7 @@ export const o = <K extends PropertyKey, T extends object>(
   key: K,
   object: T
 ): Partial<Record<K, T>> =>
-  Object.keys(object).length ? ({[key]: object} as Record<K, T>) : {}
+  Object.keys(object).length ? ({ [key]: object } as Record<K, T>) : {}
 
 const isObject = <T>(x: T): x is T & object =>
   typeof x == 'object' && x !== null
@@ -129,10 +135,10 @@ const cloneImpl = <T>(x: T): T =>
   (Array.isArray(x)
     ? x.map(cloneImpl)
     : x instanceof Collection
-    ? x.mapValues(cloneImpl)
-    : isObject(x)
-    ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, cloneImpl(v)]))
-    : x) as T
+      ? x.mapValues(cloneImpl)
+      : isObject(x)
+        ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, cloneImpl(v)]))
+        : x) as T
 
 /**
  * Deep clones an object.
@@ -146,23 +152,23 @@ const removeUndefinedImpl = <T>(x: T): RemoveUndefined<T> =>
   (Array.isArray(x)
     ? x.map(removeUndefinedImpl)
     : x instanceof Collection
-    ? x.mapValues(removeUndefinedImpl)
-    : isObject(x)
-    ? Object.fromEntries(
-        Object.entries(x).reduce<[string, unknown][]>(
-          (acc, [k, v]) =>
-            v === undefined ? acc : [...acc, [k, removeUndefinedImpl(v)]],
-          []
+      ? x.mapValues(removeUndefinedImpl)
+      : isObject(x)
+        ? Object.fromEntries(
+          Object.entries(x).reduce<[string, unknown][]>(
+            (acc, [k, v]) =>
+              v === undefined ? acc : [...acc, [k, removeUndefinedImpl(v)]],
+            []
+          )
         )
-      )
-    : x) as RemoveUndefined<T>
+        : x) as RemoveUndefined<T>
 
 export const removeUndefined: <T extends object>(
   object: T
 ) => RemoveUndefined<T> = removeUndefinedImpl
 
 export const filterMap = <A extends readonly unknown[], T>(
-  xs: {reduce<U>(fn: (accumulator: U, ...args: A) => U, initialValue: U): U},
+  xs: { reduce<U>(fn: (accumulator: U, ...args: A) => U, initialValue: U): U },
   fn: (...args: A) => T | undefined
 ): T[] =>
   xs.reduce<T[]>((acc, ...args) => {
@@ -187,21 +193,21 @@ export type CollectionResolvable<T, K extends keyof T> =
   | readonly PartialDeep<T>[]
   | undefined
 
-export type CollectionResolvableId<T extends {id: unknown}> =
+export type CollectionResolvableId<T extends { id: unknown }> =
   CollectionResolvable<T, 'id'>
 
 const resolveCollection =
   <K extends PropertyKey>(key: K) =>
-  <T extends Record<K, unknown>>(
-    data: CollectionResolvable<T, K>,
+    <T extends Record<K, unknown>>(
+      data: CollectionResolvable<T, K>,
 
-    defaults: (value: PartialDeep<T>) => T
-  ): Collection<T[K], T> =>
-    data instanceof Collection
-      ? data.mapValues((x, id) =>
-          defaults({...x, [key]: id} as unknown as PartialDeep<T>)
+      defaults: (value: PartialDeep<T>) => T
+    ): Collection<T[K], T> =>
+      data instanceof Collection
+        ? data.mapValues((x, id) =>
+          defaults({ ...x, [key]: id } as unknown as PartialDeep<T>)
         )
-      : arrayToCollection<PartialDeep<T>, T, K>(data, key, defaults)
+        : arrayToCollection<PartialDeep<T>, T, K>(data, key, defaults)
 
 // TODO: fix inference so explicitly instantiating generic type params isn't
 // required for these fns
@@ -223,8 +229,8 @@ export const timestamp = (date?: Date | number): string =>
   (date instanceof Date
     ? date
     : typeof date == 'number'
-    ? new Date(date)
-    : new Date()
+      ? new Date(date)
+      : new Date()
   ).toISOString()
 
 export const randomString = (): string => Math.random().toString(36).slice(2)
@@ -241,6 +247,6 @@ export const attachmentURLs = (
 })
 
 export const clientUserId = (
-  {applications}: Backend,
+  { applications }: Backend,
   applicationId: Snowflake
 ): Snowflake => applications.get(applicationId)!.bot.id

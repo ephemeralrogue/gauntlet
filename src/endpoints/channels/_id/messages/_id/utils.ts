@@ -1,6 +1,13 @@
-import {error, errors} from '../../../../../errors'
-import type {Request} from '../../../../../errors'
-import type {Channel, Message, Snowflake} from '../../../../../types'
+import {
+  error,
+  errors
+} from '../../../../../errors/index.ts';
+import type { Request } from '../../../../../errors/index.ts';
+import type {
+  Channel,
+  Message,
+  Snowflake
+} from '../../../../../types/index.ts';
 
 export const getMessage = (
   messageId: Snowflake,

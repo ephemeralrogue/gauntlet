@@ -1,8 +1,11 @@
-import {TeamMemberMembershipState} from 'discord-api-types/v9'
-import {snowflake} from '../utils'
-import {user} from './user'
-import {createDefaults as d} from './utils'
-import type {Team, TeamMember} from '../types'
+import { TeamMemberMembershipState } from 'discord-api-types/v9';
+import { snowflake } from '../utils.ts';
+import { user } from './user.ts';
+import { createDefaults as d } from './utils.ts';
+import type {
+  Team,
+  TeamMember
+} from '../types/index.ts';
 
 export const teamMember = d<TeamMember>(member => ({
   membership_state: TeamMemberMembershipState.Invited,
@@ -24,11 +27,11 @@ export const team = d<Team>(_team => {
       ...teamMember(member),
       team_id: id
     })) ?? [
-      teamMember({
-        team_id: id,
-        membership_state: TeamMemberMembershipState.Accepted,
-        user: {id: ownerId}
-      })
-    ]
+        teamMember({
+          team_id: id,
+          membership_state: TeamMemberMembershipState.Accepted,
+          user: { id: ownerId }
+        })
+      ]
   }
 })

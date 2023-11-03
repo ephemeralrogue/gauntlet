@@ -1,9 +1,13 @@
-import messages from './_id/messages'
-import type {Messages} from './_id/messages'
-import type {Backend, EmitPacket, HasIntents} from '../../Backend'
-import type {Snowflake} from '../../types'
+import messages from './_id/messages/index.ts';
+import type { Messages } from './_id/messages/index.ts';
+import type {
+  Backend,
+  EmitPacket,
+  HasIntents
+} from '../../Backend.ts';
+import type { Snowflake } from '../../types/index.ts';
 
-export type Channels = Record<Snowflake, {messages: Messages}>
+export type Channels = Record<Snowflake, { messages: Messages }>
 
 export const channels = (
   backend: Backend,

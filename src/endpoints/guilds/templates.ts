@@ -1,14 +1,31 @@
-import * as convert from '../../convert'
-import {Method, error, errors, mkRequest} from '../../errors'
-import {checkClientGuildCount, createGuild, getNameErrors} from './post'
+import * as convert from '../../convert.ts';
+import {
+  Method,
+  error,
+  errors,
+  mkRequest
+} from '../../errors/index.ts';
+import {
+  checkClientGuildCount,
+  createGuild,
+  getNameErrors
+} from './post.ts';
 import type {
   RESTGetAPITemplateResult,
   RESTPostAPITemplateCreateGuildJSONBody
-} from 'discord-api-types/v9'
-import type {Backend, EmitPacket, HasIntents} from '../../Backend'
-import type {Request} from '../../errors'
-import type {Guild, GuildTemplate, Snowflake} from '../../types'
-import type {RESTPostAPITemplateCreateGuildResult} from '../../types/patches'
+} from 'discord-api-types/v9';
+import type {
+  Backend,
+  EmitPacket,
+  HasIntents
+} from '../../Backend.ts';
+import type { Request } from '../../errors/index.ts';
+import type {
+  Guild,
+  GuildTemplate,
+  Snowflake
+} from '../../types/index.ts';
+import type { RESTPostAPITemplateCreateGuildResult } from '../../types/patches.ts';
 
 export type GuildsTemplates = (code: string) => {
   get: () => Promise<RESTGetAPITemplateResult>
@@ -18,7 +35,7 @@ export type GuildsTemplates = (code: string) => {
 }
 
 const getTemplate = (
-  {guilds}: Backend,
+  { guilds }: Backend,
   request: Request,
   code: string
 ): [Guild, GuildTemplate] => {
@@ -30,11 +47,11 @@ const getTemplate = (
 }
 
 export default (
-    backend: Backend,
-    applicationId: Snowflake,
-    hasIntents: HasIntents,
-    emitPacket: EmitPacket
-  ): GuildsTemplates =>
+  backend: Backend,
+  applicationId: Snowflake,
+  hasIntents: HasIntents,
+  emitPacket: EmitPacket
+): GuildsTemplates =>
   code => {
     const path = `/guilds/templates/${code}`
     return {
@@ -48,7 +65,7 @@ export default (
         return convert.template(backend)(guild, template)
       },
       // https://discord.com/developers/docs/resources/template#create-guild-from-template
-      post: async ({data: {name, icon}}) => {
+      post: async ({ data: { name, icon } }) => {
         const request = mkRequest(path, Method.POST)
         const [, template] = getTemplate(backend, request, code)
         checkClientGuildCount(backend, applicationId, request)
@@ -57,7 +74,7 @@ export default (
         return createGuild(backend, applicationId, hasIntents, emitPacket, {
           ...template.serialized_source_guild,
           name,
-          ...(icon === undefined ? {} : {icon})
+          ...(icon === undefined ? {} : { icon })
         })
       }
     }

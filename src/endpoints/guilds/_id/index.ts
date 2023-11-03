@@ -1,7 +1,7 @@
-import templates from './templates'
-import type {Backend} from '../../../Backend'
-import type {Snowflake} from '../../../types'
-import type {GuildsIdTemplates} from './templates'
+import templates from './templates.ts';
+import type { Backend } from '../../../Backend.ts';
+import type { Snowflake } from '../../../types/index.ts';
+import type { GuildsIdTemplates } from './templates.ts';
 
 export type GuildsFn = (id: Snowflake) => {
   /* channels: {
@@ -23,4 +23,4 @@ export type GuildsFn = (id: Snowflake) => {
 }
 
 export default (backend: Backend, applicationId: Snowflake): GuildsFn =>
-  id => ({templates: templates(backend, applicationId)(id)})
+  id => ({ templates: templates(backend, applicationId)(id) })

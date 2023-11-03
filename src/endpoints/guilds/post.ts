@@ -1,26 +1,55 @@
-import {ChannelType, GatewayDispatchEvents} from 'discord-api-types/v9'
-import {Intents} from 'discord.js'
-import {Method, error, errors, formBodyErrors, mkRequest} from '../../errors'
-import * as convert from '../../convert'
-import * as defaults from '../../defaults'
-import {clientUserId, snowflake, timestamp, toCollection} from '../../utils'
+import {
+  ChannelType,
+  GatewayDispatchEvents
+} from 'discord-api-types/v9';
+import { Intents } from 'discord.js';
+import {
+  Method,
+  error,
+  errors,
+  formBodyErrors,
+  mkRequest
+} from '../../errors/index.ts';
+import * as convert from '../../convert.ts';
+import * as defaults from '../../defaults/index.ts';
+import {
+  clientUserId,
+  snowflake,
+  timestamp,
+  toCollection
+} from '../../utils.ts';
 import type {
   APIGuildCreateOverwrite,
   APIGuildCreatePartialChannel,
   APIGuildCreateRole,
   RESTPostAPIGuildsJSONBody
-} from 'discord-api-types/v9'
-import type {Backend, EmitPacket, HasIntents} from '../../Backend'
+} from 'discord-api-types/v9';
+import type {
+  Backend,
+  EmitPacket,
+  HasIntents
+} from '../../Backend.ts';
 import type {
   Guild,
   GuildChannel,
   PartialDeep,
   Role,
   Snowflake
-} from '../../types'
-import type {APIGuild, RESTPostAPIGuildsResult} from '../../types/patches'
-import type {FormBodyError, FormBodyErrors, Request} from '../../errors'
-import type {KeysMatching, Override, RequireKeys} from '../../utils'
+} from '../../types/index.ts';
+import type {
+  APIGuild,
+  RESTPostAPIGuildsResult
+} from '../../types/patches.ts';
+import type {
+  FormBodyError,
+  FormBodyErrors,
+  Request
+} from '../../errors/index.ts';
+import type {
+  KeysMatching,
+  Override,
+  RequireKeys
+} from '../../utils.ts';
 
 interface GuildsPostOptions {
   data: RESTPostAPIGuildsJSONBody
@@ -47,7 +76,7 @@ export const checkClientGuildCount = (
 ): void => {
   const userId = clientUserId(backend, applicationId)
   if (
-    backend.guilds.filter(({members}) => members.some(({id}) => id === userId))
+    backend.guilds.filter(({ members }) => members.some(({ id }) => id === userId))
       .size >= 10
   )
     error(request, errors.MAXIMUM_GUILDS)
@@ -55,7 +84,7 @@ export const checkClientGuildCount = (
 
 export const getNameErrors = (name: string): FormBodyErrors | undefined =>
   name.length < 2 || name.length > 100
-    ? {name: {_errors: [formBodyErrors.BASE_TYPE_BAD_LENGTH(2, 100)]}}
+    ? { name: { _errors: [formBodyErrors.BASE_TYPE_BAD_LENGTH(2, 100)] } }
     : undefined
 
 const checkErrors = (
@@ -63,46 +92,46 @@ const checkErrors = (
   applicationId: Snowflake,
   options: GuildsPostOptions
 ): void => {
-  const {data: guild} = options
-  const {name, channels, afk_timeout} = guild
+  const { data: guild } = options
+  const { name, channels, afk_timeout } = guild
   const request = mkRequest('/guilds', Method.POST, options)
 
   checkClientGuildCount(backend, applicationId, request)
 
   const channelErrors = channels?.reduce<FormBodyErrors>(
-    (errs, {name: channelName, type}, i) => {
+    (errs, { name: channelName, type }, i) => {
       const noName = !channelName
       const nameTooLong = channelName.length > 100
       const invalidType =
         type !== undefined && !validGuildCreateChannelTypes.has(type)
       return noName || nameTooLong || invalidType
         ? {
-            ...errs,
-            [i]: {
-              ...(noName || nameTooLong
-                ? {
-                    name: {
-                      _errors: [
-                        noName
-                          ? formBodyErrors.BASE_TYPE_REQUIRED
-                          : formBodyErrors.BASE_TYPE_BAD_LENGTH(1, 100)
-                      ]
-                    }
-                  }
-                : {}),
-              ...(invalidType
-                ? {
-                    type: {
-                      _errors: [
-                        formBodyErrors.BASE_TYPE_CHOICES(
-                          validGuildCreateChannelTypes
-                        )
-                      ]
-                    }
-                  }
-                : {})
-            }
+          ...errs,
+          [i]: {
+            ...(noName || nameTooLong
+              ? {
+                name: {
+                  _errors: [
+                    noName
+                      ? formBodyErrors.BASE_TYPE_REQUIRED
+                      : formBodyErrors.BASE_TYPE_BAD_LENGTH(1, 100)
+                  ]
+                }
+              }
+              : {}),
+            ...(invalidType
+              ? {
+                type: {
+                  _errors: [
+                    formBodyErrors.BASE_TYPE_CHOICES(
+                      validGuildCreateChannelTypes
+                    )
+                  ]
+                }
+              }
+              : {})
           }
+        }
         : errs
     },
     {}
@@ -111,22 +140,22 @@ const checkErrors = (
   const errs: FormBodyErrors = {
     ...(afk_timeout !== undefined && !validAFKTimeouts.has(afk_timeout)
       ? {
-          afk_timeout: {
-            _errors: [formBodyErrors.BASE_TYPE_CHOICES(validAFKTimeouts)]
-          }
+        afk_timeout: {
+          _errors: [formBodyErrors.BASE_TYPE_CHOICES(validAFKTimeouts)]
         }
+      }
       : {}),
     ...(channelErrors && Object.keys(channelErrors).length
-      ? {channels: channelErrors}
+      ? { channels: channelErrors }
       : {}),
     ...getNameErrors(name)
   }
   if (Object.keys(errs).length) error(request, errors.INVALID_FORM_BODY, errs)
 
   if (channels) {
-    for (const [i, {parent_id}] of channels.entries()) {
+    for (const [i, { parent_id }] of channels.entries()) {
       if (parent_id != null) {
-        const parent = channels.find(({id}) => id === parent_id)
+        const parent = channels.find(({ id }) => id === parent_id)
         if (!parent) {
           error(request, errors.INVALID_FORM_BODY, {
             channels: {
@@ -141,7 +170,7 @@ const checkErrors = (
         }
         if (parent.type !== ChannelType.GuildCategory) {
           error(request, errors.INVALID_FORM_BODY, {
-            channels: {_errors: [formBodyErrors.CHANNEL_PARENT_INVALID_TYPE]}
+            channels: { _errors: [formBodyErrors.CHANNEL_PARENT_INVALID_TYPE] }
           })
         }
         if (channels.indexOf(parent) > i) {
@@ -162,7 +191,7 @@ const checkErrors = (
   ) => {
     const channelId = guild[key]
     if (channelId != null) {
-      const channel = channels?.find(({id}) => id === channelId)
+      const channel = channels?.find(({ id }) => id === channelId)
       if (!channel) {
         error(request, errors.INVALID_FORM_BODY, {
           channels: {
@@ -174,7 +203,7 @@ const checkErrors = (
       }
       if ((channel.type ?? ChannelType.GuildText) !== type) {
         error(request, errors.INVALID_FORM_BODY, {
-          channels: {_errors: [invalidTypeError]}
+          channels: { _errors: [invalidTypeError] }
         })
       }
     }
@@ -209,11 +238,11 @@ const roleFromGuildCreateRole = (
   defaults.role({
     ...rest,
     id,
-    ...(name == null ? {} : {name}),
-    ...(color == null ? {} : {color}),
-    ...(hoist == null ? {} : {hoist}),
-    ...(permissions == null ? {} : {permissions: BigInt(permissions)}),
-    ...(mentionable == null ? {} : {mentionable})
+    ...(name == null ? {} : { name }),
+    ...(color == null ? {} : { color }),
+    ...(hoist == null ? {} : { hoist }),
+    ...(permissions == null ? {} : { permissions: BigInt(permissions) }),
+    ...(mentionable == null ? {} : { mentionable })
   })
 
 // Type annotation required
@@ -251,7 +280,7 @@ export const createGuild = (
     system_channel_flags,
     owner_id: userId,
     application_id: userId,
-    members: toCollection([{id: userId, joined_at: timestamp()}])
+    members: toCollection([{ id: userId, joined_at: timestamp() }])
   })
 
   type IdMap = ReadonlyMap<number | string, Snowflake>
@@ -261,17 +290,17 @@ export const createGuild = (
   if (roles?.length ?? 0) {
     const map: IdMap = new Map([
       [roles![0]!.id, base.id],
-      ...roles!.slice(1).map(({id}) => [id, snowflake()] as const)
+      ...roles!.slice(1).map(({ id }) => [id, snowflake()] as const)
     ])
     resolvedRoles = [
-      roleFromGuildCreateRole({...roles![0]!, name: '@everyone'}, base.id),
+      roleFromGuildCreateRole({ ...roles![0]!, name: '@everyone' }, base.id),
       ...roles!
         .slice(1)
         .map(role => roleFromGuildCreateRole(role, map.get(role.id)!))
     ]
     roleMap = map
   } else {
-    resolvedRoles = [defaults.role({id: base.id, name: '@everyone'})]
+    resolvedRoles = [defaults.role({ id: base.id, name: '@everyone' })]
     roleMap = new Map()
   }
 
@@ -287,39 +316,39 @@ export const createGuild = (
           ): channel is RequireKeys<APIGuildCreatePartialChannel, 'id'> =>
             channel.id !== undefined
         )
-        .map(({id}) => [id, snowflake()])
+        .map(({ id }) => [id, snowflake()])
     )
     resolvedChannels = channels!.map(
-      ({id, parent_id, permission_overwrites, ...rest}) =>
+      ({ id, parent_id, permission_overwrites, ...rest }) =>
         defaults.guildChannel({
           ...rest,
-          ...(id === undefined ? {} : {id: map.get(id)}),
-          ...(parent_id == null ? {} : {parent_id: map.get(parent_id)}),
+          ...(id === undefined ? {} : { id: map.get(id) }),
+          ...(parent_id == null ? {} : { parent_id: map.get(parent_id) }),
           ...(permission_overwrites
             ? {
-                permission_overwrites: toCollection(
-                  permission_overwrites
-                    .filter(overwrite => roleMap.has(overwrite.id))
-                    .map(
-                      ({
-                        id: overwriteId,
-                        allow,
-                        deny,
-                        ...overwriteRest
-                      }: // TODO: fix types in discord-api-types and discord-api-docs (allow/deny can be undefined)
+              permission_overwrites: toCollection(
+                permission_overwrites
+                  .filter(overwrite => roleMap.has(overwrite.id))
+                  .map(
+                    ({
+                      id: overwriteId,
+                      allow,
+                      deny,
+                      ...overwriteRest
+                    }: // TODO: fix types in discord-api-types and discord-api-docs (allow/deny can be undefined)
                       Override<
                         APIGuildCreateOverwrite,
                         Partial<Pick<APIGuildCreateOverwrite, 'allow' | 'deny'>>
                       >) =>
-                        defaults.overwrite({
-                          id: roleMap.get(overwriteId)!,
-                          allow: BigInt(allow ?? 0),
-                          deny: BigInt(deny ?? 0),
-                          ...overwriteRest
-                        })
-                    )
-                )
-              }
+                      defaults.overwrite({
+                        id: roleMap.get(overwriteId)!,
+                        allow: BigInt(allow ?? 0),
+                        deny: BigInt(deny ?? 0),
+                        ...overwriteRest
+                      })
+                  )
+              )
+            }
             : {})
         } as PartialDeep<GuildChannel>)
     )
@@ -353,11 +382,11 @@ export const createGuild = (
 
 // https://discord.com/developers/docs/resources/guild#create-guild
 export default (
-    backend: Backend,
-    applicationId: Snowflake,
-    hasIntents: HasIntents,
-    emitPacket: EmitPacket
-  ): GuildsPost =>
+  backend: Backend,
+  applicationId: Snowflake,
+  hasIntents: HasIntents,
+  emitPacket: EmitPacket
+): GuildsPost =>
   async options => {
     checkErrors(backend, applicationId, options)
     return createGuild(

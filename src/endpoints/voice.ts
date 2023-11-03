@@ -1,9 +1,9 @@
-import {clone} from '../utils'
-import type {RESTGetAPIGuildVoiceRegionsResult} from 'discord-api-types/v9'
-import type {Backend} from '../Backend'
+import { clone } from '../utils.ts';
+import type { RESTGetAPIGuildVoiceRegionsResult } from 'discord-api-types/v9';
+import type { Backend } from '../Backend.ts';
 
 export interface Voice {
-  regions: {get: () => Promise<RESTGetAPIGuildVoiceRegionsResult>}
+  regions: { get: () => Promise<RESTGetAPIGuildVoiceRegionsResult> }
 }
 
 export const voice = (backend: Backend): Voice => ({

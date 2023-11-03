@@ -1,7 +1,7 @@
-import {application} from './oauth2'
-import {user} from './user'
-import {createDefaults as d} from './utils'
-import type {FullApplication} from '../types'
+import { application } from './oauth2.ts';
+import { user } from './user.ts';
+import { createDefaults as d } from './utils.ts';
+import type { FullApplication } from '../types/index.ts';
 
 export const fullApplication = d<FullApplication>(app => ({
   ...application(app),

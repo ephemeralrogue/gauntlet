@@ -1,7 +1,7 @@
-import {RESTJSONErrorCodes} from 'discord-api-types/v9'
-import * as Discord from 'discord.js'
-import {getMatchers} from 'expect/build/jestMatchersObject'
-import type {SyncExpectationResult} from 'expect/build/types'
+import { RESTJSONErrorCodes } from 'discord-api-types/v9';
+import * as Discord from 'discord.js';
+import { getMatchers } from 'expect/build/jestMatchersObject'
+import type { SyncExpectationResult } from 'expect/build/types'
 
 type IncompatibleExpectType = [__incompatibleExpectType: never]
 type OnlyType<T, U, A extends unknown[] = []> = T extends U
@@ -37,7 +37,7 @@ declare module 'discord.js' {
 }
 
 // First two lines are the expect(received).toBeInstanceOf(expected)
-const removeMatcherHint = ({message}: SyncExpectationResult): string =>
+const removeMatcherHint = ({ message }: SyncExpectationResult): string =>
   message().split('\n').slice(2).join('\n')
 
 const toThrowAPIError = async (
@@ -47,7 +47,7 @@ const toThrowAPIError = async (
   received: Promise<unknown>,
   code: RESTJSONErrorCodes
 ): Promise<jest.CustomMatcherResult> => {
-  const {toBeInstanceOf, toMatchObject} = getMatchers() as unknown as Record<
+  const { toBeInstanceOf, toMatchObject } = getMatchers() as unknown as Record<
     'toBeInstanceOf' | 'toMatchObject',
     (
       this: jest.MatcherContext,
@@ -56,9 +56,9 @@ const toThrowAPIError = async (
     ) => SyncExpectationResult
   >
 
-  const {isNot, promise, utils} = context
+  const { isNot, promise, utils } = context
   const matcherHint = (): string =>
-    `${utils.matcherHint(name, 'promise', 'code', {isNot, promise})}
+    `${utils.matcherHint(name, 'promise', 'code', { isNot, promise })}
 `
 
   try {
@@ -66,9 +66,8 @@ const toThrowAPIError = async (
     return {
       pass: false,
       message: (): string => `${matcherHint()}
-Expected: promise to reject to a Discord API ${form ? 'form ' : ''}error${
-        form ? '' : ` with code ${code}`
-      }
+Expected: promise to reject to a Discord API ${form ? 'form ' : ''}error${form ? '' : ` with code ${code}`
+        }
 Received: resolved with ${utils.printReceived(result)}`
     }
   } catch (error: unknown) {
@@ -88,7 +87,7 @@ ${removeMatcherHint(instanceOfResult)}`
       }
     }
 
-    const matchObjectInput: Partial<Discord.DiscordAPIError> = {code}
+    const matchObjectInput: Partial<Discord.DiscordAPIError> = { code }
     const matchObjectResult = toMatchObject.call(
       context,
       error,
@@ -107,7 +106,7 @@ expect.extend({
     this: jest.MatcherContext,
     received: Promise<unknown>
   ): Promise<jest.CustomMatcherResult> {
-    const {isNot, promise, utils} = this
+    const { isNot, promise, utils } = this
 
     let result: unknown
     let pass: boolean
@@ -125,7 +124,7 @@ expect.extend({
         'toResolve',
         'promise',
         undefined,
-        {isNot, promise}
+        { isNot, promise }
       )}
 
 Expected: promise ${isNot ? 'not ' : ''}to resolve
@@ -138,7 +137,7 @@ Received: ${pass ? 'resolved' : 'rejected'} with ${utils.printReceived(result)}`
     received: Map<K, V>,
     expectedEntries: Iterable<readonly [K, V]>
   ) {
-    const {isNot, promise, utils} = this
+    const { isNot, promise, utils } = this
     const expected = new Map(expectedEntries)
 
     const pass = ((): boolean => {
@@ -159,7 +158,7 @@ Received: ${pass ? 'resolved' : 'rejected'} with ${utils.printReceived(result)}`
         'toStrictEqualMapEntries',
         undefined,
         'expectedEntries',
-        {isNot, promise}
+        { isNot, promise }
       )}
 
 Expected: ${pass ? 'not ' : ''}${utils.printExpected(expected)}
@@ -172,13 +171,13 @@ Received: ${utils.printReceived(received)}`
     received: Discord.BitField<S, N> | undefined,
     bits: Discord.BitFieldResolvable<S, N>
   ): jest.CustomMatcherResult {
-    const {isNot, promise, utils} = this
+    const { isNot, promise, utils } = this
     const matcherHint = (): string =>
       `${utils.matcherHint('toEqualBitfield', 'received', 'expected', {
         isNot,
         promise,
         ...(received instanceof Discord.Permissions
-          ? {comment: 'Not checking admin'}
+          ? { comment: 'Not checking admin' }
           : {})
       })}
 
@@ -187,11 +186,10 @@ Received: ${utils.printReceived(received)}`
       return {
         pass: false,
         message: (): string => `${matcherHint()}
-Expected: ${utils.printExpected(bits)}${
-          bits instanceof Discord.BitField
+Expected: ${utils.printExpected(bits)}${bits instanceof Discord.BitField
             ? ` (${utils.printExpected(bits.toArray())})`
             : ''
-        }
+          }
 Received: ${utils.printReceived(received)}`
       }
     }
@@ -204,18 +202,17 @@ Received: ${utils.printReceived(received)}`
         `${matcherHint()}
 Expected: ${isNot ? 'not ' : ''}${utils.printExpected(expected.bitfield)}
 Received: ${utils.printReceived(received.bitfield)}
-${
-  pass
-    ? `Flags: ${utils.stringify(expected.toArray())}`
-    : utils.printDiffOrStringify(
-        expected.toArray(false),
-        // Don't check admin for Permissions
-        received.toArray(false),
-        'Expected flags',
-        'Received flags',
-        false
-      )
-}`
+${pass
+          ? `Flags: ${utils.stringify(expected.toArray())}`
+          : utils.printDiffOrStringify(
+            expected.toArray(false),
+            // Don't check admin for Permissions
+            received.toArray(false),
+            'Expected flags',
+            'Received flags',
+            false
+          )
+        }`
     }
   },
 

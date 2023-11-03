@@ -6,6 +6,8 @@
     "types": ["node"],
     "esModuleInterop": true,
     "declaration": true,
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "allowImportingTsExtensions": true,
+    "emitDeclarationOnly": true
   },
 }

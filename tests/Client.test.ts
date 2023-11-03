@@ -1,11 +1,11 @@
 import * as Discord from 'discord.js'
 import * as DM from '../src'
-import type {MatchObjectGuild} from './utils'
+import type { MatchObjectGuild } from './utils.ts';
 import './matchers'
 
 describe('mockClient', () => {
   test('ready event is emitted', async () => {
-    const client = new Discord.Client({intents: []})
+    const client = new Discord.Client({ intents: [] })
     const promise = new Promise<void>(resolve => {
       client.on('ready', () => resolve())
     })
@@ -17,14 +17,14 @@ describe('mockClient', () => {
     const userId = '0'
     const id1 = '1'
     const id2 = '2'
-    const backend = new DM.Backend({guilds: [{}]}) // guild without bot
-    const app = backend.addApplication({bot: {id: userId}})
+    const backend = new DM.Backend({ guilds: [{}] }) // guild without bot
+    const app = backend.addApplication({ bot: { id: userId } })
     backend
-      .addGuildWithBot({id: id1}, {}, app)
-      .addGuildWithBot({id: id2}, {}, app)
+      .addGuildWithBot({ id: id1 }, {}, app)
+      .addGuildWithBot({ id: id2 }, {}, app)
 
     test('are emitted with GUILDS intent', async () => {
-      const client = new Discord.Client({intents: ['GUILDS']})
+      const client = new Discord.Client({ intents: ['GUILDS'] })
       const emittedGuilds = new Promise<ReadonlySet<Discord.Guild>>(resolve => {
         const guilds = new Set<Discord.Guild>()
         client.on('guildCreate', guild => {
@@ -35,17 +35,17 @@ describe('mockClient', () => {
       DM.mockClient(client, backend, app.id)
       await expect(emittedGuilds).resolves.toEqual(
         new Set([
-          expect.objectContaining<MatchObjectGuild>({id: id1}),
-          expect.objectContaining<MatchObjectGuild>({id: id2})
+          expect.objectContaining<MatchObjectGuild>({ id: id1 }),
+          expect.objectContaining<MatchObjectGuild>({ id: id2 })
         ])
       )
     })
 
     test('not emitted without GUILDS intent', async () => {
-      const client = new Discord.Client({intents: []})
+      const client = new Discord.Client({ intents: [] })
       const promise = new Promise<void>((resolve, reject) => {
         setTimeout(resolve, 500)
-        client.on('guildCreate', ({id}) => {
+        client.on('guildCreate', ({ id }) => {
           reject(new Error(`guild create event fired with guild with id ${id}`))
         })
       })

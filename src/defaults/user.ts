@@ -1,7 +1,13 @@
-import {snowflake} from '../utils'
-import {createDefaults as d} from './utils'
-import type {User, PartialDeep} from '../types'
-import type {RemoveUndefined, RequireKeys} from '../utils'
+import { snowflake } from '../utils.ts';
+import { createDefaults as d } from './utils.ts';
+import type {
+  User,
+  PartialDeep
+} from '../types/index.ts';
+import type {
+  RemoveUndefined,
+  RequireKeys
+} from '../utils.ts';
 
 const discriminatorMap = new Map<string, number>()
 

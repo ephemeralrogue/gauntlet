@@ -8,9 +8,13 @@ import {
   IntegrationExpireBehavior,
   PermissionFlagsBits,
   WebhookType
-} from 'discord-api-types/v9'
-import {ChangeOverwriteType} from '../types/patches'
-import {omit, removeUndefined, snowflake} from '../utils'
+} from 'discord-api-types/v9';
+import { ChangeOverwriteType } from '../types/patches.ts';
+import {
+  omit,
+  removeUndefined,
+  snowflake
+} from '../utils.ts';
 import {
   DEFAULT_CHANNEL_NAME,
   DEFAULT_CUSTOM_EMOJI_NAME,
@@ -26,9 +30,9 @@ import {
   DEFAULT_STICKER_NAME,
   DEFAULT_THREAD_AUTO_ARCHIVE_DURATION,
   DEFAULT_WEBHOOK_NAME
-} from './constants'
-import {createDefaults as d} from './utils'
-import type {RemoveUndefined, RequireKeys} from '../utils'
+} from './constants.ts';
+import { createDefaults as d } from './utils.ts';
+import type { RemoveUndefined, RequireKeys } from '../utils.ts';
 import type {
   AuditLogChange,
   AuditLogChangeKeyId,
@@ -37,7 +41,7 @@ import type {
   AuditLogOptions,
   PartialDeep,
   Snowflake
-} from '../types'
+} from '../types/index.ts';
 
 const overwriteTypeChangeToOptions: Readonly<
   Record<ChangeOverwriteType, AuditLogOptionsType>
@@ -80,7 +84,7 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
   ): AuditLogEntry => ({
     ...withTarget(),
     ...changes(..._changes),
-    ...(options ? {options} : {})
+    ...(options ? { options } : {})
   })
 
   const targetAndChangesNoOptions = (
@@ -98,8 +102,8 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
   ): AuditLogEntry => ({
     ...base,
     target_id: null,
-    ...(_changes.length ? changes(..._changes) : {undefined}),
-    ...(options ? {options} : {})
+    ...(_changes.length ? changes(..._changes) : { undefined }),
+    ...(options ? { options } : {})
   })
 
   const noTargetOrOptions = (
@@ -124,11 +128,11 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
     case AuditLogEvent.ChannelDelete:
       return createOrDelete(AuditLogEvent.ChannelCreate, key =>
         targetAndChangesNoOptions(
-          {key: 'name', [key]: DEFAULT_CHANNEL_NAME},
-          {key: 'type', [key]: ChannelType.GuildText},
-          {key: 'permission_overwrites', [key]: []},
-          {key: 'nsfw', [key]: false},
-          {key: 'rate_limit_per_user', [key]: 0}
+          { key: 'name', [key]: DEFAULT_CHANNEL_NAME },
+          { key: 'type', [key]: ChannelType.GuildText },
+          { key: 'permission_overwrites', [key]: [] },
+          { key: 'nsfw', [key]: false },
+          { key: 'rate_limit_per_user', [key]: 0 }
         )
       )
 
@@ -169,17 +173,17 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
           id,
           type,
           ...(type === AuditLogOptionsType.Role
-            ? {role_name: base.options?.role_name ?? DEFAULT_ROLE_NAME}
+            ? { role_name: base.options?.role_name ?? DEFAULT_ROLE_NAME }
             : {})
         },
         {
           key: 'allow',
           ...(base.action_type === AuditLogEvent.ChannelOverwriteCreate
             ? {}
-            : {old_value: '0'}),
+            : { old_value: '0' }),
           ...(base.action_type === AuditLogEvent.ChannelOverwriteDelete
             ? {}
-            : {new_value: PermissionFlagsBits.ViewChannel.toString()})
+            : { new_value: PermissionFlagsBits.ViewChannel.toString() })
         }
       )
     }
@@ -207,7 +211,7 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
     case AuditLogEvent.MemberRoleUpdate:
       return targetAndChangesNoOptions({
         key: '$add',
-        new_value: [{id: snowflake(), name: DEFAULT_ROLE_NAME}]
+        new_value: [{ id: snowflake(), name: DEFAULT_ROLE_NAME }]
       })
 
     case AuditLogEvent.MemberMove:
@@ -218,17 +222,17 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
       })
 
     case AuditLogEvent.MemberDisconnect:
-      return noTarget({count: '1', ...base.options})
+      return noTarget({ count: '1', ...base.options })
 
     case AuditLogEvent.RoleCreate:
     case AuditLogEvent.RoleDelete:
       return createOrDelete(AuditLogEvent.RoleCreate, key =>
         targetAndChangesNoOptions(
-          {key: 'name', [key]: DEFAULT_ROLE_NAME},
-          {key: 'permissions', [key]: DEFAULT_PERMISSIONS_STRING},
-          {key: 'color', [key]: 0},
-          {key: 'hoist', [key]: false},
-          {key: 'mentionable', [key]: false}
+          { key: 'name', [key]: DEFAULT_ROLE_NAME },
+          { key: 'permissions', [key]: DEFAULT_PERMISSIONS_STRING },
+          { key: 'color', [key]: 0 },
+          { key: 'hoist', [key]: false },
+          { key: 'mentionable', [key]: false }
         )
       )
 
@@ -243,26 +247,26 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
     case AuditLogEvent.InviteDelete:
       return createOrDelete(AuditLogEvent.InviteCreate, key =>
         noTargetOrOptions(
-          {key: 'code', [key]: 'aaaaaaaa'},
-          {key: 'channel_id', [key]: snowflake()},
-          {key: 'inviter_id', [key]: snowflake()},
-          {key: 'uses', [key]: 0},
-          {key: 'max_uses', [key]: 0},
-          {key: 'max_age', [key]: 86_400},
-          {key: 'temporary', [key]: false}
+          { key: 'code', [key]: 'aaaaaaaa' },
+          { key: 'channel_id', [key]: snowflake() },
+          { key: 'inviter_id', [key]: snowflake() },
+          { key: 'uses', [key]: 0 },
+          { key: 'max_uses', [key]: 0 },
+          { key: 'max_age', [key]: 86_400 },
+          { key: 'temporary', [key]: false }
         )
       )
 
     case AuditLogEvent.InviteUpdate:
-      return noTargetOrOptions({key: 'max_uses', old_value: 0, new_value: 1})
+      return noTargetOrOptions({ key: 'max_uses', old_value: 0, new_value: 1 })
 
     case AuditLogEvent.WebhookCreate:
     case AuditLogEvent.WebhookDelete:
       return createOrDelete(AuditLogEvent.WebhookCreate, key =>
         targetAndChangesNoOptions(
-          {key: 'type', [key]: WebhookType.Incoming},
-          {key: 'channel_id', [key]: snowflake()},
-          {key: 'name', [key]: DEFAULT_WEBHOOK_NAME}
+          { key: 'type', [key]: WebhookType.Incoming },
+          { key: 'channel_id', [key]: snowflake() },
+          { key: 'name', [key]: DEFAULT_WEBHOOK_NAME }
         )
       )
 
@@ -280,17 +284,17 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
         key: 'name',
         ...(base.action_type === AuditLogEvent.EmojiCreate
           ? {}
-          : {old_value: 'emoji_1'}),
+          : { old_value: 'emoji_1' }),
         ...(base.action_type === AuditLogEvent.EmojiDelete
           ? {}
-          : {new_value: DEFAULT_CUSTOM_EMOJI_NAME})
+          : { new_value: DEFAULT_CUSTOM_EMOJI_NAME })
       })
 
     case AuditLogEvent.MessageDelete:
     case AuditLogEvent.MessageBulkDelete:
       return targetNoChanges({
         ...(base.action_type === AuditLogEvent.MessageDelete
-          ? {channel_id: snowflake()}
+          ? { channel_id: snowflake() }
           : {}),
         count: '2',
         ...base.options
@@ -308,11 +312,11 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
     case AuditLogEvent.IntegrationDelete:
       return createOrDelete(AuditLogEvent.IntegrationCreate, key =>
         targetAndChangesNoOptions(
-          {key: 'name', [key]: DEFAULT_INTEGRATION_NAME},
-          {key: 'type', [key]: 'twitch'},
-          {key: 'enable_emoticons', [key]: false},
-          {key: 'expire_behavior', [key]: IntegrationExpireBehavior.RemoveRole},
-          {key: 'expire_grace_period', [key]: 1}
+          { key: 'name', [key]: DEFAULT_INTEGRATION_NAME },
+          { key: 'type', [key]: 'twitch' },
+          { key: 'enable_emoticons', [key]: false },
+          { key: 'expire_behavior', [key]: IntegrationExpireBehavior.RemoveRole },
+          { key: 'expire_grace_period', [key]: 1 }
         )
       )
 
@@ -327,7 +331,7 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
     case AuditLogEvent.StageInstanceDelete:
       return createOrDelete(base.action_type, key =>
         targetAndChanges(
-          {channel_id: snowflake()},
+          { channel_id: snowflake() },
           {
             key: 'topic',
             [key]: DEFAULT_STAGE_TOPIC
@@ -336,7 +340,7 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
       )
     case AuditLogEvent.StageInstanceUpdate:
       return targetAndChanges(
-        {channel_id: snowflake()},
+        { channel_id: snowflake() },
         {
           key: 'topic',
           old_value: DEFAULT_STAGE_TOPIC,
@@ -348,8 +352,8 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
     case AuditLogEvent.StickerDelete:
       return createOrDelete(base.action_type, key =>
         targetAndChangesNoOptions(
-          {key: 'name', [key]: DEFAULT_STICKER_NAME},
-          {key: 'description', [key]: DEFAULT_STICKER_DESCRIPTION}
+          { key: 'name', [key]: DEFAULT_STICKER_NAME },
+          { key: 'description', [key]: DEFAULT_STICKER_DESCRIPTION }
         )
       )
     case AuditLogEvent.StickerUpdate:
@@ -363,17 +367,17 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
     case AuditLogEvent.GuildScheduledEventDelete:
       return createOrDelete(base.action_type, key =>
         targetAndChangesNoOptions(
-          {key: 'name', [key]: 'guild scheduled event name'},
+          { key: 'name', [key]: 'guild scheduled event name' },
           {
             key: 'privacy_level',
             [key]: GuildScheduledEventPrivacyLevel.GuildOnly
           },
-          {key: 'status', [key]: GuildScheduledEventStatus.Scheduled},
+          { key: 'status', [key]: GuildScheduledEventStatus.Scheduled },
           {
             key: 'entity_type',
             [key]: GuildScheduledEventEntityType.StageInstance
           },
-          {key: 'channel_id', [key]: snowflake()}
+          { key: 'channel_id', [key]: snowflake() }
         )
       )
     case AuditLogEvent.GuildScheduledEventUpdate:
@@ -387,15 +391,15 @@ export const auditLogEntry = d<AuditLogEntry>((entry): AuditLogEntry => {
     case AuditLogEvent.ThreadDelete:
       return createOrDelete(base.action_type, key =>
         targetAndChangesNoOptions(
-          {key: 'name', [key]: DEFAULT_CHANNEL_NAME},
-          {key: 'type', [key]: ChannelType.GuildPublicThread},
-          {key: 'archived', [key]: false},
-          {key: 'locked', [key]: false},
+          { key: 'name', [key]: DEFAULT_CHANNEL_NAME },
+          { key: 'type', [key]: ChannelType.GuildPublicThread },
+          { key: 'archived', [key]: false },
+          { key: 'locked', [key]: false },
           {
             key: 'auto_archive_duration',
             [key]: DEFAULT_THREAD_AUTO_ARCHIVE_DURATION
           },
-          {key: 'rate_limit_per_user', [key]: false}
+          { key: 'rate_limit_per_user', [key]: false }
         )
       )
     case AuditLogEvent.ThreadUpdate:

@@ -1,7 +1,7 @@
-import * as convert from '../convert'
-import type {RESTGetAPIOAuth2CurrentApplicationResult} from 'discord-api-types/v9'
-import type {Backend} from '../Backend'
-import type {Snowflake} from '../types'
+import * as convert from '../convert.ts';
+import type { RESTGetAPIOAuth2CurrentApplicationResult } from 'discord-api-types/v9'
+import type { Backend } from '../Backend.ts';
+import type { Snowflake } from '../types/index.ts';
 
 export interface OAuth2 {
   authorize: string

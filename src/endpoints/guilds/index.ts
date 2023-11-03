@@ -1,11 +1,15 @@
-import guildsId from './_id'
-import templates from './templates'
-import post from './post'
-import type {Backend, EmitPacket, HasIntents} from '../../Backend'
-import type {Snowflake} from '../../types'
-import type {GuildsFn} from './_id'
-import type {GuildsTemplates} from './templates'
-import type {GuildsPost} from './post'
+import guildsId from './_id/index.ts';
+import templates from './templates.ts';
+import post from './post.ts';
+import type {
+  Backend,
+  EmitPacket,
+  HasIntents
+} from '../../Backend.ts';
+import type { Snowflake } from '../../types/index.ts';
+import type { GuildsFn } from './_id/index.ts';
+import type { GuildsTemplates } from './templates.ts';
+import type { GuildsPost } from './post.ts';
 
 export interface Guilds extends GuildsFn {
   templates: GuildsTemplates

@@ -1,4 +1,4 @@
-import type * as Discord from 'discord.js'
+import type * as Discord from 'discord.js';
 
 // constructor is private
 declare const WebSocketShard: new (

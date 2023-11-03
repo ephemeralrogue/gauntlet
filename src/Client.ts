@@ -4,17 +4,17 @@ import {
   GatewayOpcodes
 } from 'discord-api-types/v9'
 import * as Discord from 'discord.js'
-var {WebSocketShard} = require('discord.js')
+var { WebSocketShard } = require('discord.js')
 
-import {Backend, api} from './Backend'
-import * as convert from './convert'
-import type {ClientOptions} from 'discord.js'
+import { Backend, api } from './Backend.ts';
+import * as convert from './convert.ts';
+import type { ClientOptions } from 'discord.js'
 import type {
   RawClientApplicationData,
   RawUserData
 } from 'discord.js/typings/rawDataTypes'
-import type {EmitPacket, HasIntents} from './Backend'
-import type {Snowflake} from './types'
+import type { EmitPacket, HasIntents } from './Backend.ts';
+import type { Snowflake } from './types/index.ts';
 
 const _mockClient = (
   client: Discord.Client,
@@ -32,7 +32,7 @@ const _mockClient = (
   }
 
   if (appBuild === undefined) {
-    appBuild = backend.addApplication({id: applicationId})
+    appBuild = backend.addApplication({ id: applicationId })
   }
   const app = appBuild;
 
@@ -44,9 +44,9 @@ const _mockClient = (
     // Intents are always resolved
     // https://github.com/discordjs/discord.js/blob/0e40f9b86826ba50aa3840807fb86e1bce6b1c3d/src/client/Client.js#L463
     !!((client.options.intents as number) & intents)
-    
+
   const emitPacket: EmitPacket = (t, d) => {
-    client.ws['handlePacket']({op: GatewayOpcodes.Dispatch, t, d}, shard)
+    client.ws['handlePacket']({ op: GatewayOpcodes.Dispatch, t, d }, shard)
   }
   // Initialise the mocked API. This needs to be done with
   // Object.defineProperty because api is originally a getter
@@ -111,7 +111,7 @@ export class Client extends Discord.Client {
     applicationId?: Snowflake
   ) {
     // Stop the RESTManager from setting an interval
-    super({...options, restSweepInterval: 0})
+    super({ ...options, restSweepInterval: 0 })
 
     _mockClient(this, backend, applicationId)
   }

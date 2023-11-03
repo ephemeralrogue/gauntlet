@@ -1,7 +1,7 @@
-import {DiscordAPIError} from 'discord.js'
-import {RESTJSONErrorCodes} from 'discord-api-types/v9'
-import type {HTTPErrorData} from 'discord.js'
-import type {FormBodyErrors} from './form-body-errors'
+import { DiscordAPIError } from 'discord.js';
+import { RESTJSONErrorCodes } from 'discord-api-types/v9';
+import type { HTTPErrorData } from 'discord.js';
+import type { FormBodyErrors } from './form-body-errors.ts';
 
 /** https://discord.com/developers/docs/topics/opcodes-and-status-codes#json */
 interface APIError {
@@ -41,7 +41,7 @@ export const errors = {
   NON_TEXT_CHANNEL: [
     'Cannot send messages in a non-text channel',
     400,
-    RESTJSONErrorCodes.CannotSendMessagesInVoiceChannel
+    RESTJSONErrorCodes.CannotSendMessagesInNonTextChannel
   ],
   MISSING_PERMISSIONS: [
     'Missing Permissions',
@@ -90,7 +90,7 @@ export const mkRequest = (
   path: string,
   method: Method,
   options: RequestOptions = {}
-): Request => ({path, method, options})
+): Request => ({ path, method, options })
 
 export const error: {
   (
@@ -104,15 +104,15 @@ export const error: {
   [message, status, code]: DiscordError,
   formBodyErrors?: FormBodyErrors
 ) => {
-  const errorObject: APIError = {
-    message,
-    code,
-    ...(formBodyErrors ? {errors: formBodyErrors} : {})
+    const errorObject: APIError = {
+      message,
+      code,
+      ...(formBodyErrors ? { errors: formBodyErrors } : {})
+    }
+    // private ctor
+    throw new (DiscordAPIError as unknown as new (
+      error: unknown,
+      status: number,
+      request: unknown
+    ) => DiscordAPIError)(errorObject, status, request)
   }
-  // private ctor
-  throw new (DiscordAPIError as unknown as new (
-    error: unknown,
-    status: number,
-    request: unknown
-  ) => DiscordAPIError)(errorObject, status, request)
-}

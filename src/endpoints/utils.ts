@@ -1,5 +1,5 @@
-import {PermissionFlagsBits} from 'discord-api-types/v9'
-import type {Backend} from '../Backend'
+import { PermissionFlagsBits } from 'discord-api-types/v9'
+import type { Backend } from '../Backend.ts';
 import type {
   Channel,
   Guild,
@@ -9,11 +9,11 @@ import type {
   Overwrite,
   Snowflake,
   TextChannel
-} from '../types'
+} from '../types/index.ts';
 
 const applyOverwrite = (
   permissions: bigint,
-  {allow, deny}: Pick<Overwrite, 'allow' | 'deny'>
+  { allow, deny }: Pick<Overwrite, 'allow' | 'deny'>
 ): bigint => (permissions & ~deny) | allow
 
 /**
@@ -32,7 +32,7 @@ export const getPermissions = (
 ): bigint => {
   const everyoneRole = guild.roles.get(guild.id)!
   const memberRoles = new Set(member.roles)
-  const roles = guild.roles.filter(({id}) => memberRoles.has(id))
+  const roles = guild.roles.filter(({ id }) => memberRoles.has(id))
   const basePerms = roles.reduce(
     (acc, role) => acc | role.permissions,
     everyoneRole.permissions
@@ -57,7 +57,7 @@ export const getPermissions = (
     everyoneOverwrite
       ? applyOverwrite(basePerms, everyoneOverwrite)
       : basePerms,
-    {allow, deny}
+    { allow, deny }
   )
 
   const memberOverwrite = permissionOverwrites.get(member.id)
@@ -78,13 +78,13 @@ export const hasPermissions = (x: bigint, y: bigint): boolean =>
   x & PermissionFlagsBits.Administrator ? true : !!(x & y)
 
 export const getChannel =
-  ({dmChannels, guilds}: Backend) =>
-  (id: Snowflake): [guild: Guild | undefined, channel: Channel | undefined] => {
-    const dmChannel = dmChannels.get(id)
-    if (dmChannel) return [undefined, dmChannel]
-    for (const [, guild] of guilds) {
-      const channel = guild.channels.get(id)
-      if (channel) return [guild, channel]
+  ({ dmChannels, guilds }: Backend) =>
+    (id: Snowflake): [guild: Guild | undefined, channel: Channel | undefined] => {
+      const dmChannel = dmChannels.get(id)
+      if (dmChannel) return [undefined, dmChannel]
+      for (const [, guild] of guilds) {
+        const channel = guild.channels.get(id)
+        if (channel) return [guild, channel]
+      }
+      return [undefined, undefined]
     }
-    return [undefined, undefined]
-  }

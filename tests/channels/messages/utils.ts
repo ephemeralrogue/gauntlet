@@ -1,5 +1,5 @@
-import assert from 'assert'
-import type * as Discord from 'discord.js'
+import assert from 'assert';
+import type * as Discord from 'discord.js';
 
 export const getChannel = (client: Discord.Client): Discord.GuildTextBasedChannel => {
   const guild = client.guilds.cache.first()

@@ -1,8 +1,0 @@
-rules:
-  # Easier to export from index.ts
-  import/prefer-default-export: 0
-overrides:
-- files: index.ts
-  rules:
-    # Exporting everything
-    import/max-dependencies: 0

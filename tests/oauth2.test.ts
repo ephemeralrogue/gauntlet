@@ -1,7 +1,11 @@
 import * as Discord from 'discord.js'
 import * as DM from '../src'
-import {expectNotToBeNull, withClient, withClientF} from './utils'
-import './matchers'
+import {
+  expectNotToBeNull,
+  withClient,
+  withClientF
+} from './utils.ts';
+import './matchers.ts';
 
 describe('fetchApplication', () => {
   test(
@@ -28,8 +32,8 @@ describe('fetchApplication', () => {
       },
       {
         backend: new DM.Backend({
-          applications: [{id: applicationId, name, owner_id: ownerId}],
-          users: [{id: ownerId, username: ownerUsername}]
+          applications: [{ id: applicationId, name, owner_id: ownerId }],
+          users: [{ id: ownerId, username: ownerUsername }]
         }),
         applicationId
       }

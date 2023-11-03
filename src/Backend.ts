@@ -1,8 +1,18 @@
-import {Collection} from 'discord.js'
-import * as defaults from './defaults'
-import * as endpoints from './endpoints'
-import {clone, filterMap, resolveCollectionId, toCollection} from './utils'
-import type {Channels, Guilds, OAuth2, Voice} from './endpoints'
+import { Collection } from 'discord.js';
+import * as defaults from './defaults/index.ts';
+import * as endpoints from './endpoints/index.ts';
+import {
+  clone,
+  filterMap,
+  resolveCollectionId,
+  toCollection
+} from './utils.ts';
+import type {
+  Channels,
+  Guilds,
+  OAuth2,
+  Voice
+} from './endpoints/index.ts';
 import type {
   DMChannel,
   FullApplication,
@@ -19,8 +29,8 @@ import type {
   StandardSticker,
   User,
   VoiceRegion
-} from './types'
-import type {CollectionResolvableId} from './utils'
+} from './types/index.ts';
+import type { CollectionResolvableId } from './utils.ts';
 
 interface API {
   readonly channels: Channels
@@ -31,7 +41,7 @@ interface API {
 
 const userEntry = (id: Snowflake): [Snowflake, User] => [
   id,
-  defaults.user({id})
+  defaults.user({ id })
 ]
 
 export class Backend {
@@ -91,19 +101,19 @@ export class Backend {
       new Collection([
         // DM channel recipients
         ...this.dmChannels
-          .filter(({recipient_id}) => !resolvedUsers.has(recipient_id))
-          .map(({recipient_id}) => userEntry(recipient_id)),
+          .filter(({ recipient_id }) => !resolvedUsers.has(recipient_id))
+          .map(({ recipient_id }) => userEntry(recipient_id)),
         // Application owners
         ...resolvedApps
           .filter(
-            ({owner_id}) =>
+            ({ owner_id }) =>
               owner_id !== undefined && !resolvedUsers.has(owner_id)
           )
-          .map(({owner_id}) => userEntry(owner_id!))
+          .map(({ owner_id }) => userEntry(owner_id!))
       ])
     )
 
-    for (const [, message] of this.dmChannels.flatMap(({messages}) => messages))
+    for (const [, message] of this.dmChannels.flatMap(({ messages }) => messages))
       this.#addMissingFromMessage(message)
     for (const [, guild] of this.guilds) this.#addMissingFromGuild(guild)
   }
@@ -111,20 +121,20 @@ export class Backend {
   /** @internal */
   get allUsers(): SnowflakeCollection<User> {
     return this.users.concat(
-      toCollection(this.applications.map(({bot}) => bot))
+      toCollection(this.applications.map(({ bot }) => bot))
     )
   }
 
   /** @internal */
   get guildEmojis(): SnowflakeCollection<GuildEmoji> {
-    return this.guilds.flatMap(({emojis}) => emojis)
+    return this.guilds.flatMap(({ emojis }) => emojis)
   }
 
   addApplication(application?: PartialDeep<FullApplication>): FullApplication {
     const app = defaults.fullApplication(application)
     this.applications.set(app.id, app)
     if (app.owner_id !== undefined && !this.users.has(app.owner_id))
-      this.users.set(app.owner_id, defaults.user({id: app.owner_id}))
+      this.users.set(app.owner_id, defaults.user({ id: app.owner_id }))
     return app
   }
 
@@ -143,7 +153,7 @@ export class Backend {
     if (!g.members.has(app.bot.id)) {
       g.members.set(
         app.bot.id,
-        defaults.guildMember({...botGuildMember, id: app.bot.id})
+        defaults.guildMember({ ...botGuildMember, id: app.bot.id })
       )
     }
     this.guilds.set(g.id, g)
@@ -170,7 +180,7 @@ export class Backend {
     stickers
   }: Message): void {
     if (!this.allUsers.has(author_id))
-      this.users.set(author_id, defaults.user({id: author_id}))
+      this.users.set(author_id, defaults.user({ id: author_id }))
 
     // Applications
     if (
@@ -179,20 +189,20 @@ export class Backend {
     ) {
       this.applications.set(
         application_id,
-        defaults.fullApplication({id: application_id})
+        defaults.fullApplication({ id: application_id })
       )
     }
 
     // Channels in channel mentions
-    for (const {id, guild_id} of mention_channels) {
+    for (const { id, guild_id } of mention_channels) {
       const existing = this.guilds.get(guild_id)
       if (!existing || !existing.channels.has(id)) {
-        const guild = existing ?? defaults.guild({id: guild_id})
+        const guild = existing ?? defaults.guild({ id: guild_id })
         this.guilds.set(guild_id, {
           ...guild,
           channels: guild.channels.has(id)
             ? guild.channels
-            : guild.channels.set(id, defaults.guildChannel({id}))
+            : guild.channels.set(id, defaults.guildChannel({ id }))
         })
       }
     }
@@ -200,7 +210,7 @@ export class Backend {
     // Stickers from messages
     for (const [id, guildId] of stickers) {
       if (guildId === undefined && !this.standardStickers.has(id))
-        this.standardStickers.set(id, defaults.standardSticker({id}))
+        this.standardStickers.set(id, defaults.standardSticker({ id }))
     }
   }
 
@@ -222,12 +232,12 @@ export class Backend {
     // Users from guild owner, emojis, members, presences, template creators, voice states
     for (const id of [
       owner_id,
-      ...emojis.map(({user_id}) => user_id),
+      ...emojis.map(({ user_id }) => user_id),
       ...members.map(m => m.id),
-      ...presences.map(({user_id}) => user_id),
+      ...presences.map(({ user_id }) => user_id),
       ...(template ? [template.creator_id] : [])
     ])
-      if (!this.users.has(id)) this.users.set(id, defaults.user({id}))
+      if (!this.users.has(id)) this.users.set(id, defaults.user({ id }))
 
     // Applications from application_ids, integrations, webhooks
     for (const id of [
@@ -235,15 +245,15 @@ export class Backend {
       ...[...channels.values()].flatMap(channel =>
         'webhooks' in channel
           ? filterMap(
-              channel.webhooks,
-              hook => hook.application_id ?? undefined
-            )
+            channel.webhooks,
+            hook => hook.application_id ?? undefined
+          )
           : []
       ),
       ...integration_ids
     ]) {
       if (!this.applications.has(id))
-        this.applications.set(id, defaults.fullApplication({id}))
+        this.applications.set(id, defaults.fullApplication({ id }))
     }
   }
 }
@@ -252,7 +262,7 @@ export class Backend {
 type ExtractGatewayPayload<
   E extends GatewayDispatchEvents,
   P extends GatewayDispatchPayload = GatewayDispatchPayload
-> = P extends {t: infer T} ? (T extends E ? any : any) : any
+> = P extends { t: infer T } ? (T extends E ? any : any) : any
 export type EmitPacket = <T extends GatewayDispatchEvents>(
   t: T,
   d: ExtractGatewayPayload<T>
